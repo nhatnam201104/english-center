@@ -1,0 +1,301 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * =====================
+ * ENUMS
+ * =====================
+ */
+
+enum AdmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum LearningMode {
+  ONLINE
+  OFFLINE
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum ScoreType {
+  ORAL
+  FIFTEEN_MIN
+  MIDTERM
+  FINAL
+}
+
+enum ClassStatus {
+  OPEN
+  FULL
+  CLOSED
+}
+
+enum AIRequestStatus {
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+/**
+ * =====================
+ * AUTH & ROLES
+ * =====================
+ */
+
+model Role {
+  id       Int    @id @default(autoincrement())
+  roleName String @unique
+  users    User[]
+}
+
+model User {
+  id                  Int      @id @default(autoincrement())
+  phone               String   @unique
+  fullName            String
+  password            String
+  roleId              Int
+  refreshToken        String?  @db.Text
+  expiredRefreshToken String?  @db.Text
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+
+  role    Role        @relation(fields: [roleId], references: [id])
+  parent  Parent?
+  teacher Teacher?
+  student Student?
+  aiChats AIChatLog[]
+}
+
+/**
+ * =====================
+ * PROFILES
+ * =====================
+ */
+
+model Parent {
+  id       Int       @id @default(autoincrement())
+  userId   Int       @unique
+  address  String?
+  user     User      @relation(fields: [userId], references: [id])
+  students Student[]
+}
+
+model Teacher {
+  id             Int              @id @default(autoincrement())
+  userId         Int              @unique
+  specialization String?
+  user           User             @relation(fields: [userId], references: [id])
+  schedules      CourseSchedule[]
+}
+
+model Student {
+  id                Int          @id @default(autoincrement())
+  userId            Int          @unique
+  parentId          Int?
+  classId           Int?
+  dob               DateTime
+  cccd              String       @unique
+  gender            String
+  entranceExamScore Float?
+  user              User         @relation(fields: [userId], references: [id])
+  parent            Parent?      @relation(fields: [parentId], references: [id])
+  class             Class?       @relation(fields: [classId], references: [id])
+  attendance        Attendance[]
+  grades            Grade[]
+}
+
+/**
+ * =====================
+ * ADMISSIONS
+ * =====================
+ */
+
+model Admission {
+  id Int @id @default(autoincrement())
+
+  cccd        String
+  phone       String
+  email       String
+  documentUrl String?
+  status      AdmissionStatus @default(PENDING)
+
+  entranceExam EntranceExam?
+}
+
+model EntranceExam {
+  id                    Int      @id @default(autoincrement())
+  admissionId           Int      @unique
+  examDate              DateTime
+  score                 Float?
+  aiRecommendationClass String?
+
+  admission Admission @relation(fields: [admissionId], references: [id])
+}
+
+/**
+ * =====================
+ * ACADEMICS
+ * =====================
+ */
+
+model Course {
+  id           Int          @id @default(autoincrement())
+  courseCode   String       @unique
+  courseName   String
+  programId    Int?
+  learningMode LearningMode
+  level        CourseLevel
+  tuitionFee   Decimal      @db.Decimal(10, 2)
+  maxStudents  Int
+  description  String?
+  status       String
+  createdAt    DateTime     @default(now())
+
+  plans     CoursePlan[]
+  classes   Class[]
+  schedules CourseSchedule[]
+  skills    CourseSkill[]
+}
+
+model CourseSkill {
+  courseId Int
+  skillId  Int
+
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@id([courseId, skillId])
+}
+
+model CoursePlan {
+  id               Int      @id @default(autoincrement())
+  courseId         Int
+  startDate        DateTime
+  sessionsPerWeek  Int
+  hoursPerSession  Decimal  @db.Decimal(4, 2)
+  totalSessions    Int
+  totalHours       Decimal  @db.Decimal(6, 2)
+  estimatedEndDate DateTime
+  createdAt        DateTime @default(now())
+
+  course Course          @relation(fields: [courseId], references: [id])
+  days   CoursePlanDay[]
+}
+
+model CoursePlanDay {
+  id        Int @id @default(autoincrement())
+  planId    Int
+  dayOfWeek Int
+
+  plan CoursePlan @relation(fields: [planId], references: [id])
+}
+
+model CourseSchedule {
+  id        Int      @id @default(autoincrement())
+  courseId  Int
+  teacherId Int
+  createdAt DateTime @default(now())
+
+  course     Course       @relation(fields: [courseId], references: [id])
+  teacher    Teacher      @relation(fields: [teacherId], references: [id])
+  attendance Attendance[]
+}
+
+model Class {
+  id          Int         @id @default(autoincrement())
+  courseId    Int
+  meetingLink String?
+  location    String?
+  maxStudents Int
+  status      ClassStatus
+  createdAt   DateTime    @default(now())
+
+  course   Course    @relation(fields: [courseId], references: [id])
+  students Student[]
+}
+
+/**
+ * =====================
+ * ATTENDANCE & GRADES
+ * =====================
+ */
+
+model Attendance {
+  id         Int              @id @default(autoincrement())
+  studentId  Int
+  scheduleId Int
+  date       DateTime
+  status     AttendanceStatus
+  note       String?
+
+  student  Student        @relation(fields: [studentId], references: [id])
+  schedule CourseSchedule @relation(fields: [scheduleId], references: [id])
+}
+
+model Grade {
+  id         Int       @id @default(autoincrement())
+  studentId  Int
+  subjectId  Int
+  scoreType  ScoreType
+  scoreValue Float
+  weight     Float
+
+  student Student @relation(fields: [studentId], references: [id])
+}
+
+/**
+ * =====================
+ * QR & AI
+ * =====================
+ */
+
+model QRCode {
+  id          Int      @id @default(autoincrement())
+  sessionId   Int
+  qrCodeData  String   @unique
+  generatedAt DateTime
+  expiresAt   DateTime
+  isActive    Boolean
+}
+
+model AIChatLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  question  String   @db.Text
+  response  String   @db.Text
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AIScheduleRequest {
+  id         Int             @id @default(autoincrement())
+  configData Json
+  status     AIRequestStatus
+  resultUrl  String?
+  createdAt  DateTime        @default(now())
+}

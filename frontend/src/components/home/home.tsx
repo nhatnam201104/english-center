@@ -1,9 +1,9 @@
+import { useAuthStore } from "../../stores/auth.store";
+
 const Home = () => {
-    return (
-        <div>
-            Home Page
-        </div>
-    );
-}
+  const { user } = useAuthStore();
+  console.log("Authenticated user:", user);
+  return <div>Home Page</div>;
+};
 
 export default Home;

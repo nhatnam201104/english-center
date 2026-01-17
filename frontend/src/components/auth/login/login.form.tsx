@@ -2,24 +2,26 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { 
-  Card, 
-  CardBody, 
-  Input, 
-  Button, 
+import {
+  Card,
+  CardBody,
+  Input,
+  Button,
   Typography,
   Spinner,
-  Checkbox
+  Checkbox,
 } from "@material-tailwind/react";
-import { 
-  PhoneIcon,
-  EyeIcon,
-  EyeSlashIcon
-} from "@heroicons/react/24/solid";
-import { loginSchema, type LoginFormData } from "../../../libs/validation/login.schema";
+import { PhoneIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
+import {
+  loginSchema,
+  type LoginFormData,
+} from "../../../libs/validation/login.schema";
+import { loginService } from "../../../services/AuthService";
+import { useAuthStore } from "../../../stores/auth.store";
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const setAuth = useAuthStore((state) => state.setAuth);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,30 +42,25 @@ const LoginForm = () => {
       setIsLoading(true);
       setError(null);
       clearErrors();
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Simulate validation
-      if (data.phone === "0123456789" && data.password === "password") {
+      const payload: LoginFormData = { ...data };
+      const user = await loginService(payload);
+      if (user && user.data) {
         console.log("Login successful!");
-        // Store login info if remember me is checked
-        if (rememberMe) {
-          localStorage.setItem("userToken", "mock-token");
-          localStorage.setItem("userInfo", JSON.stringify({ phone: data.phone }));
-        }
+        // Store user data in Zustand store
+        setAuth(user.data, user.data.token ?? "");
         // Navigate to dashboard or home
         navigate("/");
-      } else {
-        throw new Error("Số điện thoại hoặc mật khẩu không chính xác");
+        return;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Đăng nhập thất bại. Vui lòng thử lại.");
+      // Simulate API call
+      console.error("Login failed:", err);
+      // Simulate validation
+      setError((err as Error).message);
     } finally {
       setIsLoading(false);
     }
   };
-
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -73,11 +70,18 @@ const LoginForm = () => {
       <div className="w-full max-w-md relative z-10">
         {/* Logo and Header */}
         <div className="text-center mb-8">
-          <Typography variant="h2" className="font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-3">
+          <Typography
+            variant="h2"
+            className="font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-3"
+          >
             Chào mừng trở lại
           </Typography>
-          <Typography variant="paragraph" className="text-gray-600 max-w-xs mx-auto">
-            Đăng nhập để truy cập hệ thống tuyển sinh và khám phá cơ hội học tập tuyệt vời
+          <Typography
+            variant="paragraph"
+            className="text-gray-600 max-w-xs mx-auto"
+          >
+            Đăng nhập để truy cập hệ thống tuyển sinh và khám phá cơ hội học tập
+            tuyệt vời
           </Typography>
         </div>
 
@@ -91,11 +95,16 @@ const LoginForm = () => {
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
                       <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
-                        <span className="text-red-600 text-xs font-bold">!</span>
+                        <span className="text-red-600 text-xs font-bold">
+                          !
+                        </span>
                       </div>
                     </div>
                     <div className="flex-1">
-                      <Typography variant="small" className="text-red-800 font-medium">
+                      <Typography
+                        variant="small"
+                        className="text-red-800 font-medium"
+                      >
                         {error}
                       </Typography>
                     </div>
@@ -103,8 +112,18 @@ const LoginForm = () => {
                       onClick={() => setError(null)}
                       className="flex-shrink-0 text-red-400 hover:text-red-600 transition-colors"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -116,7 +135,10 @@ const LoginForm = () => {
             <form onSubmit={handleSubmit(handleLogin)} className="space-y-6">
               {/* Phone Field */}
               <div className="space-y-2">
-                <Typography variant="small" className="font-semibold text-gray-700">
+                <Typography
+                  variant="small"
+                  className="font-semibold text-gray-700"
+                >
                   Số điện thoại
                 </Typography>
                 <div className="relative">
@@ -137,7 +159,11 @@ const LoginForm = () => {
                   </div>
                 </div>
                 {errors.phone && (
-                  <Typography variant="small" color="red" className="flex items-center gap-1 mt-1">
+                  <Typography
+                    variant="small"
+                    color="red"
+                    className="flex items-center gap-1 mt-1"
+                  >
                     {errors.phone.message}
                   </Typography>
                 )}
@@ -145,7 +171,10 @@ const LoginForm = () => {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <Typography variant="small" className="font-semibold text-gray-700">
+                <Typography
+                  variant="small"
+                  className="font-semibold text-gray-700"
+                >
                   Mật khẩu
                 </Typography>
                 <div className="relative">
@@ -175,7 +204,11 @@ const LoginForm = () => {
                   </button>
                 </div>
                 {errors.password && (
-                  <Typography variant="small" color="red" className="flex items-center gap-1 mt-1">
+                  <Typography
+                    variant="small"
+                    color="red"
+                    className="flex items-center gap-1 mt-1"
+                  >
                     {errors.password.message}
                   </Typography>
                 )}

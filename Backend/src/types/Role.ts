@@ -1,0 +1,6 @@
+export enum RoleName {
+  ADMIN = 1,
+  TEACHER = 2,
+  STUDENT = 3,
+  PARENT = 4,
+}
