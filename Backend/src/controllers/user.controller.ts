@@ -1,6 +1,6 @@
 import { CustomResponse } from "../config/response.custom";
 import { Response, Request } from "express";
-import { GetUserRequest } from "../DTOS/User/UserRequest";
+import { GetUserRequest } from "../DTOS/User/user.request";
 import { getAllUsers } from "../services/user.service";
 import { AppError } from "../middleware/errorHandler";
 export const getAllUsersController = async (req: Request, res: Response) => {

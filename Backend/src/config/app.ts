@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { errorHandler, notFound } from "../middleware/errorHandler";
 import { customResponseMiddleware } from "../middleware/customResponseMiddleware";
 import router from "../routes/route";
+import { validate } from "../middleware/validation.middleware";
 
 // Import routes
 
@@ -21,7 +22,7 @@ app.use(
   cors({
     origin: process.env.CLIENT_URL,
     credentials: true,
-  })
+  }),
 ); // Enable CORS
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies

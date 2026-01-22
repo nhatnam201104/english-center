@@ -16,7 +16,7 @@ import {
   loginSchema,
   type LoginFormData,
 } from "../../../libs/validation/login.schema";
-import { loginService } from "../../../services/AuthService";
+import { loginService } from "../../../services/auth.service";
 import { useAuthStore } from "../../../stores/auth.store";
 
 const LoginForm = () => {

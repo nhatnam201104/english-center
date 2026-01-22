@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,289 +10,454 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/**
- * =====================
- * ENUMS
- * =====================
- */
-
-enum AdmissionStatus {
-  PENDING
-  APPROVED
-  REJECTED
+enum EntranceExamType {
+  READING_LISTENING
+  SPEAKING_WRITING
+  ALL
 }
 
-enum LearningMode {
-  ONLINE
-  OFFLINE
+enum RoleName {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
 }
 
-enum CourseLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-}
-
-enum AttendanceStatus {
-  PRESENT
-  ABSENT
-  LATE
-}
-
-enum ScoreType {
-  ORAL
-  FIFTEEN_MIN
-  MIDTERM
-  FINAL
-}
-
-enum ClassStatus {
-  OPEN
-  FULL
-  CLOSED
-}
-
-enum AIRequestStatus {
-  PROCESSING
-  SUCCESS
-  FAILED
-}
-
-/**
- * =====================
- * AUTH & ROLES
- * =====================
- */
-
-model Role {
-  id       Int    @id @default(autoincrement())
-  roleName String @unique
-  users    User[]
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }
 
 model User {
-  id                  Int      @id @default(autoincrement())
-  phone               String   @unique
-  fullName            String
-  password            String
-  roleId              Int
-  refreshToken        String?  @db.Text
-  expiredRefreshToken String?  @db.Text
-  isActive            Boolean  @default(true)
-  createdAt           DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  fullname  String
+  email     String   @unique
+  password  String
+  phone     String   @unique
+  role      RoleName @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  role    Role        @relation(fields: [roleId], references: [id])
-  parent  Parent?
-  teacher Teacher?
-  student Student?
-  aiChats AIChatLog[]
+  teacherInfo TeacherInfo?
+  studentInfo StudentInfo?
+  parentInfo  ParentInfo?
 }
 
-/**
- * =====================
- * PROFILES
- * =====================
- */
+model TeacherInfo {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  isTeaching Boolean  @default(false)
+  degree     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-model Parent {
-  id       Int       @id @default(autoincrement())
-  userId   Int       @unique
-  address  String?
-  user     User      @relation(fields: [userId], references: [id])
-  students Student[]
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  freeDays  TeacherFreeDay[]
+  schedules Schedule[]
+
+  @@index([userId])
 }
 
-model Teacher {
-  id             Int              @id @default(autoincrement())
-  userId         Int              @unique
-  specialization String?
-  user           User             @relation(fields: [userId], references: [id])
-  schedules      CourseSchedule[]
+model TeacherFreeDay {
+  id        Int       @id @default(autoincrement())
+  teacherId Int
+  day       DayOfWeek
+  createdAt DateTime  @default(now())
+
+  teacher TeacherInfo @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, day])
+  @@index([teacherId])
 }
 
-model Student {
-  id                Int          @id @default(autoincrement())
-  userId            Int          @unique
-  parentId          Int?
-  classId           Int?
-  dob               DateTime
-  cccd              String       @unique
-  gender            String
-  entranceExamScore Float?
-  user              User         @relation(fields: [userId], references: [id])
-  parent            Parent?      @relation(fields: [parentId], references: [id])
-  class             Class?       @relation(fields: [classId], references: [id])
-  attendance        Attendance[]
-  grades            Grade[]
+model StudentInfo {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  dob       DateTime?
+  cccd      String?
+  scoreRl   Int       @default(0)
+  scoreSw   Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parents               ParentStudent[]
+  registerCourses       StudentRegisterCourse[]
+  scheduleRegistrations ScheduleRegistration[]
+  attendanceRecords     AttendanceRecord[]
+  scoreCourses          ScoreCourse[]
+
+  @@index([userId])
 }
 
-/**
- * =====================
- * ADMISSIONS
- * =====================
- */
+model ParentInfo {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  students ParentStudent[]
+
+  @@index([userId])
+}
+
+model ParentStudent {
+  id        Int      @id @default(autoincrement())
+  parentId  Int
+  studentId Int
+  createdAt DateTime @default(now())
+
+  parent  ParentInfo  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student StudentInfo @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@index([parentId])
+  @@index([studentId])
+}
+
+model StudentRegisterCourse {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  courseId  Int
+  createdAt DateTime @default(now())
+
+  student StudentInfo @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+  @@index([studentId])
+  @@index([courseId])
+}
 
 model Admission {
-  id Int @id @default(autoincrement())
+  id             Int              @id @default(autoincrement())
+  entranceExamId Int?
+  email          String
+  fullname       String
+  entranceScore  Int              @default(0)
+  type           EntranceExamType
+  isDone         Boolean          @default(false)
+  totalListening Int              @default(0)
+  totalReading   Int              @default(0)
+  totalSpeaking  Int              @default(0)
+  totalWriting   Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
-  cccd        String
-  phone       String
-  email       String
-  documentUrl String?
-  status      AdmissionStatus @default(PENDING)
+  entranceExam        EntranceExam?         @relation(fields: [entranceExamId], references: [id], onDelete: SetNull)
+  admissionsListening AdmissionsListening[]
+  admissionsReading   AdmissionsReading[]
+  admissionsSpeaking  AdmissionsSpeaking[]
+  admissionsWriting   AdmissionsWriting[]
 
-  entranceExam EntranceExam?
+  @@index([entranceExamId])
+}
+
+model AdmissionsListening {
+  id          Int      @id @default(autoincrement())
+  admissionId Int
+  questionId  Int
+  answerId    Int?
+  createdAt   DateTime @default(now())
+
+  admission Admission                     @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  question  EntranceExamListeningQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer    EntranceExamListeningAnswer?  @relation(fields: [answerId], references: [id], onDelete: SetNull)
+
+  @@index([admissionId])
+  @@index([questionId])
+  @@index([answerId])
+}
+
+model AdmissionsReading {
+  id          Int      @id @default(autoincrement())
+  admissionId Int
+  questionId  Int
+  answerId    Int?
+  createdAt   DateTime @default(now())
+
+  admission Admission                   @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  question  EntranceExamReadingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer    EntranceExamReadingAnswer?  @relation(fields: [answerId], references: [id], onDelete: SetNull)
+
+  @@index([admissionId])
+  @@index([questionId])
+  @@index([answerId])
+}
+
+model AdmissionsSpeaking {
+  id          Int      @id @default(autoincrement())
+  admissionId Int
+  questionId  Int
+  audioRecord String
+  createdAt   DateTime @default(now())
+
+  admission Admission                    @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  question  EntranceExamSpeakingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([admissionId])
+  @@index([questionId])
+}
+
+model AdmissionsWriting {
+  id          Int      @id @default(autoincrement())
+  admissionId Int
+  questionId  Int
+  answer      String?
+  createdAt   DateTime @default(now())
+
+  admission Admission                   @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  question  EntranceExamWritingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([admissionId])
+  @@index([questionId])
 }
 
 model EntranceExam {
+  id        Int              @id @default(autoincrement())
+  name      String
+  type      EntranceExamType
+  audio     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  admissions         Admission[]
+  listeningQuestions EntranceExamListeningQuestion[]
+  readingQuestions   EntranceExamReadingQuestion[]
+  speakingQuestions  EntranceExamSpeakingQuestion[]
+  writingQuestions   EntranceExamWritingQuestion[]
+}
+
+model EntranceExamListeningQuestion {
+  id             Int      @id @default(autoincrement())
+  entranceExamId Int
+  index          Int
+  part           Int
+  question       String
+  image          String?
+  createdAt      DateTime @default(now())
+
+  entranceExam        EntranceExam                  @relation(fields: [entranceExamId], references: [id], onDelete: Cascade)
+  answers             EntranceExamListeningAnswer[]
+  admissionsListening AdmissionsListening[]
+
+  @@index([entranceExamId])
+}
+
+model EntranceExamListeningAnswer {
+  id                      Int      @id @default(autoincrement())
+  entranceExamListeningId Int
+  part                    Int
+  answer                  String?
+  isTrue                  Boolean
+  createdAt               DateTime @default(now())
+
+  entranceExamListening EntranceExamListeningQuestion @relation(fields: [entranceExamListeningId], references: [id], onDelete: Cascade)
+  admissionsListening   AdmissionsListening[]
+
+  @@index([entranceExamListeningId])
+}
+
+model EntranceExamReadingQuestion {
+  id             Int      @id @default(autoincrement())
+  entranceExamId Int
+  index          Int
+  part           Int
+  question       String
+  image          String?
+  createdAt      DateTime @default(now())
+
+  entranceExam      EntranceExam                @relation(fields: [entranceExamId], references: [id], onDelete: Cascade)
+  answers           EntranceExamReadingAnswer[]
+  admissionsReading AdmissionsReading[]
+
+  @@index([entranceExamId])
+}
+
+model EntranceExamReadingAnswer {
   id                    Int      @id @default(autoincrement())
-  admissionId           Int      @unique
-  examDate              DateTime
-  score                 Float?
-  aiRecommendationClass String?
+  entranceExamReadingId Int
+  part                  Int
+  answer                String?
+  isTrue                Boolean
+  createdAt             DateTime @default(now())
 
-  admission Admission @relation(fields: [admissionId], references: [id])
+  entranceExamReading EntranceExamReadingQuestion @relation(fields: [entranceExamReadingId], references: [id], onDelete: Cascade)
+  admissionsReading   AdmissionsReading[]
+
+  @@index([entranceExamReadingId])
 }
 
-/**
- * =====================
- * ACADEMICS
- * =====================
- */
-
-model Course {
-  id           Int          @id @default(autoincrement())
-  courseCode   String       @unique
-  courseName   String
-  programId    Int?
-  learningMode LearningMode
-  level        CourseLevel
-  tuitionFee   Decimal      @db.Decimal(10, 2)
-  maxStudents  Int
-  description  String?
-  status       String
-  createdAt    DateTime     @default(now())
-
-  plans     CoursePlan[]
-  classes   Class[]
-  schedules CourseSchedule[]
-  skills    CourseSkill[]
-}
-
-model CourseSkill {
-  courseId Int
-  skillId  Int
-
-  course Course @relation(fields: [courseId], references: [id])
-
-  @@id([courseId, skillId])
-}
-
-model CoursePlan {
+model EntranceExamSpeakingQuestion {
   id               Int      @id @default(autoincrement())
-  courseId         Int
-  startDate        DateTime
-  sessionsPerWeek  Int
-  hoursPerSession  Decimal  @db.Decimal(4, 2)
-  totalSessions    Int
-  totalHours       Decimal  @db.Decimal(6, 2)
-  estimatedEndDate DateTime
+  entranceExamId   Int
+  index            Int
+  question         String
+  image            String?
+  descriptionForAi String?
+  timeToReadInfo   Int
+  preparationTime  Int
+  presentationTime Int
   createdAt        DateTime @default(now())
 
-  course Course          @relation(fields: [courseId], references: [id])
-  days   CoursePlanDay[]
+  entranceExam       EntranceExam         @relation(fields: [entranceExamId], references: [id], onDelete: Cascade)
+  admissionsSpeaking AdmissionsSpeaking[]
+
+  @@index([entranceExamId])
 }
 
-model CoursePlanDay {
-  id        Int @id @default(autoincrement())
-  planId    Int
-  dayOfWeek Int
+model EntranceExamWritingQuestion {
+  id                    Int      @id @default(autoincrement())
+  entranceExamId        Int
+  index                 Int
+  question              String
+  image                 String?
+  descriptionImageForAi String?
+  createdAt             DateTime @default(now())
 
-  plan CoursePlan @relation(fields: [planId], references: [id])
+  entranceExam      EntranceExam        @relation(fields: [entranceExamId], references: [id], onDelete: Cascade)
+  admissionsWriting AdmissionsWriting[]
+
+  @@index([entranceExamId])
 }
 
-model CourseSchedule {
+model Course {
+  id        Int      @id @default(autoincrement())
+  type      String
+  name      String
+  price     Decimal  @db.Decimal(10, 2)
+  sale      Int      @default(0)
+  thumbnail String
+  minBand   Int?     @default(0)
+  maxBand   Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tests                CourseTest[]
+  studentRegistrations StudentRegisterCourse[]
+  schedules            Schedule[]
+}
+
+model CourseTest {
   id        Int      @id @default(autoincrement())
   courseId  Int
-  teacherId Int
+  name      String
+  index     Int
+  fileTest  String
   createdAt DateTime @default(now())
 
-  course     Course       @relation(fields: [courseId], references: [id])
-  teacher    Teacher      @relation(fields: [teacherId], references: [id])
-  attendance Attendance[]
+  course       Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  scoreCourses ScoreCourse[]
+
+  @@index([courseId])
 }
 
-model Class {
-  id          Int         @id @default(autoincrement())
-  courseId    Int
-  meetingLink String?
-  location    String?
-  maxStudents Int
-  status      ClassStatus
-  createdAt   DateTime    @default(now())
-
-  course   Course    @relation(fields: [courseId], references: [id])
-  students Student[]
-}
-
-/**
- * =====================
- * ATTENDANCE & GRADES
- * =====================
- */
-
-model Attendance {
-  id         Int              @id @default(autoincrement())
-  studentId  Int
-  scheduleId Int
-  date       DateTime
-  status     AttendanceStatus
-  note       String?
-
-  student  Student        @relation(fields: [studentId], references: [id])
-  schedule CourseSchedule @relation(fields: [scheduleId], references: [id])
-}
-
-model Grade {
-  id         Int       @id @default(autoincrement())
-  studentId  Int
-  subjectId  Int
-  scoreType  ScoreType
-  scoreValue Float
-  weight     Float
-
-  student Student @relation(fields: [studentId], references: [id])
-}
-
-/**
- * =====================
- * QR & AI
- * =====================
- */
-
-model QRCode {
-  id          Int      @id @default(autoincrement())
-  sessionId   Int
-  qrCodeData  String   @unique
-  generatedAt DateTime
-  expiresAt   DateTime
-  isActive    Boolean
-}
-
-model AIChatLog {
+model Classroom {
   id        Int      @id @default(autoincrement())
-  userId    Int
-  question  String   @db.Text
-  response  String   @db.Text
+  name      String   @unique
+  maxSize   Int      @default(0)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  schedules Schedule[]
 }
 
-model AIScheduleRequest {
-  id         Int             @id @default(autoincrement())
-  configData Json
-  status     AIRequestStatus
-  resultUrl  String?
-  createdAt  DateTime        @default(now())
+model Schedule {
+  id            Int      @id @default(autoincrement())
+  teacherId     Int
+  classroomId   Int
+  coursesId     Int
+  totalSlot     Int
+  totalRegister Int
+  startTime     DateTime
+  endTime       DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  teacher       TeacherInfo            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classroom     Classroom              @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  course        Course                 @relation(fields: [coursesId], references: [id], onDelete: Cascade)
+  sessions      ScheduleSession[]
+  registrations ScheduleRegistration[]
+
+  @@index([teacherId])
+  @@index([classroomId])
+  @@index([coursesId])
+}
+
+model ScheduleSession {
+  id         Int       @id @default(autoincrement())
+  scheduleId Int
+  day        DayOfWeek
+  startTime  String
+  endTime    String
+  createdAt  DateTime  @default(now())
+
+  schedule    Schedule             @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  attendances ScheduleAttendance[]
+
+  @@index([scheduleId])
+}
+
+model ScheduleRegistration {
+  id         Int      @id @default(autoincrement())
+  scheduleId Int
+  studentId  Int
+  createdAt  DateTime @default(now())
+
+  schedule Schedule    @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  student  StudentInfo @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, studentId])
+  @@index([scheduleId])
+  @@index([studentId])
+}
+
+model ScheduleAttendance {
+  id            Int      @id @default(autoincrement())
+  scheduleDayId Int
+  qrCode        String
+  totalAbsent   Int
+  createdAt     DateTime @default(now())
+
+  scheduleSession ScheduleSession    @relation(fields: [scheduleDayId], references: [id], onDelete: Cascade)
+  records         AttendanceRecord[]
+
+  @@index([scheduleDayId])
+}
+
+model AttendanceRecord {
+  id                   Int      @id @default(autoincrement())
+  scheduleAttendanceId Int
+  studentId            Int
+  time                 String
+  createdAt            DateTime @default(now())
+
+  scheduleAttendance ScheduleAttendance @relation(fields: [scheduleAttendanceId], references: [id], onDelete: Cascade)
+  student            StudentInfo        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleAttendanceId, studentId])
+  @@index([scheduleAttendanceId])
+  @@index([studentId])
+}
+
+model ScoreCourse {
+  id           Int      @id @default(autoincrement())
+  courseTestId Int
+  studentId    Int
+  score        Int
+  createdAt    DateTime @default(now())
+
+  courseTest CourseTest  @relation(fields: [courseTestId], references: [id], onDelete: Cascade)
+  student    StudentInfo @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([courseTestId, studentId])
+  @@index([courseTestId])
+  @@index([studentId])
 }

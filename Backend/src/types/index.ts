@@ -1,7 +1,7 @@
 export interface JwtPayload {
   id: number;
   role: string;
-  fullName: string;
+  fullname: string;
 }
 
 declare global {

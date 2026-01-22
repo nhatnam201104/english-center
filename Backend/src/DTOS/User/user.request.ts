@@ -1,8 +1,11 @@
+import { RoleName } from "../../types/Role";
+
 export interface CreateUserRequest {
   phone: string;
-  fullName: string;
+  fullname: string;
+  email: string;
   password: string;
-  roleId: number;
+  role: RoleName;
 }
 export interface GetUserRequest {
   limit?: number;

@@ -4,6 +4,7 @@ import userRoute from "./user.routes";
 
 const router = Router();
 
+
 router.use("/auth", authRoute);
 router.use("/user", userRoute);
 

@@ -5,14 +5,14 @@ import { AppError } from "./errorHandler";
 export const validate = (
   req: Request,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     const mess = errors
       .array()
-      .map((err) => `${(err as any).path}: ${err.msg}`)
+      .map((err) => err.msg)
       .join(", ");
 
     throw new AppError("Validation failed: " + mess, 400);

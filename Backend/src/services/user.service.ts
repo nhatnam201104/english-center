@@ -3,22 +3,24 @@ import bcrypt from "bcryptjs";
 import { AppError } from "../middleware/errorHandler";
 import prisma from "../config/database";
 import { User } from "@prisma/client";
-import { CreateUserRequest, GetUserRequest } from "../DTOS/User/UserRequest";
-import { RoleName } from "../types/Role";
-import { UserResponse } from "../DTOS/User/UserResponse";
-import { toUserResponse } from "../utils/Mapper/UserMapper";
+import { CreateUserRequest, GetUserRequest } from "../DTOS/User/user.request";
+import { UserResponse } from "../DTOS/User/user.response";
+import { toUserResponse } from "../utils/Mapper/user.mapper";
 import { PagingData } from "../DTOS/pagination";
 
 export const createUser = async (
   userData: CreateUserRequest,
 ): Promise<UserResponse> => {
   // Check if user already exists
+  const existingPhone = await findUserByPhone(userData.phone);
+  const existingEmail = await findUserByEmail(userData.email);
+  if (existingEmail) {
+    throw new AppError("Email đã tồn tại", 400);
+  }
+  if (existingPhone) {
+    throw new AppError("Số điện thoại đã tồn tại", 400);
+  }
   try {
-    const existingUser = await findUserByPhone(userData.phone);
-
-    if (existingUser) {
-      throw new AppError("User with this phone already exists", 400);
-    }
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
     // Create user
@@ -26,42 +28,12 @@ export const createUser = async (
       data: {
         ...userData,
         password: hashedPassword,
-        roleId: userData.roleId ? Number(userData.roleId) : RoleName.STUDENT,
-        expiredRefreshToken: process.env.REFRESH_TOKEN_EXPIRES_IN || "30d",
       },
     });
     return toUserResponse(user);
   } catch (error) {
     throw new AppError(
-      "Error creating user with mess: " + (error as Error).message,
-      400,
-    );
-  }
-};
-
-export const findUserByPhone = async (phone: string): Promise<User | null> => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { phone },
-    });
-    return user;
-  } catch (error) {
-    throw new AppError(
-      "Error retrieving user by phone with mess: " + (error as Error).message,
-      400,
-    );
-  }
-};
-
-export const findUserById = async (id: number): Promise<User | null> => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
-    return user;
-  } catch (error) {
-    throw new AppError(
-      "Error retrieving user by ID with mess: " + (error as Error).message,
+      "Lỗi khi tạo người dùng: " + (error as Error).message,
       400,
     );
   }
@@ -91,6 +63,47 @@ export const getAllUsers = async (
   } catch (error) {
     throw new AppError(
       "Error retrieving all users with mess: " + (error as Error).message,
+      400,
+    );
+  }
+};
+
+export const findUserByPhone = async (phone: string): Promise<User | null> => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { phone },
+    });
+    return user;
+  } catch (error) {
+    throw new AppError(
+      "Error retrieving user by phone with mess: " + (error as Error).message,
+      400,
+    );
+  }
+};
+
+export const findUserByEmail = async (email: string): Promise<User | null> => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    return user;
+  } catch (error) {
+    throw new AppError(
+      "Error retrieving user by email with mess: " + (error as Error).message,
+      400,
+    );
+  }
+};
+export const findUserById = async (id: number): Promise<User | null> => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+    return user;
+  } catch (error) {
+    throw new AppError(
+      "Error retrieving user by ID with mess: " + (error as Error).message,
       400,
     );
   }

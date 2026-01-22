@@ -1,8 +1,8 @@
 export interface UserResponse {
   id: number;
   phone: string;
-  fullName: string;
-  roleId: number;
+  email: string;
+  fullname: string;
+  role: string;
   createdAt: Date;
-  
 }

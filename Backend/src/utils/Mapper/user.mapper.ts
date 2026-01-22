@@ -2,10 +2,10 @@ import { User } from "@prisma/client";
 
 export const toUserResponse = (user: User) => ({
   id: user.id,
-  fullName: user.fullName,
+  fullname: user.fullname,
+  email : user.email,
   phone: user.phone,
-  roleId: user.roleId,
+  role: user.role,
   createdAt: user.createdAt,
   token: (user as any).token,
-  refreshToken: (user as any).refreshToken,
 });

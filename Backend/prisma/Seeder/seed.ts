@@ -1,13 +1,11 @@
 import { PrismaClient } from "@prisma/client";
-import { seedRoles } from "./seedRoles";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("Start seeding database...");
 
-  await seedRoles();
-
+  // viet file seed roi bo vo day nha
   console.log("Database seeding completed");
 }
 
