@@ -8,9 +8,9 @@ const storage = multer.diskStorage({
     // get folder to save file
     // vd: baseurl : /api/auth
     // get auth to set name folder for save image
-    // console.log(req.baseUrl.split('/')[2]);
     const folder = req.baseUrl.split("/")[2] ?? "default";
-    const uploadPath = path.join(__dirname, "..", "uploads", folder);
+    // Đường dẫn tương đối từ compiled code (dist/lib) về uploads
+    const uploadPath = path.join(process.cwd(), "uploads", folder);
     // check if folder not exist then create folder
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
@@ -18,10 +18,12 @@ const storage = multer.diskStorage({
     // This part defines where the files need to be saved
     cb(null, uploadPath);
   },
-  filename: (req, _file, cb) => {
+  filename: (req, file, cb) => {
     const folder = req.baseUrl.split("/")[2] ?? "default";
+    // Lấy extension từ file gốc
+    const ext = path.extname(file.originalname);
     // This part sets the file name of the file
-    cb(null, folder + "-" + Date.now() + ".jpg");
+    cb(null, folder + "-" + Date.now() + ext);
   },
 });
 

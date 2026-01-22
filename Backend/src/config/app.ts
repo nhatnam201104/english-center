@@ -2,10 +2,10 @@ import express, { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
+import path from "path";
 import { errorHandler, notFound } from "../middleware/errorHandler";
 import { customResponseMiddleware } from "../middleware/customResponseMiddleware";
 import router from "../routes/route";
-import { validate } from "../middleware/validation.middleware";
 
 // Import routes
 
@@ -17,7 +17,12 @@ const app: Application = express();
 app.use(customResponseMiddleware);
 
 // Middleware
-app.use(helmet()); // Security headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
@@ -26,6 +31,11 @@ app.use(
 ); // Enable CORS
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+
+// Serve static files from uploads directory
+// process.cwd() trả về thư mục gốc của project (Backend/)
+const uploadsPath = path.join(process.cwd(), "uploads");
+app.use("/uploads", express.static(uploadsPath));
 
 app.use("/api", router);
 

@@ -52,11 +52,7 @@ const AdminSidebar = () => {
       id: "dashboard",
       title: "Tổng quan",
       icon: HomeIcon,
-      path: "/admin/dashboard",
-      children: [
-        { title: "Thống kê", icon: ChartBarIcon, path: "/admin/dashboard/stats" },
-        { title: "Báo cáo", icon: DocumentTextIcon, path: "/admin/dashboard/reports" },
-      ]
+      path: "/admin",
     },
     {
       id: "users",
@@ -64,9 +60,9 @@ const AdminSidebar = () => {
       icon: UserGroupIcon,
       path: "/admin/users",
       children: [
-        { title: "Học viên", icon: AcademicCapIcon, path: "/admin/users/students" },
-        { title: "Giảng viên", icon: UserGroupIcon, path: "/admin/users/teachers" },
-        { title: "Nhân viên", icon: BuildingLibraryIcon, path: "/admin/users/staff" },
+        { title: "Giáo viên", icon: AcademicCapIcon, path: "/admin/teachers" },
+        { title: "Học sinh", icon: UserGroupIcon, path: "/admin/students" },
+        { title: "Phụ huynh", icon: UserGroupIcon, path: "/admin/parents" },
       ]
     },
     {

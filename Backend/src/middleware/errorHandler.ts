@@ -39,9 +39,9 @@ export const errorHandler = (
   }
 
   // Log error for debugging
-  // if (process.env.NODE_ENV === "development") {
-  //   console.error("Duma loi:", err);
-  // }
+  if (process.env.NODE_ENV === "development") {
+    console.error("Duma loi:", err);
+  }
 
   res.status(statusCode).json({
     success: false,

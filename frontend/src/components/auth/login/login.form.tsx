@@ -48,6 +48,7 @@ const LoginForm = () => {
         console.log("Login successful!");
         // Store user data in Zustand store
         setAuth(user.data, user.data.token ?? "");
+        sessionStorage.setItem("access_token", user.data.token ?? "");
         // Navigate to dashboard or home
         navigate("/");
         return;

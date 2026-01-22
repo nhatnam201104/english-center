@@ -34,14 +34,15 @@ enum DayOfWeek {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   fullname  String
-  email     String   @unique
+  email     String    @unique
   password  String
-  phone     String   @unique
-  role      RoleName @default(STUDENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  phone     String    @unique
+  role      RoleName  @default(STUDENT)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   teacherInfo TeacherInfo?
   studentInfo StudentInfo?
@@ -49,12 +50,14 @@ model User {
 }
 
 model TeacherInfo {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @unique
-  isTeaching Boolean  @default(false)
+  id         Int       @id @default(autoincrement())
+  userId     Int       @unique
+  isTeaching Boolean   @default(false)
   degree     String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  avatar     String?
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   freeDays  TeacherFreeDay[]
@@ -82,6 +85,7 @@ model StudentInfo {
   cccd      String?
   scoreRl   Int       @default(0)
   scoreSw   Int       @default(0)
+  deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -96,10 +100,11 @@ model StudentInfo {
 }
 
 model ParentInfo {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   students ParentStudent[]

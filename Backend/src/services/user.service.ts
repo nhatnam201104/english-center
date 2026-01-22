@@ -43,7 +43,17 @@ export const getAllUsers = async (
   req: GetUserRequest,
 ): Promise<PagingData<UserResponse>> => {
   try {
+    // Đếm tổng số users trong database (không bị ảnh hưởng bởi pagination)
+    const totalItems = await prisma.user.count({
+      where: {
+        deletedAt: null,
+      },
+    });
+
     const users = await prisma.user.findMany({
+      where: {
+        deletedAt: null,
+      },
       take: req.limit,
       skip: req.page && req.limit ? (req.page - 1) * req.limit : undefined,
       orderBy: req.sortBy
@@ -52,12 +62,13 @@ export const getAllUsers = async (
           }
         : undefined,
     });
+
     const PagingData: PagingData<UserResponse> = {
       data: users.map(toUserResponse),
       page: req.page || 1,
       limit: req.limit || users.length,
-      totalPages: req.limit ? Math.ceil(users.length / req.limit) : 1,
-      totalItems: users.length,
+      totalPages: req.limit ? Math.ceil(totalItems / req.limit) : 1,
+      totalItems: totalItems,
     };
     return PagingData;
   } catch (error) {

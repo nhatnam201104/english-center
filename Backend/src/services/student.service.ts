@@ -1,0 +1,286 @@
+import bcrypt from "bcryptjs";
+
+import { AppError } from "../middleware/errorHandler";
+import prisma from "../config/database";
+import { StudentResponse } from "../DTOS/Student/student.response";
+import { toStudentResponse } from "../utils/Mapper/student.mapper";
+import { PagingData } from "../DTOS/pagination";
+import { CreateStudentRequest, GetStudentRequest, UpdateStudentRequest } from "../DTOS/Student";
+
+// Tạo học sinh mới
+export const createStudentService = async (
+  data: CreateStudentRequest,
+): Promise<StudentResponse> => {
+  // Kiểm tra email và phone đã tồn tại
+  const existingEmail = await prisma.user.findUnique({
+    where: { email: data.email },
+  });
+  const existingPhone = await prisma.user.findUnique({
+    where: { phone: data.phone },
+  });
+
+  if (existingEmail) {
+    throw new AppError("Email đã tồn tại", 400);
+  }
+  if (existingPhone) {
+    throw new AppError("Số điện thoại đã tồn tại", 400);
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    // Tạo user và student info trong một transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          fullname: data.fullname,
+          email: data.email,
+          password: hashedPassword,
+          phone: data.phone,
+          role: "STUDENT",
+        },
+      });
+
+      const studentInfo = await tx.studentInfo.create({
+        data: {
+          userId: user.id,
+          dob: data.dob,
+          cccd: data.cccd,
+          scoreRl: data.scoreRl ?? 0,
+          scoreSw: data.scoreSw ?? 0,
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      return studentInfo;
+    });
+
+    return toStudentResponse(result);
+  } catch (error) {
+    throw new AppError(
+      "Lỗi khi tạo học sinh: " + (error as Error).message,
+      500,
+    );
+  }
+};
+
+// Lấy danh sách học sinh với filters
+export const getAllStudentsService = async (
+  req: GetStudentRequest,
+): Promise<PagingData<StudentResponse>> => {
+  try {
+    // Build where clause
+    const where: any = {
+      deletedAt: null,
+      user: {
+        deletedAt: null,
+      },
+    };
+
+    // Filter by score range
+    if (req.minScoreRl !== undefined || req.maxScoreRl !== undefined) {
+      where.scoreRl = {};
+      if (req.minScoreRl !== undefined) where.scoreRl.gte = req.minScoreRl;
+      if (req.maxScoreRl !== undefined) where.scoreRl.lte = req.maxScoreRl;
+    }
+
+    if (req.minScoreSw !== undefined || req.maxScoreSw !== undefined) {
+      where.scoreSw = {};
+      if (req.minScoreSw !== undefined) where.scoreSw.gte = req.minScoreSw;
+      if (req.maxScoreSw !== undefined) where.scoreSw.lte = req.maxScoreSw;
+    }
+
+    // Search trong fullname, email, phone
+    if (req.search) {
+      where.user = {
+        ...where.user,
+        OR: [
+          { fullname: { contains: req.search } },
+          { email: { contains: req.search } },
+          { phone: { contains: req.search } },
+        ],
+      };
+    }
+
+    // Đếm tổng số students
+    const totalItems = await prisma.studentInfo.count({ where });
+
+    // Lấy danh sách students
+    const students = await prisma.studentInfo.findMany({
+      where,
+      include: {
+        user: true,
+      },
+      take: req.limit,
+      skip: req.page && req.limit ? (req.page - 1) * req.limit : undefined,
+      orderBy: req.sortBy
+        ? {
+            [req.sortBy]: req.sortOrder || "asc",
+          }
+        : { createdAt: "desc" },
+    });
+
+    return {
+      data: students.map(toStudentResponse),
+      page: req.page || 1,
+      limit: req.limit || students.length,
+      totalPages: req.limit ? Math.ceil(totalItems / req.limit) : 1,
+      totalItems,
+    };
+  } catch (error) {
+    throw new AppError(
+      "Lỗi khi lấy danh sách học sinh: " + (error as Error).message,
+      500,
+    );
+  }
+};
+
+// Lấy học sinh theo ID
+export const getStudentByIdService = async (
+  id: number,
+): Promise<StudentResponse> => {
+  try {
+    const student = await prisma.studentInfo.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        user: {
+          deletedAt: null,
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!student) {
+      throw new AppError("Không tìm thấy học sinh", 404);
+    }
+
+    return toStudentResponse(student);
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      "Lỗi khi lấy thông tin học sinh: " + (error as Error).message,
+      500,
+    );
+  }
+};
+
+// Cập nhật học sinh
+export const updateStudentService = async (
+  id: number,
+  data: UpdateStudentRequest,
+): Promise<StudentResponse> => {
+  // Kiểm tra học sinh tồn tại
+  const student = await prisma.studentInfo.findFirst({
+    where: {
+      id,
+      deletedAt: null,
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  if (!student) {
+    throw new AppError("Không tìm thấy học sinh", 404);
+  }
+
+  // Kiểm tra email và phone nếu có thay đổi
+  if (data.email && data.email !== student.user.email) {
+    // Chỉ check database khi email thực sự thay đổi
+    const existingEmail = await prisma.user.findUnique({
+      where: { email: data.email },
+    });
+    if (existingEmail && existingEmail.email !== student.user.email) {
+      throw new AppError("Email đã tồn tại", 400);
+    }
+  }
+
+  if (data.phone && data.phone !== student.user.phone) {
+    // Chỉ check database khi phone thực sự thay đổi
+    const existingPhone = await prisma.user.findUnique({
+      where: { phone: data.phone },
+    });
+    if (existingPhone && existingPhone.phone !== student.user.phone) {
+      throw new AppError("Số điện thoại đã tồn tại", 400);
+    }
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Cập nhật user info nếu có
+      if (data.fullname || data.email || data.phone) {
+        await tx.user.update({
+          where: { id: student.userId },
+          data: {
+            ...(data.fullname && { fullname: data.fullname }),
+            ...(data.email && { email: data.email }),
+            ...(data.phone && { phone: data.phone }),
+          },
+        });
+      }
+
+      // Cập nhật student info
+      const updatedStudent = await tx.studentInfo.update({
+        where: { id },
+        data: {
+          ...(data.dob !== undefined && { dob: data.dob }),
+          ...(data.cccd !== undefined && { cccd: data.cccd }),
+          ...(data.scoreRl !== undefined && { scoreRl: data.scoreRl }),
+          ...(data.scoreSw !== undefined && { scoreSw: data.scoreSw }),
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      return updatedStudent;
+    });
+
+    return toStudentResponse(result);
+  } catch (error) {
+    throw new AppError(
+      "Lỗi khi cập nhật học sinh: " + (error as Error).message,
+      500,
+    );
+  }
+};
+
+// Soft delete học sinh
+export const deleteStudentService = async (id: number): Promise<void> => {
+  const student = await prisma.studentInfo.findFirst({
+    where: {
+      id,
+      deletedAt: null,
+    },
+  });
+
+  if (!student) {
+    throw new AppError("Không tìm thấy học sinh", 404);
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Soft delete student info
+      await tx.studentInfo.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
+
+      // Soft delete user
+      await tx.user.update({
+        where: { id: student.userId },
+        data: { deletedAt: new Date() },
+      });
+    });
+  } catch (error) {
+    throw new AppError(
+      "Lỗi khi xóa học sinh: " + (error as Error).message,
+      500,
+    );
+  }
+};

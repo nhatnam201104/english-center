@@ -15,7 +15,7 @@ export const validate = (
       .map((err) => err.msg)
       .join(", ");
 
-    throw new AppError("Validation failed: " + mess, 400);
+    throw new AppError(mess, 400);
   }
 
   next();
