@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { 
+import {
   Typography,
   Button,
   List,
@@ -19,11 +19,9 @@ import {
   NewspaperIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
-  ChartBarIcon,
   DocumentDuplicateIcon,
   BuildingLibraryIcon,
   CalendarIcon,
-  BanknotesIcon,
 } from "@heroicons/react/24/outline";
 
 const AdminSidebar = () => {
@@ -32,15 +30,17 @@ const AdminSidebar = () => {
   const location = useLocation();
 
   const toggleSection = (section: string) => {
-    setOpenSections(prev =>
+    setOpenSections((prev) =>
       prev.includes(section)
-        ? prev.filter(s => s !== section)
-        : [...prev, section]
+        ? prev.filter((s) => s !== section)
+        : [...prev, section],
     );
   };
 
   const isActiveLink = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + "/");
+    return (
+      location.pathname === path || location.pathname.startsWith(path + "/")
+    );
   };
 
   const handleLogout = () => {
@@ -63,7 +63,7 @@ const AdminSidebar = () => {
         { title: "Giáo viên", icon: AcademicCapIcon, path: "/admin/teachers" },
         { title: "Học sinh", icon: UserGroupIcon, path: "/admin/students" },
         { title: "Phụ huynh", icon: UserGroupIcon, path: "/admin/parents" },
-      ]
+      ],
     },
     {
       id: "admissions",
@@ -71,10 +71,22 @@ const AdminSidebar = () => {
       icon: DocumentDuplicateIcon,
       path: "/admin/admissions",
       children: [
-        { title: "Đơn đăng ký", icon: DocumentTextIcon, path: "/admin/admissions/applications" },
-        { title: "Hồ sơ tuyển sinh", icon: DocumentDuplicateIcon, path: "/admin/admissions/records" },
-        { title: "Lịch tuyển sinh", icon: CalendarIcon, path: "/admin/admissions/schedule" },
-      ]
+        {
+          title: "Đơn đăng ký",
+          icon: DocumentTextIcon,
+          path: "/admin/admissions/applications",
+        },
+        {
+          title: "Hồ sơ tuyển sinh",
+          icon: DocumentDuplicateIcon,
+          path: "/admin/admissions/records",
+        },
+        {
+          title: "Lịch tuyển sinh",
+          icon: CalendarIcon,
+          path: "/admin/admissions/schedule",
+        },
+      ],
     },
     {
       id: "courses",
@@ -82,10 +94,18 @@ const AdminSidebar = () => {
       icon: AcademicCapIcon,
       path: "/admin/courses",
       children: [
-        { title: "Ngành học", icon: AcademicCapIcon, path: "/admin/courses/programs" },
-        { title: "Lớp học", icon: BuildingLibraryIcon, path: "/admin/courses/classes" },
-        { title: "Học phí", icon: BanknotesIcon, path: "/admin/courses/tuition" },
-      ]
+        { title: "Khóa học", icon: AcademicCapIcon, path: "/admin/courses" },
+        {
+          title: "Lớp học",
+          icon: BuildingLibraryIcon,
+          path: "/admin/classrooms",
+        },
+        {
+          title: "Bài kiểm tra",
+          icon: DocumentTextIcon,
+          path: "/admin/coursetest",
+        },
+      ],
     },
     {
       id: "content",
@@ -94,9 +114,13 @@ const AdminSidebar = () => {
       path: "/admin/content",
       children: [
         { title: "Tin tức", icon: NewspaperIcon, path: "/admin/content/news" },
-        { title: "Thông báo", icon: DocumentTextIcon, path: "/admin/content/announcements" },
+        {
+          title: "Thông báo",
+          icon: DocumentTextIcon,
+          path: "/admin/content/announcements",
+        },
         { title: "Sự kiện", icon: CalendarIcon, path: "/admin/content/events" },
-      ]
+      ],
     },
     {
       id: "settings",
@@ -104,10 +128,22 @@ const AdminSidebar = () => {
       icon: Cog6ToothIcon,
       path: "/admin/settings",
       children: [
-        { title: "Cấu hình chung", icon: Cog6ToothIcon, path: "/admin/settings/general" },
-        { title: "Quyền truy cập", icon: UserGroupIcon, path: "/admin/settings/permissions" },
-        { title: "Backup & Restore", icon: DocumentDuplicateIcon, path: "/admin/settings/backup" },
-      ]
+        {
+          title: "Cấu hình chung",
+          icon: Cog6ToothIcon,
+          path: "/admin/settings/general",
+        },
+        {
+          title: "Quyền truy cập",
+          icon: UserGroupIcon,
+          path: "/admin/settings/permissions",
+        },
+        {
+          title: "Backup & Restore",
+          icon: DocumentDuplicateIcon,
+          path: "/admin/settings/backup",
+        },
+      ],
     },
   ];
 
@@ -146,7 +182,7 @@ const AdminSidebar = () => {
                     icon={
                       <ChevronDownIcon
                         className={`h-4 w-4 transition-transform duration-300 ${
-                          isOpen ? 'rotate-180' : ''
+                          isOpen ? "rotate-180" : ""
                         } text-current`}
                       />
                     }
@@ -155,14 +191,17 @@ const AdminSidebar = () => {
                       onClick={() => toggleSection(item.id)}
                       className={`border-0 py-3 px-3 rounded-xl transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 ${
                         isActiveLink(item.path)
-                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
-                          : 'text-gray-700'
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md"
+                          : "text-gray-700"
                       }`}
                     >
                       <ListItemPrefix>
                         <Icon className="h-5 w-5 flex-shrink-0" />
                       </ListItemPrefix>
-                      <Typography variant="small" className="font-semibold truncate">
+                      <Typography
+                        variant="small"
+                        className="font-semibold truncate"
+                      >
                         {item.title}
                       </Typography>
                     </AccordionHeader>
@@ -175,13 +214,20 @@ const AdminSidebar = () => {
                               key={index}
                               className={`py-2.5 px-3 rounded-lg transition-all duration-200 ${
                                 isActiveLink(child.path)
-                                  ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600 font-semibold'
-                                  : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
+                                  ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600 font-semibold"
+                                  : "text-gray-600 hover:bg-gray-50 border-l-4 border-transparent"
                               }`}
                             >
-                              <Link to={child.path} className="flex items-center gap-3 w-full min-w-0">
+                              <Link
+                                to={child.path}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-3 w-full min-w-0"
+                              >
                                 <ChildIcon className="h-4 w-4 flex-shrink-0" />
-                                <Typography variant="small" className="font-medium truncate">
+                                <Typography
+                                  variant="small"
+                                  className="font-medium truncate"
+                                >
                                   {child.title}
                                 </Typography>
                               </Link>
@@ -196,12 +242,15 @@ const AdminSidebar = () => {
                     to={item.path}
                     className={`flex items-center gap-3 w-full py-3 px-3 rounded-xl transition-all duration-200 min-w-0 ${
                       isActiveLink(item.path)
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
-                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100'
+                        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100"
                     }`}
                   >
                     <Icon className="h-5 w-5 flex-shrink-0" />
-                    <Typography variant="small" className="font-semibold truncate">
+                    <Typography
+                      variant="small"
+                      className="font-semibold truncate"
+                    >
                       {item.title}
                     </Typography>
                   </Link>
@@ -219,15 +268,21 @@ const AdminSidebar = () => {
             <span className="text-white font-bold text-sm">A</span>
           </div>
           <div className="flex-1 min-w-0">
-            <Typography variant="small" className="font-semibold text-gray-800 truncate">
+            <Typography
+              variant="small"
+              className="font-semibold text-gray-800 truncate"
+            >
               Admin User
             </Typography>
-            <Typography variant="small" className="text-gray-500 text-xs truncate">
+            <Typography
+              variant="small"
+              className="text-gray-500 text-xs truncate"
+            >
               admin@university.edu.vn
             </Typography>
           </div>
         </div>
-        
+
         <Button
           onClick={handleLogout}
           variant="text"

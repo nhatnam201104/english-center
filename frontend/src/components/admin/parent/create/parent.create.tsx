@@ -11,7 +11,10 @@ import {
   Button,
 } from "@material-tailwind/react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { createParentSchema, type CreateParentFormData } from "../../../../libs/validation/parent.schema";
+import {
+  createParentSchema,
+  type CreateParentFormData,
+} from "../../../../libs/validation/parent.schema";
 import { createParentService } from "../../../../services/parent.service";
 
 const ParentCreate = () => {
@@ -63,7 +66,11 @@ const ParentCreate = () => {
               <Typography variant="h4" color="white" className="font-bold">
                 Thêm Phụ Huynh Mới
               </Typography>
-              <Typography variant="small" color="white" className="mt-1 opacity-90">
+              <Typography
+                variant="small"
+                color="white"
+                className="mt-1 opacity-90"
+              >
                 Điền đầy đủ thông tin để tạo phụ huynh
               </Typography>
             </div>

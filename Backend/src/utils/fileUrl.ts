@@ -4,26 +4,23 @@
 
 /**
  * Build URL đầy đủ cho avatar/image
- * @param filename - Tên file (vd: "teacher-1234567890.jpg")
- * @param folder - Thư mục chứa file (vd: "teachers", "courses")
+ * @param filepath - Đường dẫn file (vd: "1769265390317.jpg")
  * @returns URL đầy đủ hoặc null nếu không có file
  */
-export const buildFileUrl = (
-  filename: string | null,
-  folder: string,
-): string | null => {
-  if (!filename) return null;
+export const buildFileUrl = (filepath: string | null): string | null => {
+  if (!filepath) return null;
 
   const port = process.env.PORT || 3000;
   const baseUrl = process.env.BASE_URL || `http://localhost:${port}`;
-  return `${baseUrl}/uploads/${folder}/${filename}`;
+  return `${baseUrl}/${filepath}`;
 };
 
 /**
  * Build URL cho avatar của teacher
  */
 export const buildTeacherAvatarUrl = (avatar: string | null): string | null => {
-  return buildFileUrl(avatar, "teachers");
+  if (!avatar) return null;
+  return buildFileUrl(`uploads/teachers/${avatar}`);
 };
 
 /**
@@ -32,7 +29,8 @@ export const buildTeacherAvatarUrl = (avatar: string | null): string | null => {
 export const buildCourseThumbnailUrl = (
   thumbnail: string | null,
 ): string | null => {
-  return buildFileUrl(thumbnail, "courses");
+  if (!thumbnail) return null;
+  return buildFileUrl(`uploads/courses/${thumbnail}`);
 };
 
 /**
@@ -41,5 +39,16 @@ export const buildCourseThumbnailUrl = (
 export const buildCourseTestFileUrl = (
   fileTest: string | null,
 ): string | null => {
-  return buildFileUrl(fileTest, "courses");
+  if (!fileTest) return null;
+  return buildFileUrl(`uploads/course-tests/${fileTest}`);
+};
+
+/**
+ * Build URL cho audio test của course
+ */
+export const buildCourseTestAudioUrl = (
+  audioTest: string | null,
+): string | null => {
+  if (!audioTest) return null;
+  return buildFileUrl(`uploads/course-tests/${audioTest}`);
 };

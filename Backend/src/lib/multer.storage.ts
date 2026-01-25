@@ -5,13 +5,10 @@ import { Request } from "express";
 
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
-    // get folder to save file
-    // vd: baseurl : /api/auth
-    // get auth to set name folder for save image
     const folder = req.baseUrl.split("/")[2] ?? "default";
-    // Đường dẫn tương đối từ compiled code (dist/lib) về uploads
+    // Đường dẫn tương đối từ compiled code (dist/lib) về uploads/folder
     const uploadPath = path.join(process.cwd(), "uploads", folder);
-    // check if folder not exist then create folder
+    // Create folder if not exist
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -19,18 +16,17 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const folder = req.baseUrl.split("/")[2] ?? "default";
     // Lấy extension từ file gốc
     const ext = path.extname(file.originalname);
-    // This part sets the file name of the file
-    cb(null, folder + "-" + Date.now() + ext);
+    // This part sets the file name of the file without folder prefix
+    cb(null, Date.now() + ext);
   },
 });
 
 const fileFilter = function (
   _req: Request,
   file: Express.Multer.File,
-  cb: multer.FileFilterCallback
+  cb: multer.FileFilterCallback,
 ) {
   // Accept only images
   if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
@@ -38,4 +34,35 @@ const fileFilter = function (
   }
   cb(null, true);
 };
-export { fileFilter, storage };
+
+const courseTestFileFilter = function (
+  _req: Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+) {
+  // Accept audio files and documents (mp3, wav, pdf, doc, docx, etc.)
+  const allowedExtensions = [
+    ".mp3",
+    ".wav",
+    ".ogg",
+    ".m4a",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".txt",
+  ];
+  if (
+    !allowedExtensions.some((ext) =>
+      file.originalname.toLowerCase().endsWith(ext),
+    )
+  ) {
+    return cb(
+      new Error(
+        "Only audio files (mp3, wav, ogg, m4a) and documents (pdf, doc, docx, txt) are allowed!",
+      ),
+    );
+  }
+  cb(null, true);
+};
+
+export { fileFilter, courseTestFileFilter, storage };
