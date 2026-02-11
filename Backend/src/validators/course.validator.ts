@@ -58,13 +58,13 @@ export const createCourseValidation = [
   body("minBand")
     .if(body("type").equals("TEST_PREPARATION"))
     .optional()
-    .isInt({ min: 0 })
+    .isInt({ min: 0, max: 990 })
     .withMessage("Band tối thiểu phải là số nguyên không âm"),
 
   body("maxBand")
     .if(body("type").equals("TEST_PREPARATION"))
     .optional()
-    .isInt({ min: 0 })
+    .isInt({ min: 0, max: 990 })
     .withMessage("Band tối đa phải là số nguyên không âm")
     .custom((maxBand, { req }) => {
       if (req.body.minBand !== undefined && maxBand < req.body.minBand) {

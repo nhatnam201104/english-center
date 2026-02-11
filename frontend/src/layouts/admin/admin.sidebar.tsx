@@ -96,10 +96,16 @@ const AdminSidebar = () => {
       children: [
         { title: "Khóa học", icon: AcademicCapIcon, path: "/admin/courses" },
         {
+          title: "Đợt mở lớp học",
+          icon: BuildingLibraryIcon,
+          path: "/admin/schedules",
+        },
+        {
           title: "Lớp học",
           icon: BuildingLibraryIcon,
           path: "/admin/classrooms",
         },
+        
         {
           title: "Bài kiểm tra",
           icon: DocumentTextIcon,

@@ -31,6 +31,15 @@ import ClassroomManagement from "../components/admin/classroom/management/classr
 import ClassroomCreate from "../components/admin/classroom/create/classroom.create";
 import ClassroomUpdate from "../components/admin/classroom/update/classroom.update";
 
+// Schedule compoents
+import ScheduleManagement from "../components/admin/schedule/scheduleManagement";
+import ScheduleDetailPage from "../components/admin/schedule/scheduleDetailPage";
+
+
+//Register Schedule
+import TeacherAssignment from "../components/admin/schedule/teacherAssignment";
+
+
 const AdminRoutes: RouteObject = {
   path: "admin",
   element: <AdminLayout />,
@@ -91,6 +100,17 @@ const AdminRoutes: RouteObject = {
       path: "courses/update/:id",
       element: <CourseUpdate />,
     },
+
+    // Schdules routes
+    {
+      path: "schedules",
+      element: <ScheduleManagement />,
+    },
+    {
+      path: "schedules/:id",
+      element: <ScheduleDetailPage />,
+    },
+
     // Coursetest routes
     {
       path: "coursetest",
@@ -116,6 +136,12 @@ const AdminRoutes: RouteObject = {
     {
       path: "classrooms/update/:id",
       element: <ClassroomUpdate />,
+    },
+    
+    // Create Schedule
+    {
+      path: "register-schedule/:id",
+      element: <TeacherAssignment />,
     },
   ],
 };

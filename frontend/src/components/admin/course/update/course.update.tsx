@@ -273,19 +273,19 @@ const CourseUpdate = () => {
                       (val || "PLANNING") as
                         | "PLANNING"
                         | "ACTIVE"
-                        | "COMPLETED",
+                        | "INACTIVE",
                     )
                   }
                   value={status}
-                  disabled={originalStatus === "COMPLETED"}
+                  disabled={originalStatus === "INACTIVE"}
                 >
                   <Option value="PLANNING">Lên kế hoạch</Option>
                   <Option value="ACTIVE">Đang hoạt động</Option>
-                  <Option value="COMPLETED">Đã hoàn thành</Option>
+                  <Option value="INACTIVE">Không hoạt động</Option>
                 </Select>
-                {originalStatus === "COMPLETED" && (
+                {originalStatus === "INACTIVE" && (
                   <Typography variant="small" color="amber" className="mt-1">
-                    Không thể thay đổi trạng thái của khóa học đã hoàn thành
+                    Không thể thay đổi trạng thái của khóa học không hoạt động
                   </Typography>
                 )}
               </div>

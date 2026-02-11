@@ -28,7 +28,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
       {/* Sidebar */}
       <div
         className={`fixed lg:sticky top-0 left-0 h-screen z-40 transition-all duration-300 ease-in-out ${

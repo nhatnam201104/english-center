@@ -109,6 +109,7 @@ export const getAllTeachersService = async (
       where,
       include: {
         user: true,
+        freeDays: true
       },
       take: req.limit,
       skip: req.page && req.limit ? (req.page - 1) * req.limit : undefined,
@@ -149,7 +150,9 @@ export const getTeacherByIdService = async (
       },
       include: {
         user: true,
+        freeDays: true,
       },
+      
     });
 
     if (!teacher) {
@@ -282,3 +285,5 @@ export const deleteTeacherService = async (id: number): Promise<void> => {
     );
   }
 };
+
+

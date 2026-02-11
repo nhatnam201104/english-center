@@ -42,7 +42,6 @@ enum CourseStatus {
   PLANNING
   ACTIVE
   INACTIVE
-  COMPLETED
 }
 
 enum DayOfWeek {
@@ -480,8 +479,8 @@ model ScheduleSession {
   schedule    Schedule             @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   attendances ScheduleAttendance[]
 
-  @@index([scheduleId])
-}
+    @@index([scheduleId])
+  }
 
 model ScheduleRegistration {
   id         Int      @id @default(autoincrement())

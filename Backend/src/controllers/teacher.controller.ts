@@ -78,3 +78,4 @@ export const deleteTeacher = async (req: Request, res: Response) => {
   await deleteTeacherService(id);
   return customRes.success(null, "Xóa giáo viên thành công");
 };
+

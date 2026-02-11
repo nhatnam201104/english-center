@@ -29,7 +29,7 @@ const fileFilter = function (
   cb: multer.FileFilterCallback,
 ) {
   // Accept only images
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
     return cb(new Error("Only image files are allowed!"));
   }
   cb(null, true);

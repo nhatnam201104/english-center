@@ -221,14 +221,14 @@ const CourseCreate = () => {
                       (val || "PLANNING") as
                         | "PLANNING"
                         | "ACTIVE"
-                        | "COMPLETED",
+                        | "INACTIVE",
                     )
                   }
                   value={status}
                 >
                   <Option value="PLANNING">Lên kế hoạch</Option>
                   <Option value="ACTIVE">Đang hoạt động</Option>
-                  <Option value="COMPLETED">Đã hoàn thành</Option>
+                  <Option value="INACTIVE">Không hoạt động</Option>
                 </Select>
                 {errors.status && (
                   <Typography variant="small" color="red" className="mt-1">

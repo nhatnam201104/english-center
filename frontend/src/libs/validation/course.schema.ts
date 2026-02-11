@@ -24,19 +24,19 @@ export const createCourseSchema = z
         message: "Band tối thiểu phải là số",
       })
       .min(0, "Band tối thiểu phải lớn hơn hoặc bằng 0")
-      .max(9, "Band tối thiểu phải nhỏ hơn hoặc bằng 9")
+      .max(990, "Band tối thiểu phải nhỏ hơn hoặc bằng 990")
       .optional(),
     maxBand: z
       .number({
         message: "Band tối đa phải là số",
       })
       .min(0, "Band tối đa phải lớn hơn hoặc bằng 0")
-      .max(9, "Band tối đa phải nhỏ hơn hoặc bằng 9")
+      .max(990, "Band tối đa phải nhỏ hơn hoặc bằng 990")
       .optional(),
     courseSkill: z.enum(["READING_LISTENING", "SPEAKING_WRITING", "ALL"], {
       message: "Kỹ năng khóa học là bắt buộc",
     }),
-    status: z.enum(["PLANNING", "ACTIVE", "COMPLETED"], {
+    status: z.enum(["PLANNING", "ACTIVE", "INACTIVE"], {
       message: "Trạng thái là bắt buộc",
     }),
   })
@@ -111,17 +111,17 @@ export const updateCourseSchema = z
         message: "Band tối thiểu phải là số",
       })
       .min(0, "Band tối thiểu phải lớn hơn hoặc bằng 0")
-      .max(9, "Band tối thiểu phải nhỏ hơn hoặc bằng 9")
+      .max(990, "Band tối thiểu phải nhỏ hơn hoặc bằng 990")
       .optional(),
     maxBand: z
       .number({
         message: "Band tối đa phải là số",
       })
       .min(0, "Band tối đa phải lớn hơn hoặc bằng 0")
-      .max(9, "Band tối đa phải nhỏ hơn hoặc bằng 9")
+      .max(990, "Band tối đa phải nhỏ hơn hoặc bằng 990")
       .optional(),
     status: z
-      .enum(["PLANNING", "ACTIVE", "COMPLETED"], {
+      .enum(["PLANNING", "ACTIVE", "INACTIVE"], {
         message: "Trạng thái không hợp lệ",
       })
       .optional(),

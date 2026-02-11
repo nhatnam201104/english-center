@@ -9,4 +9,5 @@ export interface TeacherResponse {
   avatar: string | null;
   createdAt: Date;
   updatedAt: Date;
+  days?: string[];
 }

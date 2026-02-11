@@ -4,6 +4,7 @@ import {
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import type { Course } from "../../../../types/course/response";
+import { CalendarDaysIcon } from "lucide-react";
 
 interface CourseTableProps {
   courses: Course[];
@@ -11,6 +12,7 @@ interface CourseTableProps {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
   onManageTests: (id: number) => void;
+  onAssignSchedule: (id: number) => void;
 }
 
 const CourseTable: React.FC<CourseTableProps> = ({
@@ -19,6 +21,7 @@ const CourseTable: React.FC<CourseTableProps> = ({
   onEdit,
   onDelete,
   onManageTests,
+  onAssignSchedule,
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -30,7 +33,7 @@ const CourseTable: React.FC<CourseTableProps> = ({
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { color: string; label: string }> = {
       ACTIVE: { color: "bg-green-100 text-green-800", label: "Kích hoạt" },
-      COMPLETED: { color: "bg-gray-100 text-gray-600", label: "Hoàn thành" },
+      INACTIVE: { color: "bg-gray-100 text-gray-600", label: "Không hoạt động" },
       PLANNING: {
         color: "bg-yellow-100 text-yellow-800",
         label: "Đang lên kế hoạch",
@@ -188,6 +191,15 @@ const CourseTable: React.FC<CourseTableProps> = ({
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex items-center justify-end space-x-2">
+                  {course.status === "ACTIVE" && (
+                    <button
+                      onClick={() => onAssignSchedule(course.id)}
+                      className="text-emerald-600 hover:text-emerald-800 p-1 rounded transition-colors"
+                      title="Phân công khóa học"
+                    >
+                      <CalendarDaysIcon className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     onClick={() => onManageTests(course.id)}
                     className="text-purple-600 hover:text-purple-800 p-1 rounded transition-colors"

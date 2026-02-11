@@ -6,7 +6,7 @@ export interface GetCourseRequest {
   search?: string;
   type?: string;
   courseSkill?: "READING_LISTENING" | "SPEAKING_WRITING" | "ALL";
-  status?: "PLANNING" | "ACTIVE" | "INACTIVE" | "COMPLETED";
+  status?: "PLANNING" | "ACTIVE" | "INACTIVE";
   minPrice?: number;
   maxPrice?: number;
   minBand?: number;

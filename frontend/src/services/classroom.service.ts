@@ -12,7 +12,7 @@ import type {
 
 // Service
 export const getAllClassrooms = async (
-  params: GetClassroomRequest,
+  params?: GetClassroomRequest,
 ): Promise<ApiResponse<PaginatedClassroomResponse>> => {
   const response = await api.get<ApiResponse<PaginatedClassroomResponse>>(
     "/classrooms",

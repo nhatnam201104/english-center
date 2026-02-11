@@ -50,8 +50,6 @@ router.get(
  */
 router.get(
   "/:id",
-  authenticate,
-  authorize("ADMIN", "TEACHER", "STUDENT"),
   getCourseById,
 );
 

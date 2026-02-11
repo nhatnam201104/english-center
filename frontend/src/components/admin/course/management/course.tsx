@@ -87,6 +87,10 @@ const CourseManagement = () => {
     navigate(`/admin/coursetest?courseId=${courseId}`);
   };
 
+  const handleTeacherAssignmen = (courseId: number) => {
+    navigate(`/admin/register-schedule/${courseId}`);
+  };
+
   const handleSearchChange = (value: string) => {
     setSearch(value);
     setCurrentPage(1);
@@ -168,6 +172,7 @@ const CourseManagement = () => {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onManageTests={handleManageTests}
+            onAssignSchedule={handleTeacherAssignmen}
           />
 
           <CoursePagination

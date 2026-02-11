@@ -13,6 +13,7 @@ import {
   deleteTeacher,
 } from "../controllers/teacher.controller";
 import { upload } from "../middleware/upload.middleware";
+import { createTeacherFreeDay, getTeacherFreeDay } from "../controllers/teacherFreeDay.controller";
 
 const router = Router();
 
@@ -71,5 +72,29 @@ router.put(
  * @access  Private (Admin only)
  */
 router.delete("/:id", authenticate, authorize("ADMIN"), deleteTeacher);
+
+/**
+ * @route   POST /api/teachers/:id/free-days
+ * @desc    Tạo ngày rảnh cho giáo viên
+ * @access  Private (Admin, Teacher - chỉ tạo cho chính mình)
+ */
+router.post(
+  "/:id/free-days",
+  authenticate,
+  authorize("ADMIN", "TEACHER"),
+  createTeacherFreeDay,
+);
+
+/**
+ * @route   GET /api/teachers/:id/free-days
+ * @desc    Lấy ngày rảnh giáo viên
+ * @access  ADMIN, TEACHER
+ */
+router.get(
+  "/:id/free-days",
+  authenticate,
+  authorize("ADMIN", "TEACHER"),
+  getTeacherFreeDay,
+);
 
 export default router;
