@@ -115,17 +115,12 @@ const AdminSidebar = () => {
     },
     {
       id: "content",
-      title: "Quản lý nội dung",
+      title: "Quản lý bài kiểm tra",
       icon: NewspaperIcon,
       path: "/admin/content",
       children: [
-        { title: "Tin tức", icon: NewspaperIcon, path: "/admin/content/news" },
-        {
-          title: "Thông báo",
-          icon: DocumentTextIcon,
-          path: "/admin/content/announcements",
-        },
-        { title: "Sự kiện", icon: CalendarIcon, path: "/admin/content/events" },
+        { title: "Listening & Reading", icon: NewspaperIcon, path: "/admin/content/lr" },
+        { title: "Speaking & Writing", icon: NewspaperIcon, path: "/admin/content/sw" },
       ],
     },
     {

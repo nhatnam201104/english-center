@@ -10,14 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
 enum EntranceExamType {
-  READING
-  LISTENING
-  SPEAKING
-  WRITING
   READING_LISTENING
   SPEAKING_WRITING
-  ALL
 }
 
 enum RoleName {
@@ -69,6 +68,8 @@ model User {
   teacherInfo TeacherInfo?
   studentInfo StudentInfo?
   parentInfo  ParentInfo?
+
+  @@map("user")
 }
 
 model TeacherInfo {
@@ -86,6 +87,7 @@ model TeacherInfo {
   schedules Schedule[]
 
   @@index([userId])
+  @@map("teacher_info")
 }
 
 model TeacherFreeDay {
@@ -98,6 +100,7 @@ model TeacherFreeDay {
 
   @@unique([teacherId, day])
   @@index([teacherId])
+  @@map("teacher_free_day")
 }
 
 model StudentInfo {
@@ -119,6 +122,7 @@ model StudentInfo {
   scoreCourses          ScoreCourse[]
 
   @@index([userId])
+  @@map("student_info")
 }
 
 model ParentInfo {
@@ -132,6 +136,7 @@ model ParentInfo {
   students ParentStudent[]
 
   @@index([userId])
+  @@map("parent_info")
 }
 
 model ParentStudent {
@@ -146,6 +151,7 @@ model ParentStudent {
   @@unique([parentId, studentId])
   @@index([parentId])
   @@index([studentId])
+  @@map("parent_student")
 }
 
 model StudentRegisterCourse {
@@ -160,6 +166,7 @@ model StudentRegisterCourse {
   @@unique([studentId, courseId])
   @@index([studentId])
   @@index([courseId])
+  @@map("student_register_course")
 }
 
 model Admission {
@@ -184,6 +191,7 @@ model Admission {
   admissionsWriting   AdmissionsWriting[]
 
   @@index([entranceExamId])
+  @@map("admission")
 }
 
 model AdmissionsListening {
@@ -193,13 +201,12 @@ model AdmissionsListening {
   answerId    Int?
   createdAt   DateTime @default(now())
 
-  admission Admission                     @relation(fields: [admissionId], references: [id], onDelete: Cascade)
-  question  EntranceExamListeningQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  answer    EntranceExamListeningAnswer?  @relation(fields: [answerId], references: [id], onDelete: SetNull)
+  admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
 
   @@index([admissionId])
   @@index([questionId])
   @@index([answerId])
+  @@map("admissions_listening")
 }
 
 model AdmissionsReading {
@@ -209,13 +216,12 @@ model AdmissionsReading {
   answerId    Int?
   createdAt   DateTime @default(now())
 
-  admission Admission                   @relation(fields: [admissionId], references: [id], onDelete: Cascade)
-  question  EntranceExamReadingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  answer    EntranceExamReadingAnswer?  @relation(fields: [answerId], references: [id], onDelete: SetNull)
+  admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
 
   @@index([admissionId])
   @@index([questionId])
   @@index([answerId])
+  @@map("admissions_reading")
 }
 
 model AdmissionsSpeaking {
@@ -225,11 +231,11 @@ model AdmissionsSpeaking {
   audioRecord String
   createdAt   DateTime @default(now())
 
-  admission Admission                    @relation(fields: [admissionId], references: [id], onDelete: Cascade)
-  question  EntranceExamSpeakingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
 
   @@index([admissionId])
   @@index([questionId])
+  @@map("admissions_speaking")
 }
 
 model AdmissionsWriting {
@@ -239,17 +245,18 @@ model AdmissionsWriting {
   answer      String?
   createdAt   DateTime @default(now())
 
-  admission Admission                   @relation(fields: [admissionId], references: [id], onDelete: Cascade)
-  question  EntranceExamWritingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
 
   @@index([admissionId])
   @@index([questionId])
+  @@map("admissions_writing")
 }
 
 model EntranceExam {
   id              Int                 @id @default(autoincrement())
   name            String
-  type            CourseSkill
+  type            EntranceExamType // READING_LISTENING (120m) or SPEAKING_WRITING (80m)
+  time            Int                 // in minutes
 
   // Relation fields - optional based on type
   listening       EntranceExamListening? @relation(fields: [listeningExamId], references: [id])
@@ -267,139 +274,534 @@ model EntranceExam {
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
   admissions      Admission[]
+
+  @@map("entrance_exam")
 }
 
+/*
+Start Listening
+*/
 model EntranceExamListening {
-  id                Int                          @id @default(autoincrement())
-  name              String                       @unique
-  listeningQuestions EntranceExamListeningQuestion[]
-  
-  entranceExams     EntranceExam[]
-  createdAt       DateTime                      @default(now())
-  updatedAt       DateTime                      @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  direction     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  entranceExams  EntranceExam[]
+  partOnes       PartOne[]
+  partTwos       PartTwo[]
+  partThrees     PartThree[]
+  partFours      PartFour[]
+  trueAnswers    EntranceExamListeningTrueAnswer[]
+
+  @@map("entrance_exam_listening")
 }
 
-model EntranceExamReading {
-  id               Int                        @id @default(autoincrement())
-  name             String                     @unique
-  readingQuestions  EntranceExamReadingQuestion[]
-  
-  entranceExams     EntranceExam[]
-  createdAt       DateTime                    @default(now())
-  updatedAt       DateTime                    @updatedAt
-}
-
-model EntranceExamSpeaking {
-  id                Int                         @id @default(autoincrement())
-  name              String                      @unique
-  speakingQuestions  EntranceExamSpeakingQuestion[]
-  
-  entranceExams     EntranceExam[]
-  createdAt       DateTime                    @default(now())
-  updatedAt       DateTime                    @updatedAt
-}
-
-model EntranceExamWriting {
-  id               Int                        @id @default(autoincrement())
-  name             String                     @unique
-
-  writingQuestions  EntranceExamWritingQuestion[]
-  entranceExams     EntranceExam[]
-  createdAt       DateTime                    @default(now())
-  updatedAt       DateTime                    @updatedAt
-}
-model EntranceExamListeningQuestion {
+model PartOne {
   id              Int      @id @default(autoincrement())
   listeningExamId Int
-  index           Int
-  part            Int
-  question        String
-  image           String?
+  direction       String
+  totalQuestion   Int      @default(6)
   createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  entranceExamListening EntranceExamListening        @relation(fields: [listeningExamId], references: [id], onDelete: Cascade)
-  answers                EntranceExamListeningAnswer[]
-  admissionsListening    AdmissionsListening[]
+  listeningExam EntranceExamListening @relation(fields: [listeningExamId], references: [id], onDelete: Cascade)
+  questions     PartOneQuestion[]
 
   @@index([listeningExamId])
+  @@map("part_one")
 }
 
-model EntranceExamListeningAnswer {
-  id                      Int      @id @default(autoincrement())
-  questionId              Int
-  part                    Int
-  answer                  String?
-  isTrue                  Boolean
-  createdAt               DateTime @default(now())
-
-  question              EntranceExamListeningQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  admissionsListening    AdmissionsListening[]
-
-  @@index([questionId])
-}
-
-model EntranceExamReadingQuestion {
-  id            Int      @id @default(autoincrement())
-  readingExamId Int
-  index         Int
-  part          Int
-  question      String
-  image         String?
-  createdAt     DateTime @default(now())
-
-  entranceExamReading EntranceExamReading       @relation(fields: [readingExamId], references: [id], onDelete: Cascade)
-  answers             EntranceExamReadingAnswer[]
-  admissionsReading   AdmissionsReading[]
-
-  @@index([readingExamId])
-}
-
-model EntranceExamReadingAnswer {
+model PartOneQuestion {
   id         Int      @id @default(autoincrement())
-  questionId Int
-  part       Int
-  answer     String?
-  isTrue     Boolean
+  partOneId  Int
+  index      Int
+  audio      String
+  question   String
+  image      String
   createdAt  DateTime @default(now())
 
-  question          EntranceExamReadingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  admissionsReading AdmissionsReading[]
+  partOne    PartOne   @relation(fields: [partOneId], references: [id], onDelete: Cascade)
 
-  @@index([questionId])
+  @@index([partOneId])
+  @@map("part_one_question")
 }
 
-model EntranceExamSpeakingQuestion {
-  id               Int      @id @default(autoincrement())
-  speakingExamId   Int
-  index            Int
-  question         String
-  image            String?
-  descriptionForAi String?
-  timeToReadInfo   Int
-  preparationTime  Int
-  presentationTime Int
-  createdAt        DateTime @default(now())
+model PartTwo {
+  id              Int      @id @default(autoincrement())
+  listeningExamId Int
+  direction       String
+  totalQuestion   Int      @default(25)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  entranceExamSpeaking EntranceExamSpeaking       @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
-  admissionsSpeaking  AdmissionsSpeaking[]
+  listeningExam EntranceExamListening @relation(fields: [listeningExamId], references: [id], onDelete: Cascade)
+  questions     PartTwoQuestion[]
+
+  @@index([listeningExamId])
+  @@map("part_two")
+}
+
+model PartTwoQuestion {
+  id         Int      @id @default(autoincrement())
+  partTwoId  Int
+  index      Int
+  audio      String
+  question   String @default("Make your answer on your answer sheet.")
+  createdAt  DateTime @default(now())
+
+  partTwo    PartTwo   @relation(fields: [partTwoId], references: [id], onDelete: Cascade)
+
+  @@index([partTwoId])
+  @@map("part_two_question")
+}
+
+model PartThree {
+  id              Int      @id @default(autoincrement())
+  listeningExamId Int
+  direction       String
+  totalQuestion   Int      @default(39)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  listeningExam EntranceExamListening @relation(fields: [listeningExamId], references: [id], onDelete: Cascade)
+  groups        PartThreeGroup[]
+
+  @@index([listeningExamId])
+  @@map("part_three")
+}
+
+model PartThreeGroup {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  partThreeId Int
+  audio      String
+  image     String?
+  fromQuestionIndex Int
+  toQuestionIndex   Int
+  createdAt  DateTime @default(now())
+
+  partThree PartThree @relation(fields: [partThreeId], references: [id], onDelete: Cascade)
+  questions PartThreeQuestion[]
+
+  @@index([partThreeId])
+  @@map("part_three_group")
+}
+
+model PartThreeQuestion {
+  id         Int      @id @default(autoincrement())
+  partThreeGroupId Int
+  index      Int
+  question   String
+  answerA    String
+  answerB    String
+  answerC    String
+  answerD    String
+  createdAt  DateTime @default(now())
+
+  partThreeGroup PartThreeGroup @relation(fields: [partThreeGroupId], references: [id], onDelete: Cascade)
+
+  @@index([partThreeGroupId])
+  @@map("part_three_question")
+}
+
+model PartFour {
+  id              Int      @id @default(autoincrement())
+  listeningExamId Int
+  direction       String
+  totalQuestion   Int      @default(30)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  listeningExam EntranceExamListening @relation(fields: [listeningExamId], references: [id], onDelete: Cascade)
+  groups        PartFourGroup[]
+
+  @@index([listeningExamId])
+  @@map("part_four")
+}
+
+model PartFourGroup {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  partFourId Int
+  audio      String
+  image     String?
+  fromQuestionIndex Int
+  toQuestionIndex   Int
+  createdAt  DateTime @default(now())
+
+  partFour PartFour @relation(fields: [partFourId], references: [id], onDelete: Cascade)
+  questions PartFourQuestion[]
+
+  @@index([partFourId])
+  @@map("part_four_group")
+}
+
+model PartFourQuestion {
+  id         Int      @id @default(autoincrement())
+  partFourGroupId Int
+  index      Int
+  question   String
+  answerA    String
+  answerB    String
+  answerC    String
+  answerD    String
+  createdAt  DateTime @default(now())
+
+  partFourGroup PartFourGroup @relation(fields: [partFourGroupId], references: [id], onDelete: Cascade)
+
+  @@index([partFourGroupId])
+  @@map("part_four_question")
+}
+
+/*
+End Listening
+*/
+
+/*
+Start Reading
+*/
+model EntranceExamReading {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  direction   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  entranceExams EntranceExam[]
+  partFives     PartFive[]
+  partSixes     PartSix[]
+  partSevens    PartSeven[]
+  trueAnswers   EntranceExamReadingTrueAnswer[]
+
+  @@map("entrance_exam_reading")
+}
+
+model PartFive {
+  id            Int      @id @default(autoincrement())
+  readingExamId Int
+  direction     String
+  totalQuestion Int      @default(30)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  readingExam EntranceExamReading @relation(fields: [readingExamId], references: [id], onDelete: Cascade)
+  questions   PartFiveQuestion[]
+
+  @@index([readingExamId])
+  @@map("part_five")
+}
+
+model PartFiveQuestion {
+  id         Int      @id @default(autoincrement())
+  partFiveId Int
+  index      Int
+  question   String
+  answerA    String
+  answerB    String
+  answerC    String
+  answerD    String
+  createdAt  DateTime @default(now())
+
+  partFive PartFive @relation(fields: [partFiveId], references: [id], onDelete: Cascade)
+
+  @@index([partFiveId])
+  @@map("part_five_question")
+}
+
+model PartSix {
+  id            Int      @id @default(autoincrement())
+  readingExamId Int
+  direction     String
+  totalQuestion Int      @default(16)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  readingExam EntranceExamReading @relation(fields: [readingExamId], references: [id], onDelete: Cascade)
+  groups      PartSixGroup[]
+
+  @@index([readingExamId])
+  @@map("part_six")
+}
+
+model PartSixGroup {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  partSixId  Int
+  question   String?
+  image     String?
+  fromQuestionIndex Int
+  toQuestionIndex   Int
+  createdAt  DateTime @default(now())
+
+  partSix PartSix @relation(fields: [partSixId], references: [id], onDelete: Cascade)
+  questions PartSixQuestion[]
+
+  @@index([partSixId])
+  @@map("part_six_group")
+}
+
+model PartSixQuestion {
+  id         Int      @id @default(autoincrement())
+  partSixGroupId Int
+  index      Int
+  question   String
+  answerA    String
+  answerB    String
+  answerC    String
+  answerD    String
+  createdAt  DateTime @default(now())
+
+  partSixGroup PartSixGroup @relation(fields: [partSixGroupId], references: [id], onDelete: Cascade)
+
+  @@index([partSixGroupId])
+  @@map("part_six_question")
+}
+
+model PartSeven {
+  id            Int      @id @default(autoincrement())
+  readingExamId Int
+  direction     String
+  totalQuestion Int      @default(54)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  readingExam EntranceExamReading @relation(fields: [readingExamId], references: [id], onDelete: Cascade)
+  groups      PartSevenGroup[]
+
+  @@index([readingExamId])
+  @@map("part_seven")
+}
+
+model PartSevenGroup {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  partSevenId Int
+  question   String?
+  image     String?
+  fromQuestionIndex Int
+  toQuestionIndex   Int
+  createdAt  DateTime @default(now())
+
+  partSeven PartSeven @relation(fields: [partSevenId], references: [id], onDelete: Cascade)
+  questions PartSevenQuestion[]
+
+  @@index([partSevenId])
+  @@map("part_seven_group")
+}
+
+model PartSevenQuestion {
+  id         Int      @id @default(autoincrement())
+  partSevenGroupId Int
+  index      Int
+  question   String
+  answerA    String
+  answerB    String
+  answerC    String
+  answerD    String
+  createdAt  DateTime @default(now())
+
+  partSevenGroup PartSevenGroup @relation(fields: [partSevenGroupId], references: [id], onDelete: Cascade)
+
+  @@index([partSevenGroupId])
+  @@map("part_seven_question")
+}
+
+
+/*
+End Reading
+*/
+
+/*
+Reading and Listening answer sheet
+*/
+model EntranceExamListeningTrueAnswer {
+  id          Int      @id @default(autoincrement())
+  entranceExamListeningId Int
+  index      Int
+  answer      String
+  createdAt   DateTime @default(now())
+  entranceExamListening EntranceExamListening @relation(fields: [entranceExamListeningId], references: [id], onDelete: Cascade)
+
+  @@index([entranceExamListeningId])
+  @@map("entrance_exam_listening_true_answer")
+}
+
+model EntranceExamReadingTrueAnswer {
+  id          Int      @id @default(autoincrement())
+  entranceExamReadingId Int
+  index      Int
+  answer      String
+  createdAt   DateTime @default(now())
+  entranceExamReading EntranceExamReading @relation(fields: [entranceExamReadingId], references: [id], onDelete: Cascade)
+
+  @@index([entranceExamReadingId])
+  @@map("entrance_exam_reading_true_answer")
+}
+
+/*
+Start Speaking
+*/
+model EntranceExamSpeaking {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  totalQuestion Int      @default(11)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  entranceExams      EntranceExam[]
+  speakingOneTwos    SpeakingOneTwo[]
+  speakingThreeFours SpeakingThreeFour[]
+  speakingFiveToSevens SpeakingFiveToSeven[]
+  speakingEightToTens  SpeakingEightToTen[]
+  speakingElevens    SpeakingEleven[]
+
+  @@map("entrance_exam_speaking")
+}
+
+model SpeakingOneTwo {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  speakingExamId Int
+  questionOne   String
+  questionTwo   String
+  createdAt  DateTime @default(now())
+
+  speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
   @@index([speakingExamId])
+  @@map("speaking_one_two")
 }
 
-model EntranceExamWritingQuestion {
-  id                    Int      @id @default(autoincrement())
-  writingExamId         Int
-  index                 Int
-  question              String
-  image                 String?
-  descriptionImageForAi String?
-  createdAt             DateTime @default(now())
+model SpeakingThreeFour {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  speakingExamId Int
+  imageThree     String
+  imageFour     String
+  createdAt  DateTime @default(now())
 
-  entranceExamWriting EntranceExamWriting      @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
-  admissionsWriting  AdmissionsWriting[]
+  speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
+
+  @@index([speakingExamId])
+  @@map("speaking_three_four")
+}
+
+model SpeakingFiveToSeven {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  speakingExamId Int
+  passage     String
+  questionFive   String
+  questionSix    String
+  questionSeven  String
+  createdAt  DateTime @default(now())
+
+  speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
+
+  @@index([speakingExamId])
+  @@map("speaking_five_to_seven")
+}
+
+model SpeakingEightToTen {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  speakingExamId Int
+  passage     String
+  questionEight   String
+  questionNine    String
+  questionTen  String
+  image String?
+  createdAt  DateTime @default(now())
+
+  speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
+
+  @@index([speakingExamId])
+  @@map("speaking_eight_to_ten")
+}
+
+model SpeakingEleven {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  speakingExamId Int
+  question   String
+  createdAt  DateTime @default(now())
+
+  speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
+
+  @@index([speakingExamId])
+  @@map("speaking_eleven")
+}
+
+/*
+End Speaking
+*/
+
+/*
+Start Writing
+*/
+model EntranceExamWriting {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  entranceExams    EntranceExam[]
+  writingOneToFives WritingOneToFive[]
+  writingSixSevens  WritingSixSeven[]
+  writingEights     WritingEight[]
+
+  @@map("entrance_exam_writing")
+}
+
+model WritingOneToFive {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  writingExamId Int
+  imageOne     String
+  imageTwo     String
+  imageThree     String
+  imageFour     String
+  imageFive     String
+  createdAt  DateTime @default(now())
+
+  writingExam EntranceExamWriting @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
 
   @@index([writingExamId])
+  @@map("writing_one_to_five")
 }
+
+model WritingSixSeven {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  writingExamId Int
+  imageSix     String
+  imageSeven     String
+  createdAt  DateTime @default(now())
+
+  writingExam EntranceExamWriting @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
+
+  @@index([writingExamId])
+  @@map("writing_six_seven")
+}
+
+model WritingEight {
+  id         Int      @id @default(autoincrement())
+  index      Int
+  writingExamId Int
+  questionEight   String
+  createdAt  DateTime @default(now())
+
+  writingExam EntranceExamWriting @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
+
+  @@index([writingExamId])
+  @@map("writing_eight")
+}
+
+/*
+End Writing
+*/
 
 model Course {
   id        Int      @id @default(autoincrement())
@@ -418,6 +820,8 @@ model Course {
   tests                CourseTest[]
   studentRegistrations StudentRegisterCourse[]
   schedules            Schedule[]
+
+  @@map("course")
 }
 
 model CourseTest {
@@ -433,6 +837,7 @@ model CourseTest {
   scoreCourses ScoreCourse[]
 
   @@index([courseId])
+  @@map("course_test")
 }
 
 model Classroom {
@@ -443,6 +848,8 @@ model Classroom {
   updatedAt DateTime @updatedAt
 
   schedules Schedule[]
+
+  @@map("classroom")
 }
 
 model Schedule {
@@ -466,6 +873,7 @@ model Schedule {
   @@index([teacherId])
   @@index([classroomId])
   @@index([coursesId])
+  @@map("schedule")
 }
 
 model ScheduleSession {
@@ -479,8 +887,9 @@ model ScheduleSession {
   schedule    Schedule             @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   attendances ScheduleAttendance[]
 
-    @@index([scheduleId])
-  }
+  @@index([scheduleId])
+  @@map("schedule_session")
+}
 
 model ScheduleRegistration {
   id         Int      @id @default(autoincrement())
@@ -494,6 +903,7 @@ model ScheduleRegistration {
   @@unique([scheduleId, studentId])
   @@index([scheduleId])
   @@index([studentId])
+  @@map("schedule_registration")
 }
 
 model ScheduleAttendance {
@@ -507,6 +917,7 @@ model ScheduleAttendance {
   records         AttendanceRecord[]
 
   @@index([scheduleDayId])
+  @@map("schedule_attendance")
 }
 
 model AttendanceRecord {
@@ -522,6 +933,7 @@ model AttendanceRecord {
   @@unique([scheduleAttendanceId, studentId])
   @@index([scheduleAttendanceId])
   @@index([studentId])
+  @@map("attendance_record")
 }
 
 model ScoreCourse {
@@ -537,4 +949,5 @@ model ScoreCourse {
   @@unique([courseTestId, studentId])
   @@index([courseTestId])
   @@index([studentId])
+  @@map("score_course")
 }
