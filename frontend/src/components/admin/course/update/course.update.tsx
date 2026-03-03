@@ -277,17 +277,11 @@ const CourseUpdate = () => {
                     )
                   }
                   value={status}
-                  disabled={originalStatus === "INACTIVE"}
                 >
                   <Option value="PLANNING">Lên kế hoạch</Option>
                   <Option value="ACTIVE">Đang hoạt động</Option>
                   <Option value="INACTIVE">Không hoạt động</Option>
                 </Select>
-                {originalStatus === "INACTIVE" && (
-                  <Typography variant="small" color="amber" className="mt-1">
-                    Không thể thay đổi trạng thái của khóa học không hoạt động
-                  </Typography>
-                )}
               </div>
 
               <div>

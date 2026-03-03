@@ -249,6 +249,31 @@ export const updateCourseService = async (
     }
   }
 
+  // Kiểm tra status
+  if (data.status!=undefined&&data.status!==course.status){
+    const today = new Date();
+
+    const existingSchedule = await prisma.schedule.findFirst({
+      where: {
+        coursesId: id,
+        endTime: {
+          gt: today
+        }
+      }
+    });
+    if (course.status==="INACTIVE" && data.status=="ACTIVE"){
+      throw new AppError(
+      "Không được thay đổi sang ACTIVE",
+      400,);
+    }
+    if (course.status==="ACTIVE" && existingSchedule){
+      throw new AppError(
+      "Khóa học đang ACTIVE và còn lịch học trong tương lai nên không thể thay đổi trạng thái",
+      400,);
+    }
+
+  }
+
   // 5. Cập nhật vào Database
   try {
     const updatedCourse = await prisma.course.update({

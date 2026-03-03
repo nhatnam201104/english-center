@@ -10,6 +10,7 @@ import { createSchedule } from "../../../services/schedule.service";
 import TeacherSidebar from "../../../components/admin/schedule/teacherAssignment/teacherSideBar";
 import CourseInfo from "../../../components/admin/schedule/teacherAssignment/courseInfo";
 import AssignDropZone from "../../../components/admin/schedule/teacherAssignment/assignDropZone";
+import getCycleValue from "../../../helpers/getCycleValue";
 
 const TeacherAssignment = () => {
   // const teachers = [
@@ -118,7 +119,7 @@ const TeacherAssignment = () => {
       const totalSessions = Number(assignmentData.totalSessions);
       const startDate = new Date(assignmentData.startDate);
       const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + totalSessions);
+      endDate.setDate(endDate.getDate() + (Math.ceil(totalSessions/3)*7 - getCycleValue(totalSessions)*2)-1);
       
       // Init payload
       const payload = {

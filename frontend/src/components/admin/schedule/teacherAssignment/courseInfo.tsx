@@ -4,6 +4,7 @@ import { TIME_SLOTS_120, TIME_SLOTS_90 } from "../../../../types/schedule/slot-t
 import { getAllClassrooms } from "../../../../services/classroom.service";
 import type { Classroom } from "../../../../types/classroom/response";
 import getTomorrowLocal from "../../../../helpers/getTomorrowLocal";
+import adjustStartDateByDays from "../../../../helpers/adjustStartDateByDays";
 
 type Props = {
   course: Course | null;
@@ -20,7 +21,7 @@ const CourseInfo = ({ course, onDataChange }: Props) => {
     fromTime: "",
     toTime: "",
     totalSessions: "",
-    days: "246",
+    days: "",
   });
 
   const updateForm = (key: string, value: any) => {
@@ -95,7 +96,26 @@ const CourseInfo = ({ course, onDataChange }: Props) => {
               type="date"
               value={form.startDate}
               min={getTomorrowLocal()}
-              onChange={(e) => updateForm("startDate", e.target.value)}
+              onChange={(e) => {
+                const newDate = e.target.value;
+
+                setForm((prev: any) => {
+                  let adjustedDate = newDate;
+
+                  if (prev.days) {
+                    adjustedDate = adjustStartDateByDays(newDate, prev.days);
+                  }
+
+                  const newForm = {
+                    ...prev,
+                    startDate: adjustedDate,
+                  };
+
+                  onDataChange(newForm);
+                  return newForm;
+                });
+              }}
+
               className="w-full max-w-[180px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-slate-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
             />
           </div>
@@ -154,8 +174,35 @@ const CourseInfo = ({ course, onDataChange }: Props) => {
             <div className="relative w-full">
               <select
                 value={form.days}
-                onChange={(e) => updateForm("days", e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-slate-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer">
+                disabled={!form.startDate}
+                onChange={(e) => {
+                  const newDays = e.target.value;
+
+                  setForm((prev: any) => {
+                    let adjustedDate = prev.startDate;
+
+                    if (prev.startDate) {
+                      adjustedDate = adjustStartDateByDays(prev.startDate, newDays);
+                    }
+
+                    const newForm = {
+                      ...prev,
+                      days: newDays,
+                      startDate: adjustedDate,
+                    };
+
+                    onDataChange(newForm);
+                    return newForm;
+                  });
+                }}
+
+                className={`w-full border rounded-xl px-3 py-1.5 text-sm transition-all
+                  ${!form.startDate
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                    : "bg-gray-50 text-slate-700 border-gray-200 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
+                  }`}
+              >
+                <option value="">-- Chọn lịch học --</option>
                 <option value="246">Monday - Wednesday - Friday</option>
                 <option value="357">Tuesday - Thursday - Saturday</option>
               </select>
