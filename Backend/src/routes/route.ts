@@ -8,6 +8,7 @@ import classroomRoute from "./classroom.routes";
 import courseRoute from "./course.routes";
 import courseTestRoute from "./coursetest.routes";
 import scheduleRoute from "./schedule.routes";
+import entranceExamLRRoute from "./entranceExamLR.routes";
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use("/classrooms", classroomRoute);
 router.use("/courses", courseRoute);
 router.use("/course-tests", courseTestRoute);
 router.use("/schedule", scheduleRoute);
+router.use("/entrance-exam-lr", entranceExamLRRoute);
 
 export default router;

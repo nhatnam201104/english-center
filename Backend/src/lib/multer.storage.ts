@@ -65,4 +65,34 @@ const courseTestFileFilter = function (
   cb(null, true);
 };
 
-export { fileFilter, courseTestFileFilter, storage };
+const entranceExamLRFileFilter = function (
+  _req: Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+) {
+  // Accept images and audio files for entrance exam listening/reading
+  const allowedExtensions = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".mp3",
+    ".wav",
+    ".ogg",
+    ".m4a",
+  ];
+  if (
+    !allowedExtensions.some((ext) =>
+      file.originalname.toLowerCase().endsWith(ext),
+    )
+  ) {
+    return cb(
+      new Error(
+        "Only image files (jpg, jpeg, png, gif) and audio files (mp3, wav, ogg, m4a) are allowed!",
+      ),
+    );
+  }
+  cb(null, true);
+};
+
+export { fileFilter, courseTestFileFilter, entranceExamLRFileFilter, storage };

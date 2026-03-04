@@ -4,6 +4,7 @@ import {
   storage,
   fileFilter,
   courseTestFileFilter,
+  entranceExamLRFileFilter,
 } from "../lib/multer.storage";
 
 // Giới hạn file size: 5MB cho images
@@ -29,6 +30,16 @@ export const uploadCourseTest = multer({
 export const uploadCourseTestWithAudio = multer({
   storage,
   fileFilter: courseTestFileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
+  },
+});
+
+// Upload cho Entrance Exam LR - hỗ trợ cả images và audio
+// Giới hạn file size: 50MB
+export const uploadEntranceExamLR = multer({
+  storage,
+  fileFilter: entranceExamLRFileFilter,
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB
   },

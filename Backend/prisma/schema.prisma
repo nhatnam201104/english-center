@@ -284,7 +284,9 @@ Start Listening
 model EntranceExamListening {
   id            Int      @id @default(autoincrement())
   name          String   @unique
-  direction     String
+  direction     String   @db.Text
+  isDone        Boolean  @default(false)
+  isActive      Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -301,8 +303,10 @@ model EntranceExamListening {
 model PartOne {
   id              Int      @id @default(autoincrement())
   listeningExamId Int
-  direction       String
+  direction       String   @db.Text
   totalQuestion   Int      @default(6)
+  quantityQuestionDone Int      @default(0)
+  isDone          Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -331,8 +335,10 @@ model PartOneQuestion {
 model PartTwo {
   id              Int      @id @default(autoincrement())
   listeningExamId Int
-  direction       String
+  direction       String   @db.Text
   totalQuestion   Int      @default(25)
+  quantityQuestionDone Int      @default(0)
+  isDone          Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -360,8 +366,10 @@ model PartTwoQuestion {
 model PartThree {
   id              Int      @id @default(autoincrement())
   listeningExamId Int
-  direction       String
+  direction       String   @db.Text
   totalQuestion   Int      @default(39)
+  quantityQuestionDone Int      @default(0)
+  isDone          Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -409,8 +417,10 @@ model PartThreeQuestion {
 model PartFour {
   id              Int      @id @default(autoincrement())
   listeningExamId Int
-  direction       String
+  direction       String   @db.Text
   totalQuestion   Int      @default(30)
+  quantityQuestionDone Int      @default(0)
+  isDone          Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -465,7 +475,9 @@ Start Reading
 model EntranceExamReading {
   id          Int      @id @default(autoincrement())
   name        String   @unique
-  direction   String
+  direction   String   @db.Text
+  isDone      Boolean  @default(false)
+  isActive    Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -481,8 +493,10 @@ model EntranceExamReading {
 model PartFive {
   id            Int      @id @default(autoincrement())
   readingExamId Int
-  direction     String
+  direction     String   @db.Text
   totalQuestion Int      @default(30)
+  quantityQuestionDone Int      @default(0)
+  isDone        Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -513,8 +527,10 @@ model PartFiveQuestion {
 model PartSix {
   id            Int      @id @default(autoincrement())
   readingExamId Int
-  direction     String
+  direction     String   @db.Text
   totalQuestion Int      @default(16)
+  quantityQuestionDone Int      @default(0)
+  isDone        Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -562,8 +578,10 @@ model PartSixQuestion {
 model PartSeven {
   id            Int      @id @default(autoincrement())
   readingExamId Int
-  direction     String
+  direction     String   @db.Text
   totalQuestion Int      @default(54)
+  quantityQuestionDone Int      @default(0)
+  isDone        Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

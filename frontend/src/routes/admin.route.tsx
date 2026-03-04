@@ -39,6 +39,11 @@ import ScheduleDetailPage from "../components/admin/schedule/scheduleDetailPage"
 //Register Schedule
 import TeacherAssignment from "../components/admin/schedule/teacherAssignment";
 
+// Entrance Exam L&R components
+import EntranceExamLRManagement from "../components/admin/entrance-exam-lr/management/entrance-exam-lr";
+import ExamDetail from "../components/admin/entrance-exam-lr/detail/exam.detail";
+import PartEditor from "../components/admin/entrance-exam-lr/part-editor/part-editor";
+
 
 const AdminRoutes: RouteObject = {
   path: "admin",
@@ -142,6 +147,19 @@ const AdminRoutes: RouteObject = {
     {
       path: "register-schedule/:id",
       element: <TeacherAssignment />,
+    },
+    // Entrance Exam L&R routes
+    {
+      path: "entrance-exam-lr",
+      element: <EntranceExamLRManagement />,
+    },
+    {
+      path: "entrance-exam-lr/:type/:id",
+      element: <ExamDetail />,
+    },
+    {
+      path: "entrance-exam-lr/:type/:id/part/:partNo/:partId",
+      element: <PartEditor />,
     },
   ],
 };

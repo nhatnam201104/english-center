@@ -119,7 +119,7 @@ const AdminSidebar = () => {
       icon: NewspaperIcon,
       path: "/admin/content",
       children: [
-        { title: "Listening & Reading", icon: NewspaperIcon, path: "/admin/content/lr" },
+        { title: "Listening & Reading", icon: NewspaperIcon, path: "/admin/entrance-exam-lr" },
         { title: "Speaking & Writing", icon: NewspaperIcon, path: "/admin/content/sw" },
       ],
     },

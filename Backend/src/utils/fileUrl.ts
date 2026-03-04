@@ -52,3 +52,23 @@ export const buildCourseTestAudioUrl = (
   if (!audioTest) return null;
   return buildFileUrl(`uploads/course-tests/${audioTest}`);
 };
+
+/**
+ * Build URL cho audio của Entrance Exam Listening/Reading
+ */
+export const buildEntranceExamLRAudioUrl = (
+  audio: string | null,
+): string | null => {
+  if (!audio) return null;
+  return buildFileUrl(`uploads/entrance-exam-lr/${audio}`);
+};
+
+/**
+ * Build URL cho image của Entrance Exam Listening/Reading
+ */
+export const buildEntranceExamLRImageUrl = (
+  image: string | null,
+): string | null => {
+  if (!image) return null;
+  return buildFileUrl(`uploads/entrance-exam-lr/${image}`);
+};
