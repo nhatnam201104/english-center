@@ -71,4 +71,20 @@ export const buildEntranceExamLRImageUrl = (
 ): string | null => {
   if (!image) return null;
   return buildFileUrl(`uploads/entrance-exam-lr/${image}`);
+}
+export const buildWritingImageUrl = (
+  filename: string | null,
+): string | null => {
+  if (!filename) return null;
+  return buildFileUrl(`uploads/writing/${filename}`);
+};
+
+/**
+ * Build URL cho ảnh Speaking Exam (imageThree, imageFour, image)
+ */
+export const buildSpeakingImageUrl = (
+  filename: string | null,
+): string | null => {
+  if (!filename) return null;
+  return buildFileUrl(`uploads/speaking/${filename}`);
 };

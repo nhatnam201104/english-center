@@ -1,6 +1,6 @@
 import type { Response } from "express";
 
 export interface CustomResponse extends Response {
-  success: (data?: any, message?: string) => void;
+  success: (data?: any, message?: string, statusCode?: number) => void;
   error: (message: string, status?: number) => void;
 }

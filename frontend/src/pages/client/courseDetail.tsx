@@ -7,9 +7,10 @@ import { getCourseById } from '../../services/course.service';
 import { getActiveSchedules } from '../../services/schedule.service';
 
 import SchedulePagination from '../../components/course-detail/schedulePagination';
-import { CourseHeader } from '../../components/course-detail/courseHeader';
-import { PlacementBanner } from '../../components/course-detail/placementBanner';
-import InstructorCard from '../../components/course-detail/instructorCard';
+import { CourseHeader } from '../../components/course-detail/CourseHeader';
+import { PlacementBanner } from '../../components/course-detail/PlacementBanner';
+import InstructorCard from '../../components/course-detail/InstructorCard';
+
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();

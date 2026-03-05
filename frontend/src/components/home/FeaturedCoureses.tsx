@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import type { ScheduleResponse } from '../../types/schedule/schedule.response';
 import { getUpcomingSchedules } from '../../services/schedule.service';
-import ScheduleCard from './scheduleCard';
+import ScheduleCard from './ScheduleCard';
 
 
 

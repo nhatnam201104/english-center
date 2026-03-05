@@ -200,7 +200,7 @@ const ExamDetail = () => {
       <Card className="shadow-lg border border-gray-200 mt-6">
         <CardHeader floated={false} shadow={false} className="rounded-none p-4">
           <Typography variant="h5" className="font-bold">
-            Cac Part
+            Các Part
           </Typography>
         </CardHeader>
         <CardBody className="space-y-3">

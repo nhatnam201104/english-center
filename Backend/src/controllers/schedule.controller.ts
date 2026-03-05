@@ -12,7 +12,7 @@ export const createSchedule = async (req: Request, res: Response) => {
 };
 
 // Lấy 3 Schedule gần từ tính từ ngày mai
-export const getUpcomingSchedules = async (req: Request, res: Response) => {
+export const getUpcomingSchedules = async (_req: Request, res: Response) => {
   const customRes = res as CustomResponse;
 
   const result = await getUpcomingSchedulesService();

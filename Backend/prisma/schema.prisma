@@ -664,6 +664,8 @@ Start Speaking
 model EntranceExamSpeaking {
   id            Int      @id @default(autoincrement())
   name          String   @unique
+  isDone        Boolean  @default(false)
+  isActive     Boolean  @default(false)
   totalQuestion Int      @default(11)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -680,7 +682,7 @@ model EntranceExamSpeaking {
 
 model SpeakingOneTwo {
   id         Int      @id @default(autoincrement())
-  index      Int
+  index      Int      @default(1)
   speakingExamId Int
   questionOne   String
   questionTwo   String
@@ -688,13 +690,14 @@ model SpeakingOneTwo {
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
+  @@unique([speakingExamId, index])
   @@index([speakingExamId])
   @@map("speaking_one_two")
 }
 
 model SpeakingThreeFour {
   id         Int      @id @default(autoincrement())
-  index      Int
+  index      Int      @default(2)
   speakingExamId Int
   imageThree     String
   imageFour     String
@@ -702,13 +705,14 @@ model SpeakingThreeFour {
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
+  @@unique([speakingExamId, index])
   @@index([speakingExamId])
   @@map("speaking_three_four")
 }
 
 model SpeakingFiveToSeven {
   id         Int      @id @default(autoincrement())
-  index      Int
+  index      Int      @default(3)
   speakingExamId Int
   passage     String
   questionFive   String
@@ -718,13 +722,14 @@ model SpeakingFiveToSeven {
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
+  @@unique([speakingExamId, index])
   @@index([speakingExamId])
   @@map("speaking_five_to_seven")
 }
 
 model SpeakingEightToTen {
   id         Int      @id @default(autoincrement())
-  index      Int
+  index      Int      @default(4)
   speakingExamId Int
   passage     String
   questionEight   String
@@ -735,19 +740,21 @@ model SpeakingEightToTen {
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
+  @@unique([speakingExamId, index])
   @@index([speakingExamId])
   @@map("speaking_eight_to_ten")
 }
 
 model SpeakingEleven {
   id         Int      @id @default(autoincrement())
-  index      Int
+  index      Int    @default(5)
   speakingExamId Int
   question   String
   createdAt  DateTime @default(now())
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
+  @@unique([speakingExamId, index])
   @@index([speakingExamId])
   @@map("speaking_eleven")
 }
@@ -762,6 +769,8 @@ Start Writing
 model EntranceExamWriting {
   id          Int      @id @default(autoincrement())
   name        String   @unique
+  isDone        Boolean  @default(false)
+  isActive     Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -775,7 +784,7 @@ model EntranceExamWriting {
 
 model WritingOneToFive {
   id         Int      @id @default(autoincrement())
-  index      Int
+  index      Int      @default(1)
   writingExamId Int
   imageOne     String
   imageTwo     String
@@ -786,13 +795,14 @@ model WritingOneToFive {
 
   writingExam EntranceExamWriting @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
 
+  @@unique([writingExamId, index])
   @@index([writingExamId])
   @@map("writing_one_to_five")
 }
 
 model WritingSixSeven {
   id         Int      @id @default(autoincrement())
-  index      Int
+  index      Int      @default(2)
   writingExamId Int
   imageSix     String
   imageSeven     String
@@ -800,19 +810,21 @@ model WritingSixSeven {
 
   writingExam EntranceExamWriting @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
 
+  @@unique([writingExamId, index])
   @@index([writingExamId])
   @@map("writing_six_seven")
 }
 
 model WritingEight {
   id         Int      @id @default(autoincrement())
-  index      Int
+  index      Int    @default(3)
   writingExamId Int
   questionEight   String
   createdAt  DateTime @default(now())
 
   writingExam EntranceExamWriting @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
 
+  @@unique([writingExamId, index])
   @@index([writingExamId])
   @@map("writing_eight")
 }

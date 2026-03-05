@@ -162,7 +162,7 @@ const PartEditor = () => {
               disabled={partData?.isDone}
             >
               <PlusIcon className="h-5 w-5" />
-              Them {isGroupPart ? "nhom" : "cau hoi"}
+              Thêm {isGroupPart ? "nhóm" : "câu hỏi"}
             </Button>
           </div>
         </CardHeader>

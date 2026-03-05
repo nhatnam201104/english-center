@@ -32,7 +32,7 @@ import {
 import type { ErrorApiResponse } from "../../../../types/api.type";
 import ExamTable from "./exam.table";
 import CreateExamDialog from "./create-exam.dialog";
-import Pagination from "./pagination";
+import Pagination from "./Pagination";
 
 const EntranceExamLRManagement = () => {
   const navigate = useNavigate();
@@ -141,10 +141,10 @@ const EntranceExamLRManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <Typography variant="h4" color="white" className="font-bold">
-                Bai Kiem Tra Dau Vao - Listening & Reading
+                Bài kiểm tra đầu vào TOEIC Listening & Reading
               </Typography>
               <Typography variant="small" color="white" className="mt-1 opacity-90">
-                Quan ly de thi TOEIC Listening & Reading
+                Quản lý đề thi Toeic Listening và Reading, tạo mới, chỉnh sửa và kích hoạt đề thi cho học viên.
               </Typography>
             </div>
             <Button
@@ -153,7 +153,7 @@ const EntranceExamLRManagement = () => {
               onClick={() => setShowCreate(true)}
             >
               <PlusIcon className="h-5 w-5" />
-              Tao de thi {activeTab === "listening" ? "Listening" : "Reading"}
+              Tạo đề thi {activeTab === "listening" ? "Listening" : "Reading"}
             </Button>
           </div>
         </CardHeader>

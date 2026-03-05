@@ -43,6 +43,16 @@ import TeacherAssignment from "../components/admin/schedule/teacherAssignment";
 import EntranceExamLRManagement from "../components/admin/entrance-exam-lr/management/entrance-exam-lr";
 import ExamDetail from "../components/admin/entrance-exam-lr/detail/exam.detail";
 import PartEditor from "../components/admin/entrance-exam-lr/part-editor/part-editor";
+// Exam components
+import ExamList from "../components/admin/exam/management/exam.list";
+import ExamEditor from "../components/admin/exam/editor/exam.editor";
+
+// Speaking components
+import SpeakingExamList from "../components/admin/speaking/management/speaking.list";
+import SpeakingExamEditor from "../components/admin/speaking/editor/speaking.editor";
+
+// SW Dashboard component
+import SWDashboard from "../components/admin/sw-dashboard/sw.dashboard";
 
 
 const AdminRoutes: RouteObject = {
@@ -160,6 +170,40 @@ const AdminRoutes: RouteObject = {
     {
       path: "entrance-exam-lr/:type/:id/part/:partNo/:partId",
       element: <PartEditor />,
+    },
+    
+    // SW Dashboard route
+    {
+      path: "content/sw",
+      element: <SWDashboard />,
+    },
+    
+    // Writing Exam routes
+    {
+      path: "content/sw/writing",
+      element: <ExamList />,
+    },
+    {
+      path: "content/sw/writing/new",
+      element: <ExamEditor />,
+    },
+    {
+      path: "content/sw/writing/:id",
+      element: <ExamEditor />,
+    },
+    
+    // Speaking Exam routes
+    {
+      path: "content/sw/speaking",
+      element: <SpeakingExamList />,
+    },
+    {
+      path: "content/sw/speaking/new",
+      element: <SpeakingExamEditor />,
+    },
+    {
+      path: "content/sw/speaking/:id",
+      element: <SpeakingExamEditor />,
     },
   ],
 };

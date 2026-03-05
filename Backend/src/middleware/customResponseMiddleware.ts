@@ -8,8 +8,8 @@ export const customResponseMiddleware = (
   next: NextFunction
 ) => {
   const customRes = res as CustomResponse;
-  customRes.success = (data?: any, message: string = "Success") => {
-    customRes.status(200).json({
+  customRes.success = (data?: any, message: string = "Success", statusCode: number = 200) => {
+    customRes.status(statusCode).json({
       success: true,
       message,
       data,

@@ -1,10 +1,11 @@
 import { useRef } from "react";
-import ToeicLanding from "../../components/home/toeicLanding";
-import ToeicLevel from "../../components/home/toeicLevel";
-import FeaturedCourses from "../../components/home/featuredCoureses";
-import AiFeedback from "../../components/home/aiFeedBack";
-import Roadmap from "../../components/home/roadmap";
-import CallToAction from "../../components/home/callToAction";
+import ToeicLanding from "../../components/home/ToeicLanding";
+import ToeicLevel from "../../components/home/ToeicLevel";
+import FeaturedCourses from "../../components/home/FeaturedCoureses";
+import AiFeedback from "../../components/home/AiFeedBack";
+import Roadmap from "../../components/home/Roadmap";
+import CallToAction from "../../components/home/CallToAction";
+
 
 
 const Home = () => {

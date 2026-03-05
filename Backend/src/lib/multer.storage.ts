@@ -5,7 +5,16 @@ import { Request } from "express";
 
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
-    const folder = req.baseUrl.split("/")[2] ?? "default";
+    // Extract folder name from route path
+    let folder = "default";
+    if (req.baseUrl) {
+      const segments = req.baseUrl.split("/").filter(Boolean);
+      // Get the last segment as folder name (e.g., "speaking", "writing", "course-tests")
+      if (segments.length > 0) {
+        folder = segments[segments.length - 1];
+      }
+    }
+    
     // Đường dẫn tương đối từ compiled code (dist/lib) về uploads/folder
     const uploadPath = path.join(process.cwd(), "uploads", folder);
     // Create folder if not exist
@@ -15,7 +24,7 @@ const storage = multer.diskStorage({
     // This part defines where the files need to be saved
     cb(null, uploadPath);
   },
-  filename: (req, file, cb) => {
+  filename: (_req, file, cb) => {
     // Lấy extension từ file gốc
     const ext = path.extname(file.originalname);
     // This part sets the file name of the file without folder prefix

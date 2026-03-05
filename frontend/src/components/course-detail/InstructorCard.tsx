@@ -1,7 +1,7 @@
 import React from "react";
 import { Lock } from "lucide-react";
 import { type ScheduleResponse } from "../../types/schedule/schedule.response";
-import ProgressBar from "./progressBar";
+import ProgressBar from "./ProgressBar";
 
 
 interface Props {

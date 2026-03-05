@@ -1,5 +1,6 @@
 // middlewares/upload.middleware.ts
 import multer from "multer";
+import { Request, Response, NextFunction } from "express";
 import {
   storage,
   fileFilter,
@@ -44,3 +45,29 @@ export const uploadEntranceExamLR = multer({
     fileSize: 50 * 1024 * 1024, // 50MB
   },
 });
+/**
+ * Middleware to merge uploaded files into request body
+ * This must run AFTER multer but BEFORE validation
+ * 
+ * Extracts filenames from req.files and assigns them to req.body fields
+ * so validation middleware can see the values
+ */
+export const mergeFilesToBody = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (req.files) {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    
+    // For each uploaded file field, assign filename to body
+    for (const [fieldname, fileArray] of Object.entries(files)) {
+      if (fileArray && fileArray.length > 0) {
+        // Assign the filename (not the full path) to body
+        req.body[fieldname] = fileArray[0].filename;
+      }
+    }
+  }
+  
+  next();
+};
