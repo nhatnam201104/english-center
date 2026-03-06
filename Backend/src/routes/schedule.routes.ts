@@ -3,7 +3,12 @@ import { createScheduleValidation } from "../validators/schedule.validator";
 import { validate } from "../middleware/validation.middleware";
 import { createSchedule, getActiveSchedulesByCourseId, getAllSchedules, getScheduleById, getUpcomingSchedules } from "../controllers/schedule.controller";
 import { authenticate, authorize } from "../middleware/auth.middleware";
-import { registerSchedule } from "../controllers/scheduleRegistration.controller";
+import {
+  registerSchedule,
+  getScheduleStudents,
+  addStudentToSchedule,
+  removeStudentFromSchedule,
+} from "../controllers/scheduleRegistration.controller";
 
 const router = Router();
 
@@ -86,8 +91,40 @@ router.get(
   getScheduleById
 );
 
+/**
+ * @route   GET /api/schedules/:id/students
+ * @desc    Get students registered in a schedule (admin)
+ * @access  ADMIN
+ */
+router.get(
+  "/:id/students",
+  authenticate,
+  authorize("ADMIN"),
+  getScheduleStudents
+);
 
+/**
+ * @route   POST /api/schedules/:id/students
+ * @desc    Admin adds a student to a schedule
+ * @access  ADMIN
+ */
+router.post(
+  "/:id/students",
+  authenticate,
+  authorize("ADMIN"),
+  addStudentToSchedule
+);
 
-
+/**
+ * @route   DELETE /api/schedules/:id/students/:studentId
+ * @desc    Admin removes a student from a schedule
+ * @access  ADMIN
+ */
+router.delete(
+  "/:id/students/:studentId",
+  authenticate,
+  authorize("ADMIN"),
+  removeStudentFromSchedule
+);
 
 export default router;

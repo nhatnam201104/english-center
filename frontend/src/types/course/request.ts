@@ -7,6 +7,7 @@ export interface CreateCourseRequest {
   sale?: number;
   thumbnail?: string;
   status: "PLANNING" | "ACTIVE" | "INACTIVE";
+  totalSession?: number;
   minBand?: number;
   maxBand?: number;
   courseSkill: CourseSkill;
@@ -20,6 +21,7 @@ export interface UpdateCourseRequest {
   sale?: number;
   thumbnail?: string;
   status?: "PLANNING" | "ACTIVE" | "INACTIVE";
+  totalSession?: number;
   minBand?: number;
   maxBand?: number;
   courseSkill?: CourseSkill;

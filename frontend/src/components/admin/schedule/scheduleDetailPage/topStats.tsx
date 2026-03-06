@@ -1,11 +1,11 @@
-import { CreditCard, Calendar, Users, DoorOpen } from "lucide-react";
+import { CreditCard, Calendar, Users, DoorOpen, BookOpen } from "lucide-react";
 import type { ScheduleResponse } from "../../../../types/schedule/schedule.response";
 import StatCard from "./statCard";
 
 const TopStats = ({ schedule }: { schedule: ScheduleResponse }) => {
   const price = schedule.course.price - (schedule.course.price*schedule.course.sale/100)
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
       <StatCard
         icon={<CreditCard size={20} />}
         label="GIÁ"
@@ -32,8 +32,15 @@ const TopStats = ({ schedule }: { schedule: ScheduleResponse }) => {
 
       <StatCard
         icon={<Users size={20} />}
-        label="HỌC VIÊN"
+        label="SĨ SỐ"
         value={`${schedule.totalRegister ?? 0} / ${schedule.totalSlot ?? ""}`}
+        color="text-blue-600"
+      />
+
+      <StatCard
+        icon={<BookOpen size={20} />}
+        label="SỐ BUỔI"
+        value={`${schedule.course?.totalSession ?? 0}`}
         color="text-blue-600"
       />
 

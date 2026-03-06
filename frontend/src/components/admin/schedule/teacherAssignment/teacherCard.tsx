@@ -1,6 +1,29 @@
 import { GripVertical } from "lucide-react";
 
+const DAY_246 = ["MONDAY", "WEDNESDAY", "FRIDAY"];
+const DAY_357 = ["TUESDAY", "THURSDAY", "SATURDAY"];
+
+const DAY_LABELS: Record<string, string> = {
+  MONDAY: "T2",
+  TUESDAY: "T3",
+  WEDNESDAY: "T4",
+  THURSDAY: "T5",
+  FRIDAY: "T6",
+  SATURDAY: "T7",
+  SUNDAY: "CN",
+};
+
+const getDayColor = (day: string) => {
+  if (DAY_246.includes(day)) return "bg-blue-50 text-blue-700";
+  if (DAY_357.includes(day)) return "bg-green-50 text-green-700";
+  return "bg-gray-50 text-gray-700";
+};
+
 const TeacherCard = ({ teacher, onDragStart }: any) => {
+  const days: string[] = teacher.days || [];
+  const has246 = DAY_246.every((d) => days.includes(d));
+  const has357 = DAY_357.every((d) => days.includes(d));
+
   return (
     <div
       draggable
@@ -32,29 +55,36 @@ const TeacherCard = ({ teacher, onDragStart }: any) => {
             </span>
           </div>
 
-          {/* <p
-            className={`text-[11px] mt-1 ${
-              teacher.status === "Overlap"
-                ? "text-red-500 flex gap-1 items-center"
-                : "text-gray-400"
-            }`}
-          >
-            {teacher.status === "Overlap" && (
-              <AlertCircle className="w-3 h-3" />
-            )}
-            {teacher.title}
-          </p> */}
+          {/* Schedule group badges */}
+          {(has246 || has357) && (
+            <div className="flex gap-1 mt-1.5">
+              {has246 && (
+                <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold">
+                  2-4-6
+                </span>
+              )}
+              {has357 && (
+                <span className="text-[9px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-semibold">
+                  3-5-7
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-1 mt-2">
-            
-            {teacher.days?.map((d: string) => (
+            {days.map((d: string) => (
               <span
                 key={d}
-                className="text-[9px] px-2 py-0.5 bg-red-50 text-red-800 rounded"
+                className={`text-[9px] px-2 py-0.5 rounded ${getDayColor(d)}`}
               >
-                {d}
+                {DAY_LABELS[d] || d}
               </span>
             ))}
+            {days.length === 0 && (
+              <span className="text-[9px] text-gray-400 italic">
+                Chưa đăng ký lịch rảnh
+              </span>
+            )}
           </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ export interface Course {
   sale: number;
   thumbnail: string | null;
   status: "PLANNING" | "ACTIVE" | "INACTIVE";
+  totalSession: number;
   minBand: number | null;
   maxBand: number | null;
   courseSkill: "READING_LISTENING" | "SPEAKING_WRITING" | "ALL";

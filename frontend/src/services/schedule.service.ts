@@ -2,6 +2,15 @@ import type { ApiResponse } from "../types/api.type";
 import type { ScheduleListResponse, ScheduleResponse } from "../types/schedule/schedule.response";
 import axios from "../configs/axios.config";
 import type { CreateScheduleRequest } from "../types/schedule/create-schedule.request";
+import type { StudentResponse } from "../types/student/response";
+
+export interface ScheduleStudentListResponse {
+  data: StudentResponse[];
+  totalItems: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+}
 
 // Tạo schedule + session schedule
 export const createSchedule = async (
@@ -59,6 +68,41 @@ export const getScheduleById = async (
     `/schedule/${id}`
   );
 
+  return response.data;
+};
+
+// Admin: Lấy danh sách học sinh trong schedule
+export const getScheduleStudents = async (
+  scheduleId: number,
+  params?: { search?: string; page?: number; limit?: number },
+): Promise<ApiResponse<ScheduleStudentListResponse>> => {
+  const response = await axios.get<ApiResponse<ScheduleStudentListResponse>>(
+    `/schedule/${scheduleId}/students`,
+    { params }
+  );
+  return response.data;
+};
+
+// Admin: Thêm học sinh vào schedule
+export const addStudentToSchedule = async (
+  scheduleId: number,
+  studentId: number,
+): Promise<ApiResponse<unknown>> => {
+  const response = await axios.post<ApiResponse<unknown>>(
+    `/schedule/${scheduleId}/students`,
+    { studentId }
+  );
+  return response.data;
+};
+
+// Admin: Xóa học sinh khỏi schedule
+export const removeStudentFromSchedule = async (
+  scheduleId: number,
+  studentId: number,
+): Promise<ApiResponse<unknown>> => {
+  const response = await axios.delete<ApiResponse<unknown>>(
+    `/schedule/${scheduleId}/students/${studentId}`
+  );
   return response.data;
 };
 

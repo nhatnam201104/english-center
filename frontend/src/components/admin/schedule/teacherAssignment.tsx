@@ -90,8 +90,8 @@ const TeacherAssignment = () => {
       !assignmentData.startDate ||
       !assignmentData.fromTime ||
       !assignmentData.toTime ||
-      !assignmentData.totalSessions ||
-      !assignmentData.days
+      !assignmentData.days ||
+      !course.totalSession
     ) {
       setApiError("Vui lòng nhập đầy đủ thông tin lịch học.");
       return;
@@ -115,8 +115,8 @@ const TeacherAssignment = () => {
         endTime: assignmentData.toTime
       }));
 
-      // Calculator endDate = startDate + totalSessions
-      const totalSessions = Number(assignmentData.totalSessions);
+      // Calculator endDate = startDate + totalSessions (from course)
+      const totalSessions = course.totalSession;
       const startDate = new Date(assignmentData.startDate);
       const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + (Math.ceil(totalSessions/3)*7 - getCycleValue(totalSessions)*2)-1);
@@ -126,7 +126,6 @@ const TeacherAssignment = () => {
         teacherId: assignedTeacher.id,
         classroomId: assignmentData.classroomId,
         coursesId: courseId,
-        totalSlot: totalSessions,
         startTime: assignmentData.startDate,
         endTime: endDate.toISOString(),
         sessions: sessions

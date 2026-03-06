@@ -11,12 +11,14 @@ import scheduleRoute from "./schedule.routes";
 import entranceExamLRRoute from "./entranceExamLR.routes";
 import speakingRoute from "./speaking.routes";
 import writingRoute from "./writing.routes";
+import teacherPortalRoute from "./teacher.portal.routes";
 
 const router = Router();
 
 router.use("/auth", authRoute);
 router.use("/user", userRoute);
 router.use("/teachers", teacherRoute);
+router.use("/teacher", teacherPortalRoute);
 router.use("/students", studentRoute);
 router.use("/parents", parentRoute);
 router.use("/classrooms", classroomRoute);

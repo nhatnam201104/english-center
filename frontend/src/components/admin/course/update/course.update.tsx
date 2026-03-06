@@ -58,6 +58,7 @@ const CourseUpdate = () => {
           setValue("minBand", response.data.minBand ?? undefined);
           setValue("maxBand", response.data.maxBand ?? undefined);
           setValue("courseSkill", response.data.courseSkill);
+          setValue("totalSession", response.data.totalSession);
           setOriginalStatus(response.data.status);
           if (response.data.thumbnail) {
             setThumbnailPreview(response.data.thumbnail);
@@ -123,6 +124,8 @@ const CourseUpdate = () => {
         if (data.maxBand !== undefined)
           formData.append("maxBand", data.maxBand.toString());
         if (data.courseSkill) formData.append("courseSkill", data.courseSkill);
+        if (data.totalSession !== undefined)
+          formData.append("totalSession", data.totalSession.toString());
         formData.append("thumbnail", newThumbnailFile);
 
         const response = await updateCourse(formData, Number(id));
@@ -145,6 +148,7 @@ const CourseUpdate = () => {
         if (data.minBand !== undefined) updateData.minBand = data.minBand;
         if (data.maxBand !== undefined) updateData.maxBand = data.maxBand;
         if (data.courseSkill) updateData.courseSkill = data.courseSkill;
+        if (data.totalSession !== undefined) updateData.totalSession = data.totalSession;
 
         const response = await updateCourse(updateData);
         if (response.success) {
@@ -310,6 +314,21 @@ const CourseUpdate = () => {
                   })}
                   crossOrigin={undefined}
                 />
+              </div>
+
+              <div>
+                <Input
+                  label="Số buổi học"
+                  type="number"
+                  {...register("totalSession", { valueAsNumber: true })}
+                  error={!!errors.totalSession}
+                  crossOrigin={undefined}
+                />
+                {errors.totalSession && (
+                  <Typography variant="small" color="red" className="mt-1">
+                    {errors.totalSession.message}
+                  </Typography>
+                )}
               </div>
 
               <div>

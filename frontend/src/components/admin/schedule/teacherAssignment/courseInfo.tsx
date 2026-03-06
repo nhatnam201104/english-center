@@ -20,7 +20,6 @@ const CourseInfo = ({ course, onDataChange }: Props) => {
     startDate: "",
     fromTime: "",
     toTime: "",
-    totalSessions: "",
     days: "",
   });
 
@@ -154,17 +153,12 @@ const CourseInfo = ({ course, onDataChange }: Props) => {
 
           </div>
 
-          {/* Duration */}
+          {/* Duration (read-only from course) */}
           <div className="flex items-center gap-3 min-w-0">
             <span className="min-w-[70px] text-gray-400">Thời gian</span>
-            <input
-              type="number"
-              value={form.totalSessions}
-              onChange={(e) => updateForm("totalSessions", e.target.value)}
-              min={1}
-              placeholder="24"
-              className="w-full max-w-[120px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-slate-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
-            />
+            <span className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-slate-700 font-semibold">
+              {course?.totalSession ?? 0}
+            </span>
             <span className="text-gray-400 text-xs">buổi</span>
           </div>
 

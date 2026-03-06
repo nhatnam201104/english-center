@@ -7,6 +7,7 @@ export interface CourseResponse {
   price: number;
   sale: number;
   thumbnail: string;
+  totalSession: number;
   minBand: number | null;
   maxBand: number | null;
   createdAt: Date;

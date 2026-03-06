@@ -35,6 +35,11 @@ export const createCourseValidation = [
     .isInt({ min: 0, max: 100 })
     .withMessage("Giảm giá phải từ 0-100"),
 
+  body("totalSession")
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage("Số buổi học phải là số nguyên không âm"),
+
   body("minBand")
     .if(body("type").equals("COURSE"))
     .notEmpty()
@@ -104,6 +109,11 @@ export const updateCourseValidation = [
     .optional()
     .isInt({ min: 0, max: 100 })
     .withMessage("Giảm giá phải từ 0-100"),
+
+  body("totalSession")
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage("Số buổi học phải là số nguyên không âm"),
 
   body("minBand")
     .optional()

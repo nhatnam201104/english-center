@@ -36,8 +36,13 @@ const StudentCreate = () => {
         navigate("/admin/students");
       }
     } catch (error: unknown) {
-      const apiError = error as { response?: { data?: { message?: string } } };
-      alert(apiError.response?.data?.message || "Tạo học sinh thất bại!");
+      const apiError = error as {
+        response?: { data?: { message?: string | string[] } };
+        message?: string;
+      };
+      const msg = apiError.response?.data?.message;
+      const detail = Array.isArray(msg) ? msg.join("\n") : (msg ?? apiError.message ?? "Tạo học sinh thất bại!");
+      alert(detail);
     } finally {
       setLoading(false);
     }
@@ -133,7 +138,7 @@ const StudentCreate = () => {
 
               <div>
                 <Input
-                  label="Ngày sinh (tùy chọn)"
+                  label="Ngày sinh"
                   type="date"
                   {...register("dob")}
                   error={!!errors.dob}
@@ -148,7 +153,7 @@ const StudentCreate = () => {
 
               <div>
                 <Input
-                  label="CCCD (tùy chọn)"
+                  label="CCCD (12 chữ số)"
                   {...register("cccd")}
                   error={!!errors.cccd}
                   crossOrigin={undefined}
@@ -162,9 +167,12 @@ const StudentCreate = () => {
 
               <div>
                 <Input
-                  label="Điểm Reading & Listening (0-10)"
+                  label="Điểm Reading & Listening (0-990, tùy chọn)"
                   type="number"
-                  step="0.1"
+                  min={0}
+                  max={990}
+                  step={5}
+                  placeholder="Ví dụ: 650"
                   {...register("scoreRl", { valueAsNumber: true })}
                   error={!!errors.scoreRl}
                   crossOrigin={undefined}
@@ -178,9 +186,12 @@ const StudentCreate = () => {
 
               <div>
                 <Input
-                  label="Điểm Speaking & Writing (0-10)"
+                  label="Điểm Speaking & Writing (0-400, tùy chọn)"
                   type="number"
-                  step="0.1"
+                  min={0}
+                  max={400}
+                  step={10}
+                  placeholder="Ví dụ: 280"
                   {...register("scoreSw", { valueAsNumber: true })}
                   error={!!errors.scoreSw}
                   crossOrigin={undefined}

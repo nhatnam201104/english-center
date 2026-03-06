@@ -44,10 +44,10 @@ export const createStudentService = async (
       const studentInfo = await tx.studentInfo.create({
         data: {
           userId: user.id,
-          dob: data.dob,
+          dob: data.dob ? new Date(data.dob) : undefined,
           cccd: data.cccd,
-          scoreRl: data.scoreRl ?? 0,
-          scoreSw: data.scoreSw ?? 0,
+          scoreRl: data.scoreRl !== undefined ? Number(data.scoreRl) : 0,
+          scoreSw: data.scoreSw !== undefined ? Number(data.scoreSw) : 0,
         },
         include: {
           user: true,
@@ -228,10 +228,10 @@ export const updateStudentService = async (
       const updatedStudent = await tx.studentInfo.update({
         where: { id },
         data: {
-          ...(data.dob !== undefined && { dob: data.dob }),
+          ...(data.dob !== undefined && { dob: new Date(data.dob) }),
           ...(data.cccd !== undefined && { cccd: data.cccd }),
-          ...(data.scoreRl !== undefined && { scoreRl: data.scoreRl }),
-          ...(data.scoreSw !== undefined && { scoreSw: data.scoreSw }),
+          ...(data.scoreRl !== undefined && { scoreRl: Number(data.scoreRl) }),
+          ...(data.scoreSw !== undefined && { scoreSw: Number(data.scoreSw) }),
         },
         include: {
           user: true,

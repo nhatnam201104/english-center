@@ -49,8 +49,14 @@ const LoginForm = () => {
         // Store user data in Zustand store
         setAuth(user.data, user.data.token ?? "");
         sessionStorage.setItem("access_token", user.data.token ?? "");
-        // Navigate to dashboard or home
-        navigate("/");
+        // Navigate based on role
+        if (user.data.role === "TEACHER") {
+          navigate("/teacher/courses");
+        } else if (user.data.role === "PARENT") {
+          navigate("/parent");
+        } else {
+          navigate("/");
+        }
         return;
       }
     } catch (err) {

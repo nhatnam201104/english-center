@@ -842,6 +842,7 @@ model Course {
   price     Decimal  @db.Decimal(10, 2)
   sale      Int      @default(0)
   thumbnail String
+  totalSession Int   @default(0)
   minBand   Int?     @default(0)
   maxBand   Int?
   createdAt DateTime @default(now())

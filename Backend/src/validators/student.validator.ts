@@ -31,25 +31,27 @@ export const createStudentValidation = [
     .withMessage("Số điện thoại không hợp lệ"),
 
   body("dob")
-    .optional()
+    .notEmpty()
+    .withMessage("Ngày sinh không được để trống")
     .isISO8601()
     .withMessage("Ngày sinh không hợp lệ"),
 
   body("cccd")
-    .optional()
+    .notEmpty()
+    .withMessage("CCCD không được để trống")
     .trim()
-    .isLength({ min: 9, max: 12 })
-    .withMessage("CCCD phải có 9-12 ký tự"),
+    .matches(/^[0-9]{12}$/)
+    .withMessage("CCCD phải có đúng 12 chữ số"),
 
   body("scoreRl")
     .optional()
     .isInt({ min: 0, max: 990 })
-    .withMessage("Điểm Reading-Listening phải từ 0-990"),
+    .withMessage("Điểm Reading & Listening phải từ 0-990"),
 
   body("scoreSw")
     .optional()
-    .isInt({ min: 0, max: 990 })
-    .withMessage("Điểm Speaking-Writing phải từ 0-990"),
+    .isInt({ min: 0, max: 400 })
+    .withMessage("Điểm Speaking & Writing phải từ 0-400"),
 ];
 
 export const updateStudentValidation = [
@@ -86,10 +88,10 @@ export const updateStudentValidation = [
   body("scoreRl")
     .optional()
     .isInt({ min: 0, max: 990 })
-    .withMessage("Điểm Reading-Listening phải từ 0-990"),
+    .withMessage("Điểm Reading & Listening phải từ 0-990"),
 
   body("scoreSw")
     .optional()
-    .isInt({ min: 0, max: 990 })
-    .withMessage("Điểm Speaking-Writing phải từ 0-990"),
+    .isInt({ min: 0, max: 400 })
+    .withMessage("Điểm Speaking & Writing phải từ 0-400"),
 ];

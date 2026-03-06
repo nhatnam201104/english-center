@@ -209,9 +209,12 @@ const StudentUpdate = () => {
 
               <div>
                 <Input
-                  label="Điểm Reading & Listening (0-10)"
+                  label="Điểm Reading & Listening (0-990)"
                   type="number"
-                  step="0.1"
+                  min={0}
+                  max={990}
+                  step={5}
+                  placeholder="Ví dụ: 650"
                   {...register("scoreRl", { valueAsNumber: true })}
                   error={!!errors.scoreRl}
                   crossOrigin={undefined}
@@ -225,9 +228,12 @@ const StudentUpdate = () => {
 
               <div>
                 <Input
-                  label="Điểm Speaking & Writing (0-10)"
+                  label="Điểm Speaking & Writing (0-400)"
                   type="number"
-                  step="0.1"
+                  min={0}
+                  max={400}
+                  step={10}
+                  placeholder="Ví dụ: 280"
                   {...register("scoreSw", { valueAsNumber: true })}
                   error={!!errors.scoreSw}
                   crossOrigin={undefined}

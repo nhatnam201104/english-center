@@ -52,7 +52,7 @@ const ScheduleDetailPage = () => {
           <TeacherInfo teacher={schedule.teacher} />
         </div>
 
-        <StudentManagement />
+        <StudentManagement scheduleId={schedule.id} totalSlot={schedule.totalSlot} />
       </div>
     </div>
   );

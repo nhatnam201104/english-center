@@ -5,6 +5,7 @@ export interface CreateCourseRequest {
   price: number;
   sale?: number;
   thumbnail: string;
+  totalSession?: number;
   minBand?: number;
   maxBand?: number;
 }

@@ -14,7 +14,6 @@ export const createScheduleService = async (
   const courseId = Number(data.coursesId);
   const teacherId = Number(data.teacherId);
   const classroomId = Number(data.classroomId);
-  const totalSlot = Number(data.totalSlot);
 
   const start = new Date(data.startTime);
   const end = new Date(data.endTime);
@@ -60,12 +59,8 @@ export const createScheduleService = async (
     throw new AppError("Phòng học không tồn tại", 404);
   }
 
-  if (totalSlot > classroom.maxSize) {
-    throw new AppError(
-      `Số slot (${totalSlot}) vượt quá sức chứa phòng học (${classroom.maxSize})`,
-      400,
-    );
-  }
+  // Tổng sĩ số lấy từ sức chứa phòng học
+  const totalSlot = classroom.maxSize;
 
   // Validate sessions
   const toMinutes = (t: string) => {
@@ -74,8 +69,13 @@ export const createScheduleService = async (
   };
 
   for (const session of data.sessions) {
-    if (teacherFreeDaySet.has(session.day)) {
-      throw new AppError(`Giáo viên không dạy vào ${session.day}`, 400);
+    // Chỉ kiểm tra nếu giáo viên đã đăng ký lịch rảnh
+    if (teacherFreeDaySet.size > 0 && !teacherFreeDaySet.has(session.day)) {
+      const freeDaysList = [...teacherFreeDaySet].join(", ");
+      throw new AppError(
+        `Giáo viên không rảnh vào ${session.day}. Ngày rảnh của giáo viên: ${freeDaysList}`,
+        400,
+      );
     }
 
     if (toMinutes(session.endTime) <= toMinutes(session.startTime)) {

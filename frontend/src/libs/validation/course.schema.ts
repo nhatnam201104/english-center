@@ -19,6 +19,12 @@ export const createCourseSchema = z
       .max(100, "Giảm giá không được vượt quá 100%")
       .default(0),
     thumbnail: z.instanceof(File, { message: "Ảnh thumbnail là bắt buộc" }),
+    totalSession: z
+      .number({
+        message: "Số buổi học phải là số",
+      })
+      .min(1, "Số buổi học phải lớn hơn 0")
+      .optional(),
     minBand: z
       .number({
         message: "Band tối thiểu phải là số",
@@ -106,6 +112,12 @@ export const updateCourseSchema = z
       .max(100, "Giảm giá không được vượt quá 100%")
       .optional(),
     thumbnail: z.instanceof(File).optional().or(z.undefined()),
+    totalSession: z
+      .number({
+        message: "Số buổi học phải là số",
+      })
+      .min(0, "Số buổi học phải lớn hơn hoặc bằng 0")
+      .optional(),
     minBand: z
       .number({
         message: "Band tối thiểu phải là số",

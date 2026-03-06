@@ -12,6 +12,7 @@ export const toCourseResponse = (course: any): CourseResponse => {
     sale: course.sale,
 
     thumbnail: buildCourseThumbnailUrl(course.thumbnail) ?? "default.jpg",
+    totalSession: course.totalSession,
     minBand: course.minBand,
     maxBand: course.maxBand,
     createdAt: course.createdAt,

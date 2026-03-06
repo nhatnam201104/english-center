@@ -40,6 +40,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({
             <th className="px-6 py-3 text-left w-[100px]">Giáo viên</th>
             <th className="px-6 py-3 text-left w-[100px]">Phòng học</th>
             <th className="px-6 py-3 text-left w-[50px]">Sĩ số</th>
+            <th className="px-6 py-3 text-left w-[60px]">Số buổi</th>
             <th className="px-6 py-3 text-left w-[200px]">Buổi</th>
             <th className="px-6 py-3 text-left w-[100px]">Hành động</th>
           </tr>
@@ -65,6 +66,9 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({
               </td>
               <td className="px-6 py-4">
                 {s.totalRegister}/{s.totalSlot}
+              </td>
+              <td className="px-6 py-4">
+                {s.course?.totalSession ?? 0}
               </td>
               <td className="px-6 py-4 text-sm text-gray-700">
                 {s.sessions

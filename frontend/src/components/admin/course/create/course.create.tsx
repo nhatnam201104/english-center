@@ -84,6 +84,9 @@ const CourseCreate = () => {
       formData.append("sale", data.sale.toString());
       formData.append("status", data.status);
 
+      if (data.totalSession !== undefined) {
+        formData.append("totalSession", data.totalSession.toString());
+      }
       if (data.minBand !== undefined) {
         formData.append("minBand", data.minBand.toString());
       }
@@ -266,6 +269,22 @@ const CourseCreate = () => {
                   })}
                   crossOrigin={undefined}
                 />
+              </div>
+
+              <div>
+                <Input
+                  label="Số buổi học"
+                  type="number"
+                  {...register("totalSession", {
+                    valueAsNumber: true,
+                  })}
+                  crossOrigin={undefined}
+                />
+                {errors.totalSession && (
+                  <Typography variant="small" color="red" className="mt-1">
+                    {errors.totalSession.message}
+                  </Typography>
+                )}
               </div>
 
               <div>
