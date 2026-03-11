@@ -9,9 +9,12 @@ import courseRoute from "./course.routes";
 import courseTestRoute from "./coursetest.routes";
 import scheduleRoute from "./schedule.routes";
 import entranceExamLRRoute from "./entranceExamLR.routes";
+import entranceExamRoute from "./entranceExam.routes";
 import speakingRoute from "./speaking.routes";
 import writingRoute from "./writing.routes";
 import teacherPortalRoute from "./teacher.portal.routes";
+import enrollmentRoute from "./enrollment.routes";
+import paymentRoute from "./payment.routes";
 
 const router = Router();
 
@@ -26,7 +29,10 @@ router.use("/courses", courseRoute);
 router.use("/course-tests", courseTestRoute);
 router.use("/schedule", scheduleRoute);
 router.use("/entrance-exam-lr", entranceExamLRRoute);
+router.use("/entrance-exam", entranceExamRoute);
 router.use("/speaking", speakingRoute);
 router.use("/writing", writingRoute);
+router.use("/enrollment", enrollmentRoute);
+router.use("/payment", paymentRoute);
 
 export default router;

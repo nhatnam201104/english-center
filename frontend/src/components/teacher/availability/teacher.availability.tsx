@@ -5,23 +5,49 @@ import {
   updateMyAvailabilityService,
 } from "../../../services/teacher-portal.service";
 
-const ALL_DAYS = [
-  { key: "MONDAY", label: "Thứ 2" },
-  { key: "TUESDAY", label: "Thứ 3" },
-  { key: "WEDNESDAY", label: "Thứ 4" },
-  { key: "THURSDAY", label: "Thứ 5" },
-  { key: "FRIDAY", label: "Thứ 6" },
-  { key: "SATURDAY", label: "Thứ 7" },
-  { key: "SUNDAY", label: "CN" },
-];
+type PresetKey = "246" | "357" | "full" | "";
 
-const PRESET_246 = ["MONDAY", "WEDNESDAY", "FRIDAY"];
-const PRESET_357 = ["TUESDAY", "THURSDAY", "SATURDAY"];
-const PRESET_BOTH = [...PRESET_246, ...PRESET_357];
+const PRESETS: Record<
+  Exclude<PresetKey, "">,
+  { days: string[]; label: string; sublabel: string; colorActive: string; colorInactive: string }
+> = {
+  "246": {
+    days: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+    label: "Thứ 2 - 4 - 6",
+    sublabel: "Thứ Hai • Thứ Tư • Thứ Sáu",
+    colorActive: "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200",
+    colorInactive: "bg-white text-blue-700 border-blue-200 hover:border-blue-400 hover:bg-blue-50",
+  },
+  "357": {
+    days: ["TUESDAY", "THURSDAY", "SATURDAY"],
+    label: "Thứ 3 - 5 - 7",
+    sublabel: "Thứ Ba • Thứ Năm • Thứ Bảy",
+    colorActive: "bg-green-600 text-white border-green-600 shadow-lg shadow-green-200",
+    colorInactive: "bg-white text-green-700 border-green-200 hover:border-green-400 hover:bg-green-50",
+  },
+  "full": {
+    days: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"],
+    label: "Cả tuần",
+    sublabel: "Thứ 2 • Thứ 3 • Thứ 4 • Thứ 5 • Thứ 6 • Thứ 7",
+    colorActive: "bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-200",
+    colorInactive: "bg-white text-purple-700 border-purple-200 hover:border-purple-400 hover:bg-purple-50",
+  },
+};
+
+const detectPreset = (days: string[]): PresetKey => {
+  for (const [key, preset] of Object.entries(PRESETS) as [Exclude<PresetKey, "">, typeof PRESETS[keyof typeof PRESETS]][]) {
+    if (
+      preset.days.length === days.length &&
+      preset.days.every((d) => days.includes(d))
+    ) {
+      return key;
+    }
+  }
+  return "";
+};
 
 const TeacherAvailability = () => {
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [lockedDays] = useState<string[]>([]);
+  const [selectedPreset, setSelectedPreset] = useState<PresetKey>("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{
@@ -37,8 +63,8 @@ const TeacherAvailability = () => {
     try {
       setLoading(true);
       const response = await getMyAvailabilityService();
-      const days = response.data?.day || [];
-      setSelectedDays(days);
+      const days: string[] = response.data?.day || [];
+      setSelectedPreset(detectPreset(days));
     } catch (error) {
       console.error("Lỗi khi tải lịch rảnh:", error);
     } finally {
@@ -46,25 +72,12 @@ const TeacherAvailability = () => {
     }
   };
 
-  const toggleDay = (day: string) => {
-    if (lockedDays.includes(day)) return;
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
-    );
-  };
-
-  const applyPreset = (preset: string[]) => {
-    const newDays = preset.filter((d) => !lockedDays.includes(d));
-    // Keep locked days that are selected + apply new preset
-    const keptLocked = selectedDays.filter((d) => lockedDays.includes(d));
-    setSelectedDays([...new Set([...keptLocked, ...newDays])]);
-  };
-
   const handleSave = async () => {
     try {
       setSaving(true);
       setMessage(null);
-      const freeDays = selectedDays.map((day) => ({ day }));
+      const days = selectedPreset ? PRESETS[selectedPreset].days : [];
+      const freeDays = days.map((day) => ({ day }));
       await updateMyAvailabilityService(freeDays);
       setMessage({ type: "success", text: "Cập nhật lịch rảnh thành công!" });
     } catch (err: unknown) {
@@ -77,17 +90,6 @@ const TeacherAvailability = () => {
       setSaving(false);
     }
   };
-
-  const is246 = () =>
-    PRESET_246.every((d) => selectedDays.includes(d)) &&
-    !PRESET_357.some((d) => selectedDays.includes(d) && !lockedDays.includes(d));
-
-  const is357 = () =>
-    PRESET_357.every((d) => selectedDays.includes(d)) &&
-    !PRESET_246.some((d) => selectedDays.includes(d) && !lockedDays.includes(d));
-
-  const isBoth = () =>
-    PRESET_BOTH.every((d) => selectedDays.includes(d));
 
   if (loading) {
     return (
@@ -105,7 +107,7 @@ const TeacherAvailability = () => {
           Đăng Ký Lịch Rảnh
         </Typography>
         <Typography variant="small" className="text-gray-500 mt-1">
-          Chọn những ngày bạn có thể giảng dạy để admin phân công lịch
+          Chọn nhóm ngày bạn có thể giảng dạy để admin phân công lịch
         </Typography>
       </div>
 
@@ -123,104 +125,70 @@ const TeacherAvailability = () => {
       )}
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        {/* Preset buttons */}
+        {/* Preset cards */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Chọn nhanh
+            Chọn nhóm lịch rảnh
           </h3>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => applyPreset(PRESET_246)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                is246()
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
-              }`}
-            >
-              Thứ 2 - 4 - 6
-            </button>
-            <button
-              onClick={() => applyPreset(PRESET_357)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                is357()
-                  ? "bg-green-600 text-white shadow-md"
-                  : "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
-              }`}
-            >
-              Thứ 3 - 5 - 7
-            </button>
-            <button
-              onClick={() => applyPreset(PRESET_BOTH)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                isBoth()
-                  ? "bg-purple-600 text-white shadow-md"
-                  : "bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200"
-              }`}
-            >
-              Cả hai (2-3-4-5-6-7)
-            </button>
-          </div>
-        </div>
-
-        {/* Day toggles */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Chọn từng ngày
-          </h3>
-          <div className="grid grid-cols-7 gap-3">
-            {ALL_DAYS.map(({ key, label }) => {
-              const isSelected = selectedDays.includes(key);
-              const isLocked = lockedDays.includes(key);
-
-              return (
+          <div className="grid grid-cols-1 gap-3">
+            {(Object.entries(PRESETS) as [Exclude<PresetKey, "">, typeof PRESETS[keyof typeof PRESETS]][]).map(
+              ([key, preset]) => (
                 <button
                   key={key}
-                  onClick={() => toggleDay(key)}
-                  disabled={isLocked}
-                  title={isLocked ? "Đang có lịch dạy - không thể thay đổi" : ""}
-                  className={`py-4 rounded-xl text-center transition-all duration-200 ${
-                    isLocked
-                      ? "bg-red-50 text-red-400 border-2 border-red-200 cursor-not-allowed opacity-75"
-                      : isSelected
-                      ? "bg-blue-600 text-white shadow-lg transform scale-105 border-2 border-blue-600"
-                      : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                  onClick={() =>
+                    setSelectedPreset((prev) => (prev === key ? "" : key))
+                  }
+                  className={`w-full px-5 py-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                    selectedPreset === key
+                      ? preset.colorActive
+                      : preset.colorInactive
                   }`}
                 >
-                  <div className="font-bold text-sm">{label}</div>
-                  {isLocked && (
-                    <div className="text-[10px] mt-1">🔒 Có lịch</div>
-                  )}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-bold text-base">{preset.label}</div>
+                      <div
+                        className={`text-xs mt-0.5 ${
+                          selectedPreset === key
+                            ? "opacity-80"
+                            : "opacity-60"
+                        }`}
+                      >
+                        {preset.sublabel}
+                      </div>
+                    </div>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                        selectedPreset === key
+                          ? "border-white bg-white/20"
+                          : "border-current opacity-40"
+                      }`}
+                    >
+                      {selectedPreset === key && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                      )}
+                    </div>
+                  </div>
                 </button>
-              );
-            })}
+              ),
+            )}
           </div>
         </div>
 
-        {/* Summary */}
+        {/* Current selection summary */}
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">
-            Ngày đã chọn
+            Lịch rảnh hiện tại
           </h3>
-          {selectedDays.length === 0 ? (
-            <p className="text-sm text-gray-400">Chưa chọn ngày nào</p>
+          {selectedPreset ? (
+            <p className="text-sm font-medium text-blue-700">
+              {PRESETS[selectedPreset].label} —{" "}
+              <span className="text-gray-500 font-normal">
+                {PRESETS[selectedPreset].sublabel}
+              </span>
+            </p>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              {ALL_DAYS.filter(({ key }) => selectedDays.includes(key)).map(
-                ({ key, label }) => (
-                  <span
-                    key={key}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      lockedDays.includes(key)
-                        ? "bg-red-100 text-red-700"
-                        : "bg-blue-100 text-blue-700"
-                    }`}
-                  >
-                    {label}
-                    {lockedDays.includes(key) && " 🔒"}
-                  </span>
-                ),
-              )}
-            </div>
+            <p className="text-sm text-gray-400">Chưa chọn nhóm lịch nào</p>
           )}
         </div>
 

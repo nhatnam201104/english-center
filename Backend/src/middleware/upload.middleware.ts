@@ -54,7 +54,7 @@ export const uploadEntranceExamLR = multer({
  */
 export const mergeFilesToBody = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   if (req.files) {

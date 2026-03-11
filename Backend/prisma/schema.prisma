@@ -19,6 +19,16 @@ enum EntranceExamType {
   SPEAKING_WRITING
 }
 
+enum AdmissionStatus {
+  REGISTERED
+  PENDING
+  LISTENING
+  LISTENING_DONE
+  READING
+  COMPLETED
+  CANCELLED
+}
+
 enum RoleName {
   ADMIN
   TEACHER
@@ -34,7 +44,33 @@ enum CourseType {
 enum CourseSkill {
   READING_LISTENING
   SPEAKING_WRITING
-  ALL
+}
+
+// ─────────────────────────────────────────────
+// ENROLLMENT & PAYMENT ENUMS
+// ─────────────────────────────────────────────
+
+enum EnrollmentDraftStatus {
+  DRAFT
+  PENDING_PAYMENT
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum ReservationStatus {
+  ACTIVE
+  EXPIRED
+  CONVERTED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+  EXPIRED
 }
 
 enum CourseStatus {
@@ -174,13 +210,22 @@ model Admission {
   entranceExamId Int?
   email          String
   fullname       String
+  phone          String           @default("")
+  cccd           String           @default("")
+  accessToken    String?          @unique
+  status         AdmissionStatus  @default(REGISTERED)
   entranceScore  Int              @default(0)
   type           EntranceExamType
+  scoreListening Int              @default(0)
+  scoreReading   Int              @default(0)
+  scoreSpeaking  Int              @default(0)
+  scoreWriting   Int              @default(0)
   isDone         Boolean          @default(false)
   totalListening Int              @default(0)
   totalReading   Int              @default(0)
   totalSpeaking  Int              @default(0)
   totalWriting   Int              @default(0)
+  expiresAt      DateTime?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
@@ -189,8 +234,11 @@ model Admission {
   admissionsReading   AdmissionsReading[]
   admissionsSpeaking  AdmissionsSpeaking[]
   admissionsWriting   AdmissionsWriting[]
+  registrationTokens  RegistrationToken[]
+  enrollmentDrafts    EnrollmentDraft[]
 
   @@index([entranceExamId])
+  @@index([cccd])
   @@map("admission")
 }
 
@@ -304,7 +352,7 @@ model PartOne {
   id              Int      @id @default(autoincrement())
   listeningExamId Int
   direction       String   @db.Text
-  totalQuestion   Int      @default(6)
+  totalQuestion   Int      @default(2)
   quantityQuestionDone Int      @default(0)
   isDone          Boolean  @default(false)
   createdAt       DateTime @default(now())
@@ -336,7 +384,7 @@ model PartTwo {
   id              Int      @id @default(autoincrement())
   listeningExamId Int
   direction       String   @db.Text
-  totalQuestion   Int      @default(25)
+  totalQuestion   Int      @default(2)
   quantityQuestionDone Int      @default(0)
   isDone          Boolean  @default(false)
   createdAt       DateTime @default(now())
@@ -367,7 +415,7 @@ model PartThree {
   id              Int      @id @default(autoincrement())
   listeningExamId Int
   direction       String   @db.Text
-  totalQuestion   Int      @default(39)
+  totalQuestion   Int      @default(6)
   quantityQuestionDone Int      @default(0)
   isDone          Boolean  @default(false)
   createdAt       DateTime @default(now())
@@ -418,7 +466,7 @@ model PartFour {
   id              Int      @id @default(autoincrement())
   listeningExamId Int
   direction       String   @db.Text
-  totalQuestion   Int      @default(30)
+  totalQuestion   Int      @default(6)
   quantityQuestionDone Int      @default(0)
   isDone          Boolean  @default(false)
   createdAt       DateTime @default(now())
@@ -494,7 +542,7 @@ model PartFive {
   id            Int      @id @default(autoincrement())
   readingExamId Int
   direction     String   @db.Text
-  totalQuestion Int      @default(30)
+  totalQuestion Int      @default(2)
   quantityQuestionDone Int      @default(0)
   isDone        Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -528,7 +576,7 @@ model PartSix {
   id            Int      @id @default(autoincrement())
   readingExamId Int
   direction     String   @db.Text
-  totalQuestion Int      @default(16)
+  totalQuestion Int      @default(8)
   quantityQuestionDone Int      @default(0)
   isDone        Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -579,7 +627,7 @@ model PartSeven {
   id            Int      @id @default(autoincrement())
   readingExamId Int
   direction     String   @db.Text
-  totalQuestion Int      @default(54)
+  totalQuestion Int      @default(4)
   quantityQuestionDone Int      @default(0)
   isDone        Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -900,6 +948,7 @@ model Schedule {
   course        Course                 @relation(fields: [coursesId], references: [id], onDelete: Cascade)
   sessions      ScheduleSession[]
   registrations ScheduleRegistration[]
+  seatReservations SeatReservation[]
 
   @@index([teacherId])
   @@index([classroomId])
@@ -981,4 +1030,83 @@ model ScoreCourse {
   @@index([courseTestId])
   @@index([studentId])
   @@map("score_course")
+}
+
+// ─────────────────────────────────────────────
+// ENROLLMENT & PAYMENT MODELS
+// ─────────────────────────────────────────────
+
+model RegistrationToken {
+  id          Int       @id @default(autoincrement())
+  token       String    @unique @db.VarChar(36)
+  admissionId Int
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  admission       Admission         @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  enrollmentDrafts EnrollmentDraft[]
+
+  @@index([admissionId])
+  @@map("registration_token")
+}
+
+model EnrollmentDraft {
+  id                    Int                   @id @default(autoincrement())
+  admissionId           Int
+  registrationTokenId   Int
+  candidateData         Json
+  parentData            Json?
+  scheduleId            Int?
+  status                EnrollmentDraftStatus @default(DRAFT)
+  expiresAt             DateTime
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  admission          Admission          @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  registrationToken  RegistrationToken  @relation(fields: [registrationTokenId], references: [id], onDelete: Cascade)
+  seatReservation    SeatReservation?
+  payment            PaymentTransaction?
+
+  @@index([admissionId])
+  @@index([registrationTokenId])
+  @@map("enrollment_draft")
+}
+
+model SeatReservation {
+  id                Int               @id @default(autoincrement())
+  enrollmentDraftId Int               @unique
+  scheduleId        Int
+  status            ReservationStatus @default(ACTIVE)
+  expiresAt         DateTime
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  enrollmentDraft EnrollmentDraft @relation(fields: [enrollmentDraftId], references: [id], onDelete: Cascade)
+  schedule        Schedule        @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId, status, expiresAt])
+  @@map("seat_reservation")
+}
+
+model PaymentTransaction {
+  id                Int           @id @default(autoincrement())
+  enrollmentDraftId Int           @unique
+  txnRef            String        @unique @db.VarChar(100)
+  amount            Int
+  status            PaymentStatus @default(PENDING)
+  vnpTransactionNo  String?
+  vnpBankCode       String?
+  vnpPayDate        String?
+  vnpResponseCode   String?
+  vnpCreateDate     String        @db.VarChar(14)
+  ipnReceivedAt     DateTime?
+  finalizedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  enrollmentDraft EnrollmentDraft @relation(fields: [enrollmentDraftId], references: [id], onDelete: Cascade)
+
+  @@index([enrollmentDraftId])
+  @@map("payment_transaction")
 }

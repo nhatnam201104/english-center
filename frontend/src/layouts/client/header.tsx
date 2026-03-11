@@ -27,10 +27,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
+import RegistrationDialog from "../../components/client/exam/registration-dialog";
 
 const ClientHeader = () => {
   const [openNav, setOpenNav] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openExamDialog, setOpenExamDialog] = useState(false);
   const navigate = useNavigate();
 
   // ✅ Close mobile nav when resizing to desktop
@@ -118,12 +120,12 @@ const ClientHeader = () => {
                 <span className="font-medium">Hotline: 1900 1234</span>
               </div>
 
-              <div className="flex items-center gap-2 hidden md:flex hover:bg-blue-700 px-3 py-1 rounded-lg transition-all duration-300 cursor-pointer">
+              <div className="hidden md:flex items-center gap-2 hover:bg-blue-700 px-3 py-1 rounded-lg transition-all duration-300 cursor-pointer">
                 <EnvelopeIcon className="h-4 w-4" />
                 <span className="font-medium">tuyensinh@university.edu.vn</span>
               </div>
 
-              <div className="flex items-center gap-2 hidden lg:flex hover:bg-blue-700 px-3 py-1 rounded-lg transition-all duration-300 cursor-pointer">
+              <div className="hidden lg:flex items-center gap-2 hover:bg-blue-700 px-3 py-1 rounded-lg transition-all duration-300 cursor-pointer">
                 <ClockIcon className="h-4 w-4" />
                 <span className="font-medium">8:00 - 17:00 (T2-T6)</span>
               </div>
@@ -149,9 +151,10 @@ const ClientHeader = () => {
                 variant="gradient"
                 size="sm"
                 className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 normal-case transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl"
+                onClick={() => setOpenExamDialog(true)}
               >
                 <UserPlusIcon className="h-4 w-4" />
-                Đăng ký tuyển sinh
+                Đăng ký thi đầu vào
               </Button>
             </div>
           </div>
@@ -259,6 +262,11 @@ const ClientHeader = () => {
           </div>
         </Collapse>
       </div>
+
+      <RegistrationDialog
+        open={openExamDialog}
+        onClose={() => setOpenExamDialog(false)}
+      />
     </div>
   );
 };

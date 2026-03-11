@@ -22,7 +22,6 @@ interface Part3EditorProps {
 
 const Part3Editor: React.FC<Part3EditorProps> = ({
   examId,
-  index,
   initialData,
   onSave,
 }) => {

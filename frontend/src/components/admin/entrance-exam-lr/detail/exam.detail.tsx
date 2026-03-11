@@ -121,7 +121,9 @@ const ExamDetail = () => {
         : await getReadingAnswerKey(examId);
       const existing: AnswerKeyItemResponse[] = (res.data as unknown as AnswerKeyItemResponse[]) || [];
       const keyMap = new Map(existing.map((k) => [k.index, k.answer]));
-      const keys: AnswerKeyItem[] = Array.from({ length: 100 }, (_, i) => ({
+      // Listening: P1(2)+P2(2)+P3(6)+P4(6) = 16  |  Reading: P5(2)+P6(8)+P7(4) = 14
+      const totalQuestions = isListening ? 16 : 14;
+      const keys: AnswerKeyItem[] = Array.from({ length: totalQuestions }, (_, i) => ({
         index: i + 1,
         answer: keyMap.get(i + 1) || "",
       }));

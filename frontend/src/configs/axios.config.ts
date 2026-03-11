@@ -6,7 +6,7 @@ const instance = axios.create({
     "Content-Type": "application/x-www-form-urlencoded",
   },
   withCredentials: true,
-  timeout: 5000,
+  timeout: 15000,
 });
 
 instance.interceptors.request.use(

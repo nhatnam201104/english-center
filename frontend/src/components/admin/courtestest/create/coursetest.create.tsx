@@ -10,8 +10,8 @@ import {
   Button,
 } from "@material-tailwind/react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import type { CreateCourseTestRequest } from "../../../../types/courtestest/request";
-import { createCoursetest } from "../../../../services/courtestest.service";
+import type { CreateCourseTestRequest } from "../../../../types/coursetest/request";
+import { createCoursetest } from "../../../../services/coursetest.service";
 
 const CoursetestCreate = () => {
   const navigate = useNavigate();

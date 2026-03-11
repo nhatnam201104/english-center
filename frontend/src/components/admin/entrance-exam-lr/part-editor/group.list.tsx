@@ -61,7 +61,7 @@ const GroupList = ({ partData, onDelete }: GroupListProps) => {
               <div className="flex items-center gap-2 flex-wrap">
                 <Chip value={`Nhóm #${g.index}`} size="sm" color="blue" />
                 <Chip
-                  value={`Câu ${g.fromQuestionIndex}${g.toQuestionIndex}`}
+                  value={`Câu ${g.fromQuestionIndex}-${g.toQuestionIndex}`}
                   size="sm"
                   color="cyan"
                   variant="ghost"

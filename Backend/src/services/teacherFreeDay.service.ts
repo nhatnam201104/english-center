@@ -3,6 +3,21 @@ import { CreateTeacherFreeDay, GetTeacherFreeDayResponse } from "../DTOS/Teacher
 import prisma from "../config/database";
 import { AppError } from "../middleware/errorHandler";
 
+const ALLOWED_PATTERNS: DayOfWeek[][] = [
+  ["MONDAY", "WEDNESDAY", "FRIDAY"],
+  ["TUESDAY", "THURSDAY", "SATURDAY"],
+  ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"],
+];
+
+const isValidPattern = (days: DayOfWeek[]): boolean => {
+  if (days.length === 0) return true;
+  return ALLOWED_PATTERNS.some(
+    (pattern) =>
+      pattern.length === days.length &&
+      pattern.every((d) => days.includes(d)),
+  );
+};
+
 // Tạo / cập nhật ngày rảnh cho giáo viên
 export const createTeacherFreeDayService = async (
   teacherId: number,
@@ -12,6 +27,14 @@ export const createTeacherFreeDayService = async (
   const requestedDays: DayOfWeek[] = Array.from(
     new Set((freeDays ?? []).map(d => d.day as DayOfWeek)),
   );
+
+  // Kiểm tra pattern hợp lệ: chỉ cho phép 2-4-6, 3-5-7, hoặc cả tuần (2-7)
+  if (!isValidPattern(requestedDays)) {
+    throw new AppError(
+      "Lịch rảnh chỉ được phép đăng ký theo nhóm: Thứ 2-4-6, Thứ 3-5-7, hoặc cả tuần (Thứ 2 đến Thứ 7)",
+      400,
+    );
+  }
 
   // FreeDay hiện tại
   const existing = await prisma.teacherFreeDay.findMany({

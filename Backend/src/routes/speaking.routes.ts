@@ -9,7 +9,6 @@ import {
   speakingPart3Validation,
   speakingPart4Validation,
   speakingPart5Validation,
-  indexParamValidation,
 } from "../validators/speaking.validator";
 import {
   createSpeaking,

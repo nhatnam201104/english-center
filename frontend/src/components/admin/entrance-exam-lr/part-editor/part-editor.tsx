@@ -196,6 +196,8 @@ const PartEditor = () => {
         open={showAddDialog}
         pNo={pNo}
         pId={pId}
+        totalQuestion={partData?.totalQuestion ?? 0}
+        quantityQuestionDone={partData?.quantityQuestionDone ?? 0}
         onClose={() => setShowAddDialog(false)}
         onSuccess={loadPartData}
       />

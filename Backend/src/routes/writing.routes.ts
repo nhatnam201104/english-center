@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
 import { authenticate, authorize } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validation.middleware";
 import {

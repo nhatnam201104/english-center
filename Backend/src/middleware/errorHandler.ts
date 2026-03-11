@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import multer from "multer";
 
 export class AppError extends Error {
   statusCode: number;
@@ -27,7 +28,14 @@ export const errorHandler = (
   let statusCode = 500;
   let message = "Internal Server Error";
 
-  if (err instanceof AppError) {
+  if (err instanceof multer.MulterError) {
+    statusCode = 400;
+    if (err.code === "LIMIT_FILE_SIZE") {
+      message = "Ảnh quá lớn. Vui lòng chọn ảnh có kích thước nhỏ hơn 5MB";
+    } else {
+      message = `Lỗi upload file: ${err.message}`;
+    }
+  } else if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
   } else if (err.name === "ValidationError") {

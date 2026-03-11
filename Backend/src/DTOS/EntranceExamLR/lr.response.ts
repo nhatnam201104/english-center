@@ -42,7 +42,6 @@ export interface AnswerKeyRequest {
 }
 
 export interface QuestionMCDto {
-  index: number;
   question: string;
   answerA: string;
   answerB: string;
@@ -51,11 +50,8 @@ export interface QuestionMCDto {
 }
 
 export interface GroupCreateRequest {
-  index: number;
   audio?: string;
   image?: string;
   question?: string;
-  fromQuestionIndex: number;
-  toQuestionIndex: number;
   questions: QuestionMCDto[];
 }

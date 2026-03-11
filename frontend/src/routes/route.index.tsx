@@ -5,6 +5,7 @@ import ClientRoutes from "./client.route";
 import AdminRoutes from "./admin.route";
 import ParentRoutes from "./parent.route";
 import TeacherRoutes from "./teacher.route";
+import ExamPage from "../pages/client/exam.page";
 
 const router = createBrowserRouter([
   {
@@ -12,7 +13,18 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        children: [AuthRoutes, ClientRoutes, AdminRoutes, ParentRoutes, TeacherRoutes],
+        children: [
+          AuthRoutes,
+          ClientRoutes,
+          AdminRoutes,
+          ParentRoutes,
+          TeacherRoutes,
+          // Exam page renders without header/footer
+          {
+            path: "exam/:accessToken",
+            element: <ExamPage />,
+          },
+        ],
       },
     ],
   }

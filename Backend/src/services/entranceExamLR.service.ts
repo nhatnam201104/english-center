@@ -42,31 +42,35 @@ const READING_INCLUDE = {
   trueAnswers: true,
 };
 
-/* Default TOEIC part directions */
+/* Default TOEIC part directions – TESTING MODE
+   Part 1: 2 questions, Part 2: 2 questions
+   Part 3: 2 groups × 3 q = 6, Part 4: 2 groups × 3 q = 6
+   Part 5: 2 questions, Part 6: 2 groups × 4 q = 8, Part 7: 2 groups × 2 q = 4
+   To restore full TOEIC: set totalQuestion back to 6, 25, 39, 30 / 30, 16, 54 */
 const TOEIC_LISTENING_PARTS = [
   {
     relation: "partOnes",
     direction:
       "For each question in this part, you will hear four statements about a picture in your test book. When you hear the statements, you must select the one statement that best describes what you see in the picture.",
-    totalQuestion: 6,
+    totalQuestion: 2, // full TOEIC: 6
   },
   {
     relation: "partTwos",
     direction:
       "You will hear a question or statement and three responses spoken in English. They will not be printed in your test book and will be spoken only one time. Select the best response to the question or statement.",
-    totalQuestion: 25,
+    totalQuestion: 2, // full TOEIC: 25
   },
   {
     relation: "partThrees",
     direction:
       "You will hear some conversations between two or more people. You will be asked to answer three questions about what the speakers say in each conversation.",
-    totalQuestion: 39,
+    totalQuestion: 6, // testing: 2 groups × 3 q; full TOEIC: 39
   },
   {
     relation: "partFours",
     direction:
       "You will hear some talks given by a single speaker. You will be asked to answer three questions about what the speaker says in each talk.",
-    totalQuestion: 30,
+    totalQuestion: 6, // testing: 2 groups × 3 q; full TOEIC: 30
   },
 ];
 
@@ -75,19 +79,19 @@ const TOEIC_READING_PARTS = [
     relation: "partFives",
     direction:
       "A word or phrase is missing in each of the sentences below. Four answer choices are given below each sentence. Select the best answer to complete the sentence.",
-    totalQuestion: 30,
+    totalQuestion: 2, // full TOEIC: 30
   },
   {
     relation: "partSixes",
     direction:
       "Read the texts that follow. A word, phrase, or sentence is missing in parts of each text. Four answer choices for each question are given below the text. Select the best answer to complete the text.",
-    totalQuestion: 16,
+    totalQuestion: 8, // testing: 2 groups × 4 q; full TOEIC: 16
   },
   {
     relation: "partSevens",
     direction:
       "In this part you will read a selection of texts, such as magazine and newspaper articles, e-mails, and instant messages. Each text or set of texts is followed by several questions. Select the best answer for each question.",
-    totalQuestion: 54,
+    totalQuestion: 4, // testing: 2 groups × 2 q; full TOEIC: 54
   },
 ];
 
@@ -681,12 +685,61 @@ export const updatePartDirectionService = async (
 };
 
 /* ════════════════════════════════════════════════════════════════
+   AUTO-INDEX HELPERS
+   Compute the global offset for each part so question indexes are
+   sequential across the entire Listening or Reading exam.
+   ════════════════════════════════════════════════════════════════ */
+
+async function getListeningPartOffset(
+  tx: any,
+  partNo: number,
+  listeningExamId: number,
+): Promise<number> {
+  if (partNo === 1) return 0;
+
+  const exam = await tx.entranceExamListening.findUnique({
+    where: { id: listeningExamId },
+    include: { partOnes: true, partTwos: true, partThrees: true },
+  });
+  if (!exam) throw new AppError("Không tìm thấy đề thi Listening", 404);
+
+  const p1Total = exam.partOnes[0]?.totalQuestion ?? 0;
+  if (partNo === 2) return p1Total;
+
+  const p2Total = exam.partTwos[0]?.totalQuestion ?? 0;
+  if (partNo === 3) return p1Total + p2Total;
+
+  const p3Total = exam.partThrees[0]?.totalQuestion ?? 0;
+  return p1Total + p2Total + p3Total; // partNo === 4
+}
+
+async function getReadingPartOffset(
+  tx: any,
+  partNo: number,
+  readingExamId: number,
+): Promise<number> {
+  if (partNo === 5) return 0;
+
+  const exam = await tx.entranceExamReading.findUnique({
+    where: { id: readingExamId },
+    include: { partFives: true, partSixes: true },
+  });
+  if (!exam) throw new AppError("Không tìm thấy đề thi Reading", 404);
+
+  const p5Total = exam.partFives[0]?.totalQuestion ?? 0;
+  if (partNo === 6) return p5Total;
+
+  const p6Total = exam.partSixes[0]?.totalQuestion ?? 0;
+  return p5Total + p6Total; // partNo === 7
+}
+
+/* ════════════════════════════════════════════════════════════════
    ADD QUESTIONS – Part 1 (individual, audio + image)
    ════════════════════════════════════════════════════════════════ */
 
 export const addPartOneQuestionService = async (
   partId: number,
-  data: { index: number; question?: string; audio: string; image: string },
+  data: { question?: string; audio: string; image: string },
 ) => {
   return prisma.$transaction(async (tx) => {
     const part = await tx.partOne.findUnique({ where: { id: partId } });
@@ -699,20 +752,14 @@ export const addPartOneQuestionService = async (
       );
     }
 
-    // Check duplicate index
-    const dup = await tx.partOneQuestion.findFirst({
-      where: { partOneId: partId, index: data.index },
-    });
-    if (dup)
-      throw new AppError(
-        `Câu hỏi index ${data.index} đã tồn tại trong Part 1`,
-        400,
-      );
+    // Auto-calculate index
+    const offset = await getListeningPartOffset(tx, 1, part.listeningExamId);
+    const nextIndex = offset + part.quantityQuestionDone + 1;
 
     const question = await tx.partOneQuestion.create({
       data: {
         partOneId: partId,
-        index: data.index,
+        index: nextIndex,
         question: data.question ?? "",
         audio: data.audio,
         image: data.image,
@@ -742,7 +789,7 @@ export const addPartOneQuestionService = async (
 
 export const addPartTwoQuestionService = async (
   partId: number,
-  data: { index: number; question: string; audio: string },
+  data: { question: string; audio: string },
 ) => {
   return prisma.$transaction(async (tx) => {
     const part = await tx.partTwo.findUnique({ where: { id: partId } });
@@ -755,19 +802,14 @@ export const addPartTwoQuestionService = async (
       );
     }
 
-    const dup = await tx.partTwoQuestion.findFirst({
-      where: { partTwoId: partId, index: data.index },
-    });
-    if (dup)
-      throw new AppError(
-        `Câu hỏi index ${data.index} đã tồn tại trong Part 2`,
-        400,
-      );
+    // Auto-calculate index
+    const offset = await getListeningPartOffset(tx, 2, part.listeningExamId);
+    const nextIndex = offset + part.quantityQuestionDone + 1;
 
     const question = await tx.partTwoQuestion.create({
       data: {
         partTwoId: partId,
-        index: data.index,
+        index: nextIndex,
         question: data.question,
         audio: data.audio,
       },
@@ -809,17 +851,24 @@ export const addPartThreeGroupService = async (
       );
     }
 
+    // Auto-calculate indexes
+    const offset = await getListeningPartOffset(tx, 3, part.listeningExamId);
+    const fromQ = offset + part.quantityQuestionDone + 1;
+    const toQ = fromQ + questionsCount - 1;
+    const groupIndex =
+      (await tx.partThreeGroup.count({ where: { partThreeId: partId } })) + 1;
+
     const group = await tx.partThreeGroup.create({
       data: {
         partThreeId: partId,
-        index: data.index,
+        index: groupIndex,
         audio: data.audio!,
         image: data.image ?? null,
-        fromQuestionIndex: data.fromQuestionIndex,
-        toQuestionIndex: data.toQuestionIndex,
+        fromQuestionIndex: fromQ,
+        toQuestionIndex: toQ,
         questions: {
-          create: data.questions.map((q) => ({
-            index: q.index,
+          create: data.questions.map((q, i) => ({
+            index: fromQ + i,
             question: q.question,
             answerA: q.answerA,
             answerB: q.answerB,
@@ -867,17 +916,24 @@ export const addPartFourGroupService = async (
       );
     }
 
+    // Auto-calculate indexes
+    const offset = await getListeningPartOffset(tx, 4, part.listeningExamId);
+    const fromQ = offset + part.quantityQuestionDone + 1;
+    const toQ = fromQ + questionsCount - 1;
+    const groupIndex =
+      (await tx.partFourGroup.count({ where: { partFourId: partId } })) + 1;
+
     const group = await tx.partFourGroup.create({
       data: {
         partFourId: partId,
-        index: data.index,
+        index: groupIndex,
         audio: data.audio!,
         image: data.image ?? null,
-        fromQuestionIndex: data.fromQuestionIndex,
-        toQuestionIndex: data.toQuestionIndex,
+        fromQuestionIndex: fromQ,
+        toQuestionIndex: toQ,
         questions: {
-          create: data.questions.map((q) => ({
-            index: q.index,
+          create: data.questions.map((q, i) => ({
+            index: fromQ + i,
             question: q.question,
             answerA: q.answerA,
             answerB: q.answerB,
@@ -924,19 +980,14 @@ export const addPartFiveQuestionService = async (
       );
     }
 
-    const dup = await tx.partFiveQuestion.findFirst({
-      where: { partFiveId: partId, index: data.index },
-    });
-    if (dup)
-      throw new AppError(
-        `Câu hỏi index ${data.index} đã tồn tại trong Part 5`,
-        400,
-      );
+    // Auto-calculate index
+    const offset = await getReadingPartOffset(tx, 5, part.readingExamId);
+    const nextIndex = offset + part.quantityQuestionDone + 1;
 
     const question = await tx.partFiveQuestion.create({
       data: {
         partFiveId: partId,
-        index: data.index,
+        index: nextIndex,
         question: data.question,
         answerA: data.answerA,
         answerB: data.answerB,
@@ -981,17 +1032,24 @@ export const addPartSixGroupService = async (
       );
     }
 
+    // Auto-calculate indexes
+    const offset = await getReadingPartOffset(tx, 6, part.readingExamId);
+    const fromQ = offset + part.quantityQuestionDone + 1;
+    const toQ = fromQ + questionsCount - 1;
+    const groupIndex =
+      (await tx.partSixGroup.count({ where: { partSixId: partId } })) + 1;
+
     const group = await tx.partSixGroup.create({
       data: {
         partSixId: partId,
-        index: data.index,
+        index: groupIndex,
         question: data.question ?? null,
         image: data.image ?? null,
-        fromQuestionIndex: data.fromQuestionIndex,
-        toQuestionIndex: data.toQuestionIndex,
+        fromQuestionIndex: fromQ,
+        toQuestionIndex: toQ,
         questions: {
-          create: data.questions.map((q) => ({
-            index: q.index,
+          create: data.questions.map((q, i) => ({
+            index: fromQ + i,
             question: q.question,
             answerA: q.answerA,
             answerB: q.answerB,
@@ -1039,17 +1097,24 @@ export const addPartSevenGroupService = async (
       );
     }
 
+    // Auto-calculate indexes
+    const offset = await getReadingPartOffset(tx, 7, part.readingExamId);
+    const fromQ = offset + part.quantityQuestionDone + 1;
+    const toQ = fromQ + questionsCount - 1;
+    const groupIndex =
+      (await tx.partSevenGroup.count({ where: { partSevenId: partId } })) + 1;
+
     const group = await tx.partSevenGroup.create({
       data: {
         partSevenId: partId,
-        index: data.index,
+        index: groupIndex,
         question: data.question ?? null,
         image: data.image ?? null,
-        fromQuestionIndex: data.fromQuestionIndex,
-        toQuestionIndex: data.toQuestionIndex,
+        fromQuestionIndex: fromQ,
+        toQuestionIndex: toQ,
         questions: {
-          create: data.questions.map((q) => ({
-            index: q.index,
+          create: data.questions.map((q, i) => ({
+            index: fromQ + i,
             question: q.question,
             answerA: q.answerA,
             answerB: q.answerB,

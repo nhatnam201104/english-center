@@ -21,8 +21,14 @@ const AssignDropZone = ({
       {assignedTeacher ? (
         <div className="animate-in fade-in zoom-in duration-300">
           <img
-            src={assignedTeacher.avatar ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${assignedTeacher.fullname}` : `${import.meta.env.VITE_FILE_URL}/uploads/courses/${assignedTeacher.avatar}`}
-            className="w-20 h-20 rounded-full mb-4 mx-auto border-2 border-white shadow-md"
+            src={
+              assignedTeacher.avatar
+                ? assignedTeacher.avatar.startsWith("http")
+                  ? assignedTeacher.avatar
+                  : `${import.meta.env.VITE_FILE_URL}/uploads/teachers/${assignedTeacher.avatar}`
+                : `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(assignedTeacher.fullname)}`
+            }
+            className="w-20 h-20 rounded-full mb-4 mx-auto border-2 border-white shadow-md object-cover"
             alt="Teacher"
           />
           <h3 className="text-xl font-extrabold text-slate-800">{assignedTeacher.fullname}</h3>

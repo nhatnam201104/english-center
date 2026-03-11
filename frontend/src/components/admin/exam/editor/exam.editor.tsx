@@ -19,7 +19,7 @@ import {
 import { ArrowLeftIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { createExamSchema, type CreateExamFormData } from "../../../../libs/validation/exam.schema";
 import { createExam, updateExam, getExamById, getPart1, getPart2, getPart3 } from "../../../../services/exam.service";
-import type { Exam } from "../../../../types/exam/response";
+import type { Exam, WritingOneToFive, WritingSixSeven, WritingEight } from "../../../../types/exam/response";
 import Part1Editor from "./part1.editor";
 import Part2Editor from "./part2.editor";
 import Part3Editor from "./part3.editor";
@@ -34,10 +34,10 @@ const ExamEditor: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("general");
   const [loading, setLoading] = useState(false);
   const [examId, setExamId] = useState<number | null>(isEditing ? Number(id) : null);
-  const [examData, setExamData] = useState<Exam | null>(null);
-  const [part1Data, setPart1Data] = useState<any>(null);
-  const [part2Data, setPart2Data] = useState<any>(null);
-  const [part3Data, setPart3Data] = useState<any>(null);
+  const [, setExamData] = useState<Exam | null>(null);
+  const [part1Data, setPart1Data] = useState<WritingOneToFive | null>(null);
+  const [part2Data, setPart2Data] = useState<WritingSixSeven | null>(null);
+  const [part3Data, setPart3Data] = useState<WritingEight | null>(null);
   const [savedParts, setSavedParts] = useState<Record<string, boolean>>({
     part1: false,
     part2: false,
@@ -50,7 +50,7 @@ const ExamEditor: React.FC = () => {
     formState: { errors },
     setValue,
   } = useForm<CreateExamFormData>({
-    resolver: zodResolver(createExamSchema) as any,
+    resolver: zodResolver(createExamSchema) as never,
     defaultValues: {
       isActive: false,
     },
@@ -60,6 +60,7 @@ const ExamEditor: React.FC = () => {
     if (isEditing && examId) {
       loadExamData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing, examId]);
 
   const loadExamData = async () => {
@@ -97,7 +98,7 @@ const ExamEditor: React.FC = () => {
     }
   };
 
-  const handleGeneralSubmit = async (data: any) => {
+  const handleGeneralSubmit = async (data: CreateExamFormData) => {
     try {
       setLoading(true);
 
@@ -300,7 +301,7 @@ const ExamEditor: React.FC = () => {
                   <Part1Editor
                     examId={examId}
                     index={0}
-                    initialData={part1Data}
+                    initialData={part1Data ?? undefined}
                     onSave={() => handlePartSave("part1")}
                   />
                 )}
@@ -312,7 +313,7 @@ const ExamEditor: React.FC = () => {
                   <Part2Editor
                     examId={examId}
                     index={0}
-                    initialData={part2Data}
+                    initialData={part2Data ?? undefined}
                     onSave={() => handlePartSave("part2")}
                   />
                 )}
@@ -324,7 +325,7 @@ const ExamEditor: React.FC = () => {
                   <Part3Editor
                     examId={examId}
                     index={0}
-                    initialData={part3Data}
+                    initialData={part3Data ?? undefined}
                     onSave={() => handlePartSave("part3")}
                   />
                 )}

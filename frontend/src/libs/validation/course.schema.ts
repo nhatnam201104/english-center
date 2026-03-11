@@ -39,7 +39,7 @@ export const createCourseSchema = z
       .min(0, "Band tối đa phải lớn hơn hoặc bằng 0")
       .max(990, "Band tối đa phải nhỏ hơn hoặc bằng 990")
       .optional(),
-    courseSkill: z.enum(["READING_LISTENING", "SPEAKING_WRITING", "ALL"], {
+    courseSkill: z.enum(["READING_LISTENING", "SPEAKING_WRITING"], {
       message: "Kỹ năng khóa học là bắt buộc",
     }),
     status: z.enum(["PLANNING", "ACTIVE", "INACTIVE"], {
@@ -138,7 +138,7 @@ export const updateCourseSchema = z
       })
       .optional(),
     courseSkill: z
-      .enum(["READING_LISTENING", "SPEAKING_WRITING", "ALL"], {
+      .enum(["READING_LISTENING", "SPEAKING_WRITING"], {
         message: "Kỹ năng khóa học không hợp lệ",
       })
       .optional(),

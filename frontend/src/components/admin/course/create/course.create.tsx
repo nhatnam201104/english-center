@@ -36,7 +36,7 @@ const CourseCreate = () => {
     defaultValues: {
       type: "COURSE",
       sale: 0,
-      courseSkill: "ALL",
+      courseSkill: "READING_LISTENING",
       status: "PLANNING",
     },
   });
@@ -323,17 +323,15 @@ const CourseCreate = () => {
                   onChange={(val) =>
                     setValue(
                       "courseSkill",
-                      (val || "ALL") as
+                      (val || "READING_LISTENING") as
                         | "READING_LISTENING"
-                        | "SPEAKING_WRITING"
-                        | "ALL",
+                        | "SPEAKING_WRITING",
                     )
                   }
                   value={courseSkill}
                 >
                   <Option value="READING_LISTENING">Đọc & Nghe</Option>
                   <Option value="SPEAKING_WRITING">Nói & Viết</Option>
-                  <Option value="ALL">Tất cả</Option>
                 </Select>
                 {errors.courseSkill && (
                   <Typography variant="small" color="red" className="mt-1">

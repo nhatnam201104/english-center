@@ -41,7 +41,7 @@ const CourseUpdate = () => {
   const status = watch("status");
   const courseSkill = watch("courseSkill");
 
-  const [originalStatus, setOriginalStatus] = useState<string>("");
+  const [, setOriginalStatus] = useState<string>("");
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -367,17 +367,15 @@ const CourseUpdate = () => {
                   onChange={(val) =>
                     setValue(
                       "courseSkill",
-                      (val || "ALL") as
+                      (val || "READING_LISTENING") as
                         | "READING_LISTENING"
-                        | "SPEAKING_WRITING"
-                        | "ALL",
+                        | "SPEAKING_WRITING",
                     )
                   }
                   value={courseSkill}
                 >
                   <Option value="READING_LISTENING">Đọc & Nghe</Option>
                   <Option value="SPEAKING_WRITING">Nói & Viết</Option>
-                  <Option value="ALL">Tất cả</Option>
                 </Select>
                 {errors.courseSkill && (
                   <Typography variant="small" color="red" className="mt-1">

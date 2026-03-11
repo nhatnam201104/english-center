@@ -9,7 +9,7 @@ export interface Course {
   totalSession: number;
   minBand: number | null;
   maxBand: number | null;
-  courseSkill: "READING_LISTENING" | "SPEAKING_WRITING" | "ALL";
+  courseSkill: "READING_LISTENING" | "SPEAKING_WRITING";
   createdAt: string;
   updatedAt: string;
 }

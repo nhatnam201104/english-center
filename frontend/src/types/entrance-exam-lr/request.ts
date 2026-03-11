@@ -33,7 +33,6 @@ export interface SaveAnswerKeyRequest {
 }
 
 export interface QuestionMCDto {
-  index: number;
   question: string;
   answerA: string;
   answerB: string;
@@ -44,11 +43,8 @@ export interface QuestionMCDto {
 export type AddPartFiveQuestionRequest = QuestionMCDto;
 
 export interface AddGroupRequest {
-  index: number;
   audio?: File;
   image?: File;
   question?: string;
-  fromQuestionIndex: number;
-  toQuestionIndex: number;
   questions: QuestionMCDto[];
 }

@@ -19,9 +19,9 @@ export const createCourseValidation = [
     .trim()
     .notEmpty()
     .withMessage("Kỹ năng khóa học không được để trống")
-    .isIn(["READING_LISTENING", "SPEAKING_WRITING", "ALL"])
+    .isIn(["READING_LISTENING", "SPEAKING_WRITING"])
     .withMessage(
-      "Kỹ năng khóa học phải là READING_LISTENING, SPEAKING_WRITING hoặc ALL",
+      "Kỹ năng khóa học phải là READING_LISTENING hoặc SPEAKING_WRITING",
     ),
 
   body("price")
@@ -95,9 +95,9 @@ export const updateCourseValidation = [
   body("courseSkill")
     .optional()
     .trim()
-    .isIn(["READING_LISTENING", "SPEAKING_WRITING", "ALL"])
+    .isIn(["READING_LISTENING", "SPEAKING_WRITING"])
     .withMessage(
-      "Kỹ năng khóa học phải là READING_LISTENING, SPEAKING_WRITING hoặc ALL",
+      "Kỹ năng khóa học phải là READING_LISTENING hoặc SPEAKING_WRITING",
     ),
 
   body("price")

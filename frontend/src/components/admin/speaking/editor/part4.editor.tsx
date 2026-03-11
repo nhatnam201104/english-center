@@ -130,7 +130,7 @@ const Part4Editor: React.FC<Part4EditorProps> = ({
                 maxFileSize={5}
                 accept="image/*"
                 initialImages={initialData?.image ? [initialData.image] : []}
-                onFilesChange={(fieldName, files) => {
+                onFilesChange={(_fieldName, files) => {
                   if (files.length > 0) {
                     setImageFile(files[0]);
                   }

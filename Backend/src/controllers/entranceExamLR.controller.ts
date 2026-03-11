@@ -211,7 +211,6 @@ export const addPartOneQuestion = async (req: Request, res: Response) => {
   if (!imageFile) throw new AppError("Image là bắt buộc cho Part 1");
 
   const data = {
-    index: Number(req.body.index),
     question: req.body.question || "",  // Not required for Part 1
     audio: audioFile.filename,
     image: imageFile.filename,
@@ -231,7 +230,6 @@ export const addPartTwoQuestion = async (req: Request, res: Response) => {
   if (!audioFile) throw new AppError("Audio là bắt buộc cho Part 2");
 
   const data = {
-    index: Number(req.body.index),
     question: req.body.question || "Mark your answer on your answer sheet.",
     audio: audioFile.filename,
   };
@@ -251,11 +249,8 @@ export const addPartThreeGroup = async (req: Request, res: Response) => {
   if (!audioFile) throw new AppError("Audio là bắt buộc cho Part 3");
 
   const data = {
-    index: Number(req.body.index),
     audio: audioFile.filename,
     image: imageFile?.filename,
-    fromQuestionIndex: Number(req.body.fromQuestionIndex),
-    toQuestionIndex: Number(req.body.toQuestionIndex),
     questions: parseQuestions(req.body.questions),
   };
 
@@ -274,11 +269,8 @@ export const addPartFourGroup = async (req: Request, res: Response) => {
   if (!audioFile) throw new AppError("Audio là bắt buộc cho Part 4");
 
   const data = {
-    index: Number(req.body.index),
     audio: audioFile.filename,
     image: imageFile?.filename,
-    fromQuestionIndex: Number(req.body.fromQuestionIndex),
-    toQuestionIndex: Number(req.body.toQuestionIndex),
     questions: parseQuestions(req.body.questions),
   };
 
@@ -291,7 +283,6 @@ export const addPartFiveQuestion = async (req: Request, res: Response) => {
   const partId = parseId(req.params.partId, "Part ID");
 
   const data = {
-    index: Number(req.body.index),
     question: req.body.question,
     answerA: req.body.answerA,
     answerB: req.body.answerB,
@@ -311,11 +302,8 @@ export const addPartSixGroup = async (req: Request, res: Response) => {
   const imageFile = files?.["image"]?.[0];
 
   const data = {
-    index: Number(req.body.index),
     question: req.body.question || undefined,
     image: imageFile?.filename,
-    fromQuestionIndex: Number(req.body.fromQuestionIndex),
-    toQuestionIndex: Number(req.body.toQuestionIndex),
     questions: parseQuestions(req.body.questions),
   };
 
@@ -331,11 +319,8 @@ export const addPartSevenGroup = async (req: Request, res: Response) => {
   const imageFile = files?.["image"]?.[0];
 
   const data = {
-    index: Number(req.body.index),
     question: req.body.question || undefined,
     image: imageFile?.filename,
-    fromQuestionIndex: Number(req.body.fromQuestionIndex),
-    toQuestionIndex: Number(req.body.toQuestionIndex),
     questions: parseQuestions(req.body.questions),
   };
 

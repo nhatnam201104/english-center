@@ -68,6 +68,7 @@ const TeacherCreate = () => {
       }
     } catch (error: unknown) {
       const apiError = error as { message?: string };
+      console.log(error);
       alert(apiError.message || "Tạo giáo viên thất bại!");
     } finally {
       setLoading(false);
