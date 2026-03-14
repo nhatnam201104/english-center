@@ -106,3 +106,16 @@ export const removeStudentFromSchedule = async (
   return response.data;
 };
 
+// Student: Lấy danh sách schedules đã đăng ký
+export const getStudentSchedules = async (
+  page = 1,
+  limit = 10,
+): Promise<ApiResponse<ScheduleListResponse>> => {
+  const response = await axios.get<ApiResponse<ScheduleListResponse>>(
+    "/schedule/student/my-schedules",
+    {
+      params: { page, limit },
+    }
+  );
+  return response.data;
+};

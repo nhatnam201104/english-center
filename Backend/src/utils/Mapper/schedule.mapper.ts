@@ -6,6 +6,7 @@ export type ScheduleWithCourse = Prisma.ScheduleGetPayload<{
   include: { 
     course: true, 
     sessions: true; 
+    classroom: true;
     teacher: {
       include: {
         user: true;
@@ -20,7 +21,7 @@ export const toScheduleResponse = (
 ): ScheduleResponse => ({
   id: schedule.id,
   teacher: toTeacherResponse(schedule.teacher),
-  classroomId: schedule.classroomId,
+  classroom: schedule.classroom,
   totalSlot: schedule.totalSlot,
   totalRegister: schedule.totalRegister,
   startTime: schedule.startTime,

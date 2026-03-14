@@ -169,6 +169,38 @@ export const getStudentByIdService = async (
   }
 };
 
+// Lấy học sinh theo userId (dùng cho endpoint /me)
+export const getStudentByUserIdService = async (
+  userId: number,
+): Promise<StudentResponse> => {
+  try {
+    const student = await prisma.studentInfo.findFirst({
+      where: {
+        userId,
+        deletedAt: null,
+        user: {
+          deletedAt: null,
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!student) {
+      throw new AppError("Không tìm thấy học sinh", 404);
+    }
+
+    return toStudentResponse(student);
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      "Lỗi khi lấy thông tin học sinh: " + (error as Error).message,
+      500,
+    );
+  }
+};
+
 // Cập nhật học sinh
 export const updateStudentService = async (
   id: number,
@@ -245,6 +277,77 @@ export const updateStudentService = async (
   } catch (error) {
     throw new AppError(
       "Lỗi khi cập nhật học sinh: " + (error as Error).message,
+      500,
+    );
+  }
+};
+
+// Lấy thông tin phụ huynh của học sinh
+export const getStudentParentsService = async (
+  studentId: number,
+): Promise<any[]> => {
+  try {
+    const parents = await prisma.parentStudent.findMany({
+      where: {
+        studentId,
+        student: { deletedAt: null },
+      },
+      include: {
+        parent: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return parents.map((p) => ({
+      id: p.parent.id,
+      fullname: p.parent.user.fullname,
+      email: p.parent.user.email,
+      phone: p.parent.user.phone,
+    }));
+  } catch (error) {
+    throw new AppError(
+      "Lỗi khi lấy thông tin phụ huynh: " + (error as Error).message,
+      500,
+    );
+  }
+};
+
+// Lấy danh sách khóa học đã đăng ký của học sinh
+export const getStudentCoursesService = async (
+  studentId: number,
+): Promise<any[]> => {
+  try {
+    const registrations = await prisma.studentRegisterCourse.findMany({
+      where: {
+        studentId,
+        student: { deletedAt: null },
+      },
+      include: {
+        course: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return registrations.map((r) => ({
+      id: r.course.id,
+      name: r.course.name,
+      type: r.course.type,
+      skill: r.course.courseSkill,
+      status: r.course.status,
+      price: r.course.price,
+      sale: r.course.sale,
+      thumbnail: r.course.thumbnail,
+      totalSession: r.course.totalSession,
+      minBand: r.course.minBand,
+      maxBand: r.course.maxBand,
+      createdAt: r.createdAt,
+    }));
+  } catch (error) {
+    throw new AppError(
+      "Lỗi khi lấy danh sách khóa học: " + (error as Error).message,
       500,
     );
   }

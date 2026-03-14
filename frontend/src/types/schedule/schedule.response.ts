@@ -4,16 +4,27 @@ import type { ScheduleSessionResponse } from "./schedule-session.response";
 
 export interface ScheduleResponse {
   id: number;
-  teacher: TeacherResponse;
-  classroomId: number;
+  teacher: {
+    id: number;
+    fullname: string;
+  };
+  classroom: {
+    id: number;
+    name: string;
+  };
+  course: {
+    id: number;
+    name: string;
+    type: string;
+    skill: string;
+  };
   totalSlot: number;
   totalRegister: number;
   startTime: string;
   endTime: string;
   createdAt: string;
   updatedAt: string;
-  course: Course;
-  sessions: ScheduleSessionResponse[]
+  sessions?: ScheduleSessionResponse[];
 }
 
 export interface ScheduleListResponse {

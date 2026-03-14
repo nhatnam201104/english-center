@@ -5,6 +5,7 @@ import router from './routes/route.index.tsx'
 import './styles/index.css'
 import { ThemeProvider } from "@material-tailwind/react";
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -9,8 +9,11 @@ import {
   createStudent,
   getAllStudents,
   getStudentById,
+  getStudentByUserId,
   updateStudent,
   deleteStudent,
+  getStudentParents,
+  getStudentCourses,
 } from "../controllers/student.controller";
 
 const router = Router();
@@ -35,6 +38,27 @@ router.post(
  * @access  Private (Admin, Teacher)
  */
 router.get("/", authenticate, authorize("ADMIN", "TEACHER"), getAllStudents);
+
+/**
+ * @route   GET /api/students/me
+ * @desc    Lấy thông tin học sinh của user đang login
+ * @access  Private (Student only)
+ */
+router.get("/me", authenticate, authorize("STUDENT"), getStudentByUserId);
+
+/**
+ * @route   GET /api/students/me/parents
+ * @desc    Lấy thông tin phụ huynh của học sinh
+ * @access  Private (Student only)
+ */
+router.get("/me/parents", authenticate, authorize("STUDENT"), getStudentParents);
+
+/**
+ * @route   GET /api/students/me/courses
+ * @desc    Lấy danh sách khóa học đã đăng ký
+ * @access  Private (Student only)
+ */
+router.get("/me/courses", authenticate, authorize("STUDENT"), getStudentCourses);
 
 /**
  * @route   GET /api/students/:id

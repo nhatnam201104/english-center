@@ -54,8 +54,12 @@ const LoginForm = () => {
           navigate("/teacher/courses");
         } else if (user.data.role === "PARENT") {
           navigate("/parent");
+        } else if (user.data.role === "STUDENT") {
+          navigate("/student");
+        } else if (user.data.role === "ADMIN") {
+          navigate("/admin");
         } else {
-          navigate("/");
+          navigate("/auth/login");
         }
         return;
       }

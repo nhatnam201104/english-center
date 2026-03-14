@@ -10,3 +10,9 @@ export const loginService = async (
   const res = await axios.post(URL_API, data);
   return res.data;
 };
+
+export const logoutService = async (): Promise<ApiResponse<null>> => {
+  const URL_API = "/auth/logout";
+  const res = await axios.post(URL_API);
+  return res.data;
+};

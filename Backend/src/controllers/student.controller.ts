@@ -4,10 +4,14 @@ import {
   createStudentService,
   getAllStudentsService,
   getStudentByIdService,
+  getStudentByUserIdService,
   updateStudentService,
   deleteStudentService,
+  getStudentParentsService,
+  getStudentCoursesService,
 } from "../services/student.service";
 import { GetStudentRequest } from "../DTOS/Student";
+import type { AuthRequest } from "../types/express.request";
 
 // Tạo học sinh mới
 export const createStudent = async (req: Request, res: Response) => {
@@ -45,6 +49,52 @@ export const getStudentById = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   const result = await getStudentByIdService(id);
   return customRes.success(result, "Lấy thông tin học sinh thành công");
+};
+
+// Lấy thông tin học sinh theo userId (từ JWT token)
+export const getStudentByUserId = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const authReq = req as AuthRequest;
+  const userId = authReq.user?.id;
+  
+  if (!userId) {
+    return customRes.error("Không tìm thấy thông tin user", 401);
+  }
+  
+  const result = await getStudentByUserIdService(userId);
+  return customRes.success(result, "Lấy thông tin học sinh thành công");
+};
+
+// Lấy thông tin phụ huynh của học sinh
+export const getStudentParents = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const authReq = req as AuthRequest;
+  const userId = authReq.user?.id;
+  
+  if (!userId) {
+    return customRes.error("Không tìm thấy thông tin user", 401);
+  }
+  
+  // Lấy studentId từ userId
+  const student = await getStudentByUserIdService(userId);
+  const result = await getStudentParentsService(student.id);
+  return customRes.success(result, "Lấy thông tin phụ huynh thành công");
+};
+
+// Lấy danh sách khóa học đã đăng ký
+export const getStudentCourses = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const authReq = req as AuthRequest;
+  const userId = authReq.user?.id;
+  
+  if (!userId) {
+    return customRes.error("Không tìm thấy thông tin user", 401);
+  }
+  
+  // Lấy studentId từ userId
+  const student = await getStudentByUserIdService(userId);
+  const result = await getStudentCoursesService(student.id);
+  return customRes.success(result, "Lấy danh sách khóa học thành công");
 };
 
 // Cập nhật học sinh

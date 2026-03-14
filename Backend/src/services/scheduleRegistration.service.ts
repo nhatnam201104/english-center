@@ -103,6 +103,85 @@ export const getScheduleStudentsService = async (
   };
 };
 
+// Student: Lấy danh sách schedules mà student đã đăng ký
+export const getStudentSchedulesService = async (
+  studentId: number,
+  { page = 1, limit = 10 }: { page?: number; limit?: number } = {},
+): Promise<{ data: any[]; totalItems: number; totalPages: number; page: number; limit: number }> => {
+  const where: any = {
+    studentId,
+    student: { deletedAt: null },
+  };
+
+  const totalItems = await prisma.scheduleRegistration.count({ where });
+
+  const registrations = await prisma.scheduleRegistration.findMany({
+    where,
+    include: {
+      schedule: {
+        include: {
+          teacher: { include: { user: true } },
+          course: true,
+          classroom: true,
+          sessions: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    skip: (page - 1) * limit,
+  });
+
+  const data = registrations
+    .map((r) => ({
+      id: r.schedule.id,
+      teacher: {
+        id: r.schedule.teacher.id,
+        fullname: r.schedule.teacher.user.fullname,
+      },
+      classroom: {
+        id: r.schedule.classroom.id,
+        name: r.schedule.classroom.name,
+      },
+      course: {
+        id: r.schedule.course.id,
+        name: r.schedule.course.name,
+        type: r.schedule.course.type,
+        skill: r.schedule.course.courseSkill,
+      },
+      totalSlot: r.schedule.totalSlot,
+      totalRegister: r.schedule.totalRegister,
+      startTime: r.schedule.startTime,
+      endTime: r.schedule.endTime,
+      createdAt: r.schedule.createdAt,
+      updatedAt: r.schedule.updatedAt,
+      sessions: r.schedule.sessions.map(session => ({
+        id: session.id,
+        day: session.day,
+        startTime: session.startTime,
+        endTime: session.endTime,
+      })),
+    }))
+    // Filter to show only courses that have started
+    .filter((schedule) => {
+      const now = new Date();
+      const startTime = new Date(schedule.startTime);
+      return startTime <= now;
+    })
+    // Deduplicate by course - chỉ giữ schedule đầu tiên của mỗi course
+    .filter((schedule, index, self) => 
+      index === self.findIndex((s) => s.course.id === schedule.course.id)
+    );
+
+  return {
+    data,
+    totalItems: data.length,
+    totalPages: Math.ceil(data.length / limit),
+    page,
+    limit,
+  };
+};
+
 // Admin: Xóa học sinh khỏi schedule
 export const removeStudentFromScheduleService = async (
   scheduleId: number,

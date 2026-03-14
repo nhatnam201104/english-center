@@ -6,6 +6,7 @@ import AdminRoutes from "./admin.route";
 import ParentRoutes from "./parent.route";
 import TeacherRoutes from "./teacher.route";
 import ExamPage from "../pages/client/exam.page";
+import StudentRoutes from "./student.route";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
           AdminRoutes,
           ParentRoutes,
           TeacherRoutes,
+          StudentRoutes,
           // Exam page renders without header/footer
           {
             path: "exam/:accessToken",

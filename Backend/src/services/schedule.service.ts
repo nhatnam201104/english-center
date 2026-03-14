@@ -162,6 +162,7 @@ export const createScheduleService = async (
       include: {
         course: true,
         sessions: true,
+        classroom: true,
         teacher: {
           include: {
             user: true,
@@ -194,6 +195,7 @@ export const getUpcomingSchedulesService = async (): Promise<
     include: {
       course: true,
       sessions: true,
+      classroom: true,
       teacher: {
         include: {
           user: true,
@@ -207,6 +209,7 @@ export const getUpcomingSchedulesService = async (): Promise<
 };
 
 // Lấy tất cả Schedule còn hiệu lực (startTime > hôm nay) + phân trang
+// Nếu có courseId thì lấy tất cả schedule của course đó
 export const getActiveSchedulesByCourseIdService = async ({
   page = 1,
   limit = 10,
@@ -219,13 +222,11 @@ export const getActiveSchedulesByCourseIdService = async ({
   const now = new Date();
   const skip = (page - 1) * limit;
 
-  const where: any = {
-    startTime: { gt: now },
-  };
-
-  if (courseId) {
-    where.coursesId = courseId;
-  }
+  // Nếu có courseId thì chỉ filter theo course (không filter thời gian)
+  // Nếu không có courseId thì filter theo thời gian (schedule đang hoạt động)
+  const where: any = courseId 
+    ? { coursesId: courseId }
+    : { startTime: { gt: now } };
 
   const totalItems = await prisma.schedule.count({
     where,
@@ -239,6 +240,7 @@ export const getActiveSchedulesByCourseIdService = async ({
     include: {
       course: true,
       sessions: true,
+      classroom: true,
       teacher: {
         include: {
           user: true,
@@ -276,6 +278,7 @@ export const getAllSchedulesService = async ({
     include: {
       course: true,
       sessions: true,
+      classroom: true,
       teacher: {
         include: {
           user: true,
@@ -305,6 +308,7 @@ export const getScheduleByIdService = async (
       sessions: {
         orderBy: { startTime: "asc" },
       },
+      classroom: true,
       teacher: {
         include: {
           user: true,

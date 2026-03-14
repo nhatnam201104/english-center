@@ -5,7 +5,8 @@ import {
   loginValidation,
 } from "../validators/auth.validator";
 import { validate } from "../middleware/validation.middleware";
-import { login, register } from "../controllers/auth.controller";
+import { login, register, logout } from "../controllers/auth.controller";
+import { authenticate } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -23,11 +24,11 @@ router.post("/register", registerValidation, validate, register);
  */
 router.post("/login", loginValidation, validate, login);
 
-// /**
-//  * @route   GET /api/auth/profile
-//  * @desc    Get current user profile
-//  * @access  Private
-//  */
-// router.get("/profile", authenticate, getProfile);
+/**
+ * @route   POST /api/auth/logout
+ * @desc    Logout user
+ * @access  Private
+ */
+router.post("/logout", authenticate, logout);
 
 export default router;

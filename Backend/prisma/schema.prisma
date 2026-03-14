@@ -156,6 +156,7 @@ model StudentInfo {
   scheduleRegistrations ScheduleRegistration[]
   attendanceRecords     AttendanceRecord[]
   scoreCourses          ScoreCourse[]
+  grades                Grade[]
 
   @@index([userId])
   @@map("student_info")
@@ -899,6 +900,7 @@ model Course {
   tests                CourseTest[]
   studentRegistrations StudentRegisterCourse[]
   schedules            Schedule[]
+  grades               Grade[]
 
   @@map("course")
 }
@@ -989,6 +991,7 @@ model ScheduleRegistration {
 model ScheduleAttendance {
   id            Int      @id @default(autoincrement())
   scheduleDayId Int
+  date          DateTime @default(now()) // Actual date of the attendance instance
   qrCode        String
   totalAbsent   Int
   createdAt     DateTime @default(now())
@@ -997,6 +1000,7 @@ model ScheduleAttendance {
   records         AttendanceRecord[]
 
   @@index([scheduleDayId])
+  @@index([date])
   @@map("schedule_attendance")
 }
 
@@ -1109,4 +1113,30 @@ model PaymentTransaction {
 
   @@index([enrollmentDraftId])
   @@map("payment_transaction")
+}
+model Grade {
+  id                  Int      @id @default(autoincrement())
+  studentId           Int
+  courseId            Int
+  participationScore  Float?   @default(0)
+  examScore           Float?   @default(0)
+  finalScore          Float?   @default(0)
+  status              GradeStatus @default(NOT_GRADED)
+  gradedAt            DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  student StudentInfo @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+  @@index([studentId])
+  @@index([courseId])
+  @@map("grade")
+}
+
+enum GradeStatus {
+  NOT_GRADED
+  PASS
+  FAIL
 }

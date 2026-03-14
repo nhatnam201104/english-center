@@ -15,6 +15,11 @@ import writingRoute from "./writing.routes";
 import teacherPortalRoute from "./teacher.portal.routes";
 import enrollmentRoute from "./enrollment.routes";
 import paymentRoute from "./payment.routes";
+import gradeRoute from "./grade.routes";
+import attendanceRoute from "./attendance.routes";
+import seedRoute from "./seed.routes";
+import enrollmentRoute from "./enrollment.routes";
+import paymentRoute from "./payment.routes";
 
 const router = Router();
 
@@ -32,6 +37,11 @@ router.use("/entrance-exam-lr", entranceExamLRRoute);
 router.use("/entrance-exam", entranceExamRoute);
 router.use("/speaking", speakingRoute);
 router.use("/writing", writingRoute);
+router.use("/enrollment", enrollmentRoute);
+router.use("/payment", paymentRoute);
+router.use("/grades", gradeRoute);
+router.use("/attendance", attendanceRoute);
+router.use("/seed", seedRoute);
 router.use("/enrollment", enrollmentRoute);
 router.use("/payment", paymentRoute);
 

@@ -2,6 +2,7 @@ export interface JwtPayload {
   id: number;
   role: string;
   fullname: string;
+  email?: string;
 }
 
 declare global {

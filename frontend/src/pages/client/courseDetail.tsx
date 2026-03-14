@@ -74,9 +74,6 @@ export default function CourseDetail() {
       <div className="max-w-7xl mx-auto space-y-6">
 
         <CourseHeader course={course} />
-
-        <PlacementBanner minBand={course.minBand} />
-
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800">Chọn lịch học cho bạn</h2>

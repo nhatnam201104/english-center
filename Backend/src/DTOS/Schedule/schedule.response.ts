@@ -2,11 +2,12 @@ import { CourseResponse } from "../Course";
 import { PagingData } from "../pagination";
 import { ScheduleSessionResponse } from "./schedule-sessions.response";
 import { TeacherResponse } from "../Teacher";
+import { ClassroomResponse } from "../Classroom/classroom.response";
 
 export interface ScheduleResponse {
   id: number;
   teacher: TeacherResponse;
-  classroomId: number;
+  classroom: ClassroomResponse;
   totalSlot: number;
   totalRegister: number;
   startTime: Date;

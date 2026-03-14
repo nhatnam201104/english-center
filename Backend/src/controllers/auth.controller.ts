@@ -3,6 +3,7 @@ import { createUser } from "../services/user.service";
 import { AppError } from "../middleware/errorHandler";
 import { CustomResponse } from "../config/response.custom";
 import { handleLogin } from "../services/auth.service";
+
 export const register = async (req: Request, res: Response) => {
   const customRes = res as CustomResponse;
 
@@ -28,4 +29,10 @@ export const login = async (req: Request, res: Response) => {
   }
 
   return customRes.success(result, "Đăng nhập thành công");
+};
+
+export const logout = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  // JWT stateless - token sẽ được xóa ở frontend (localStorage/cookie)
+  return customRes.success(null, "Đăng xuất thành công");
 };
