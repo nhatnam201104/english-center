@@ -11,7 +11,13 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
       <RouterProvider router={router} />
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        newestOnTop
+        pauseOnFocusLoss={false}
+        toastClassName="app-toast"
+        style={{ zIndex: 30000 }}
+      />
     </ThemeProvider>
   </StrictMode>,
 )

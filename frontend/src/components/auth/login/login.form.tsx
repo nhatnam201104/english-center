@@ -50,14 +50,14 @@ const LoginForm = () => {
         setAuth(user.data, user.data.token ?? "");
         sessionStorage.setItem("access_token", user.data.token ?? "");
         // Navigate based on role
-        if (user.data.role === "TEACHER") {
+        if (user.data.role === "ADMIN") {
+          navigate("/admin");
+        } else if (user.data.role === "TEACHER") {
           navigate("/teacher/courses");
         } else if (user.data.role === "PARENT") {
           navigate("/parent");
         } else if (user.data.role === "STUDENT") {
-          navigate("/student");
-        } else if (user.data.role === "ADMIN") {
-          navigate("/admin");
+          navigate("/student/dashboard");
         } else {
           navigate("/auth/login");
         }

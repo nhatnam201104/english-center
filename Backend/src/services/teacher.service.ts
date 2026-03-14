@@ -6,6 +6,11 @@ import { toTeacherResponse } from "../utils/Mapper/teacher.mapper";
 import { PagingData } from "../DTOS/pagination";
 import { CreateTeacherRequest, GetTeacherRequest, UpdateTeacherRequest } from "../DTOS/Teacher";
 
+const toBoolean = (value: boolean | string | undefined): boolean | undefined => {
+  if (value === undefined) return undefined;
+  return value === true || value === "true";
+};
+
 // Tạo giáo viên mới
 export const createTeacherService = async (
   data: CreateTeacherRequest,
@@ -210,6 +215,26 @@ export const updateTeacherService = async (
     }
   }
 
+  const nextIsTeaching = toBoolean(data.isTeaching);
+  if (teacher.isTeaching && nextIsTeaching === false) {
+    const now = new Date();
+    const activeOrUpcomingSchedule = await prisma.schedule.findFirst({
+      where: {
+        teacherId: id,
+        endTime: {
+          gte: now,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (activeOrUpcomingSchedule) {
+      throw new AppError("Cập nhật giáo viên thất bại!", 400);
+    }
+  }
+
   try {
     const result = await prisma.$transaction(async (tx) => {
       // Cập nhật user info nếu có
@@ -230,7 +255,7 @@ export const updateTeacherService = async (
         data: {
           ...(data.degree && { degree: data.degree }),
           ...(data.isTeaching !== undefined && {
-            isTeaching: data.isTeaching === true || data.isTeaching === "true",
+            isTeaching: nextIsTeaching!,
           }),
           ...(data.avatar !== undefined && { avatar: data.avatar }),
         },
@@ -244,6 +269,7 @@ export const updateTeacherService = async (
 
     return toTeacherResponse(result);
   } catch (error) {
+    if (error instanceof AppError) throw error;
     throw new AppError(
       "Lỗi khi cập nhật giáo viên: " + (error as Error).message,
       500,

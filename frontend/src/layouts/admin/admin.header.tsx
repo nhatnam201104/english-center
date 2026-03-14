@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Typography,
@@ -18,25 +18,28 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { useAuthStore } from "../../stores/auth.store";
 
-const AdminHeader = ({ 
-  toggleSidebar,
-  openSidebar 
-}: { 
+interface AdminHeaderProps {
   toggleSidebar: () => void;
   openSidebar: boolean;
-}) => {
+}
+
+const AdminHeader = memo(({ toggleSidebar, openSidebar }: AdminHeaderProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   const handleLogout = () => {
-    // Handle logout logic here
-    navigate("/auth/login");
+    // Clear auth state
+    useAuthStore.getState().logout();
+    // Clear session storage
+    sessionStorage.removeItem("access_token");
+    // Navigate to home page
+    navigate("/");
   };
 
   const handleProfile = () => {
-    // Handle profile navigation
     navigate("/admin/profile");
   };
 
@@ -182,6 +185,8 @@ const AdminHeader = ({
       )}
     </div>
   );
-};
+});
+
+AdminHeader.displayName = "AdminHeader";
 
 export default AdminHeader;

@@ -14,7 +14,23 @@ export const RoleBasedRedirect = ({ allowedRole, redirectTo }: RoleBasedRedirect
   useEffect(() => {
     if (isAuthenticated && user) {
       if (user.role !== allowedRole) {
-        navigate(redirectTo, { replace: true });
+        switch (user.role) {
+          case 'ADMIN':
+            navigate('/admin', { replace: true });
+            break;
+          case 'TEACHER':
+            navigate('/teacher/courses', { replace: true });
+            break;
+          case 'PARENT':
+            navigate('/parent', { replace: true });
+            break;
+          case 'STUDENT':
+            navigate('/student/dashboard', { replace: true });
+            break;
+          default:
+            navigate(redirectTo, { replace: true });
+            break;
+        }
       }
     } else if (!isAuthenticated) {
       navigate('/auth/login', { replace: true });

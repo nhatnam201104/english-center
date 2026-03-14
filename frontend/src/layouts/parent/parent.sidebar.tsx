@@ -29,6 +29,7 @@ import {
   TrophyIcon,
   HeartIcon,
 } from "@heroicons/react/24/outline";
+import { useAuthStore } from "../../stores/auth.store";
 
 const ParentSidebar = () => {
   const navigate = useNavigate();
@@ -48,7 +49,12 @@ const ParentSidebar = () => {
   };
 
   const handleLogout = () => {
-    navigate("/auth/login");
+    // Clear auth state
+    useAuthStore.getState().logout();
+    // Clear session storage
+    sessionStorage.removeItem("access_token");
+    // Navigate to home page
+    navigate("/");
   };
 
   const menuItems = [

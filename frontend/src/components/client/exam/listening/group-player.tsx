@@ -124,30 +124,28 @@ const GroupPlayer = ({
                   const isSelected = selectedAnswer === answerId;
 
                   return (
-                    <button
+                    <label
                       key={label}
-                      onClick={() => onAnswer(q.index, answerId)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-sm transition-all duration-200 ${
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-sm transition-all duration-200 cursor-pointer ${
                         isSelected
                           ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
                           : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
                       }`}
                     >
-                      <span
-                        className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                          isSelected
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {label}
-                      </span>
+                      <input
+                        type="radio"
+                        name={`question-${q.index}`}
+                        value={answerId}
+                        checked={isSelected}
+                        onChange={() => onAnswer(q.index, answerId)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                      />
                       {answerText && (
                         <span className="text-gray-700">
                           {answerText as string}
                         </span>
                       )}
-                    </button>
+                    </label>
                   );
                 })}
               </div>

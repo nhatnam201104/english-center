@@ -115,28 +115,26 @@ const SingleQuestionPlayer = ({
           const isSelected = selectedAnswer === answerId;
 
           return (
-            <button
+            <label
               key={label}
-              onClick={() => onAnswer(question.index, answerId)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition-all duration-200 ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition-all duration-200 cursor-pointer ${
                 isSelected
                   ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
                   : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
               }`}
             >
-              <span
-                className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
-                  isSelected
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {label}
-              </span>
+              <input
+                type="radio"
+                name={`question-${question.index}`}
+                value={answerId}
+                checked={isSelected}
+                onChange={() => onAnswer(question.index, answerId)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+              />
               {answerText && (
                 <span className="text-gray-700">{answerText as string}</span>
               )}
-            </button>
+            </label>
           );
         })}
       </div>

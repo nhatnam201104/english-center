@@ -27,7 +27,7 @@ const TeacherHeader = ({
   const handleLogout = () => {
     logout();
     sessionStorage.removeItem("access_token");
-    navigate("/auth/login");
+    navigate("/");
   };
 
   return (

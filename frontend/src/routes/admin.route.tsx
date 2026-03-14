@@ -1,5 +1,6 @@
 import type { RouteObject } from "react-router-dom";
 import AdminLayout from "../layouts/admin/admin.layout";
+import ProtectedRoute from "../components/common/protected-route";
 
 // Teacher components
 import TeacherManagement from "../components/admin/teacher/management/teacher";
@@ -57,7 +58,11 @@ import SWDashboard from "../components/admin/sw-dashboard/sw.dashboard";
 
 const AdminRoutes: RouteObject = {
   path: "admin",
-  element: <AdminLayout />,
+  element: (
+    <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <AdminLayout />
+    </ProtectedRoute>
+  ),
   children: [
     {
       index: true,

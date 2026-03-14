@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Typography,
@@ -23,8 +23,9 @@ import {
   BuildingLibraryIcon,
   CalendarIcon,
 } from "@heroicons/react/24/outline";
+import { useAuthStore } from "../../stores/auth.store";
 
-const AdminSidebar = () => {
+const AdminSidebar = memo(() => {
   const navigate = useNavigate();
   const [openSections, setOpenSections] = useState<string[]>(["dashboard"]);
   const location = useLocation();
@@ -44,7 +45,10 @@ const AdminSidebar = () => {
   };
 
   const handleLogout = () => {
-    navigate("/auth/login");
+    // Clear auth state
+    useAuthStore.getState().logout();
+    // Navigate to home page
+    navigate("/");
   };
 
   const menuItems = [
@@ -296,6 +300,8 @@ const AdminSidebar = () => {
       </div>
     </div>
   );
-};
+});
+
+AdminSidebar.displayName = "AdminSidebar";
 
 export default AdminSidebar;

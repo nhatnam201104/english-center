@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+.Toastify__toast-container {
+  z-index: 30000 !important;
+}
+
+.app-toast {
+  backdrop-filter: none;
+  opacity: 1;
+}
+
 @layer utilities {
   /* Custom Scrollbar */
   .scrollbar-thin {

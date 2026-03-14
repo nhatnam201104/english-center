@@ -34,26 +34,24 @@ const ReadingQuestion = ({
           const isSelected = selectedAnswer === answerId;
 
           return (
-            <button
+            <label
               key={label}
-              onClick={() => onAnswer(question.index, answerId)}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border text-left text-sm transition-all duration-200 ${
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border text-left text-sm transition-all duration-200 cursor-pointer ${
                 isSelected
                   ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200"
                   : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50"
               }`}
             >
-              <span
-                className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  isSelected
-                    ? "bg-emerald-600 text-white"
-                    : "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {label}
-              </span>
+              <input
+                type="radio"
+                name={`question-${question.index}`}
+                value={answerId}
+                checked={isSelected}
+                onChange={() => onAnswer(question.index, answerId)}
+                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
+              />
               <span className="text-gray-700">{answers[idx]}</span>
-            </button>
+            </label>
           );
         })}
       </div>

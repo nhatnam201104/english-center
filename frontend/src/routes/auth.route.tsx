@@ -1,6 +1,7 @@
 import type { RouteObject } from 'react-router-dom';
 import ClientLayout from '../layouts/client/client.layout';
 import LoginForm from '../components/auth/login/login.form';
+import GuestRoute from '../components/common/guest-route';
 
 const AuthRoutes: RouteObject = {
   path: 'auth',
@@ -8,7 +9,11 @@ const AuthRoutes: RouteObject = {
   children: [
     {
       path: 'login',
-      element: <LoginForm />,
+      element: (
+        <GuestRoute>
+          <LoginForm />
+        </GuestRoute>
+      ),
     },
   ],
 };

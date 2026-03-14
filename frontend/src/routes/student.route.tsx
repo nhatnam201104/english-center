@@ -14,36 +14,36 @@ const StudentRoutes: RouteObject = {
   path: 'student',
   children: [
     {
-      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/" /><Dashboard /></>,
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><Dashboard /></>,
       index: true,
     },
     {
       path: 'dashboard',
-      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/" /><Dashboard /></>,
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><Dashboard /></>,
     },
     {
       path: 'schedule',
-      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/" /><Schedule /></>,
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><Schedule /></>,
     },
     {
       path: 'courses',
-      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/" /><Courses /></>,
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><Courses /></>,
     },
     {
       path: 'courses/:id',
-      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/" /><CourseDetail /></>,
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><CourseDetail /></>,
     },
     {
       path: 'grades',
-      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/" /><Grades /></>,
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><Grades /></>,
     },
     {
       path: 'profile',
-      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/" /><Profile /></>,
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><Profile /></>,
     },
     {
       path: 'scan-qr',
-      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/" /><ScanQR /></>,
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><ScanQR /></>,
     },
   ],
 };
