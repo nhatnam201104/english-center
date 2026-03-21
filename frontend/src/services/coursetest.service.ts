@@ -24,6 +24,15 @@ export const getAllCoursetests = async (
   return response.data;
 };
 
+export const getCourseTestsByCourseId = async (
+  courseId: number,
+): Promise<ApiResponse<PaginatedCourseTestResponse>> => {
+  const response = await api.get<ApiResponse<PaginatedCourseTestResponse>>(
+    `/course-tests/course/${courseId}`,
+  );
+  return response.data;
+};
+
 export const createCoursetest = async (
   data: CreateCourseTestRequest | FormData,
 ): Promise<ApiResponse<CourseTest>> => {

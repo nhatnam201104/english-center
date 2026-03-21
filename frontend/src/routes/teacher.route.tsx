@@ -5,6 +5,7 @@ import TeacherCourses from "../components/teacher/courses/teacher.courses";
 import TeacherCourseDetail from "../components/teacher/course-detail/teacher.course-detail";
 import TeacherAvailability from "../components/teacher/availability/teacher.availability";
 import ClassAttendance from "../pages/teacher/ClassAttendance";
+import CourseTestStudentScores from "../components/teacher/course-detail/course-score/courseTest-studentScores";
 
 const TeacherRoutes: RouteObject = {
   path: "teacher",
@@ -25,6 +26,10 @@ const TeacherRoutes: RouteObject = {
     {
       path: "courses/:scheduleId",
       element: <TeacherCourseDetail />,
+    },
+    {
+      path: "courses/:scheduleId/course-tests/:courseTestId/scores",
+      element: <CourseTestStudentScores />,
     },
     {
       path: "availability",

@@ -1,8 +1,11 @@
 import prisma from "../config/database";
 import { RegisterScheduleRequest } from "../DTOS/Schedule/register-schedule.request";
 import { RegisterScheduleResponse } from "../DTOS/Schedule/register-schedule.response";
+import { GetStudentSchedulesRequest } from "../DTOS/Schedule/get-student-schedules.request";
+import { SchedulePagingResponse } from "../DTOS/Schedule/schedule.response";
 import { StudentResponse } from "../DTOS/Student/student.response";
 import { toStudentResponse } from "../utils/Mapper/student.mapper";
+import { toScheduleResponse } from "../utils/Mapper/schedule.mapper";
 import { AppError } from "../middleware/errorHandler";
 
 // Đăng ký Schedule dành cho Student
@@ -179,6 +182,60 @@ export const getStudentSchedulesService = async (
     totalPages: Math.ceil(data.length / limit),
     page,
     limit,
+  };
+};
+
+// Lấy tất cả schedules của student dựa vào ScheduleRegistration
+export const getAllSchedulesByStudentIdService = async (
+  req: GetStudentSchedulesRequest,
+): Promise<SchedulePagingResponse> => {
+  const { studentId, page = 1, limit = 10 } = req;
+
+  const student = await prisma.studentInfo.findUnique({
+    where: { id: studentId },
+  });
+
+  if (!student) {
+    throw new AppError("Student không tồn tại", 404);
+  }
+
+  const where = {
+    studentId,
+    student: { deletedAt: null },
+  };
+
+  const totalItems = await prisma.scheduleRegistration.count({ where });
+
+  const registrations = await prisma.scheduleRegistration.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    skip: (page - 1) * limit,
+    include: {
+      schedule: {
+        include: {
+          teacher: {
+            include: {
+              user: true,
+              freeDays: true,
+            },
+          },
+          course: true,
+          classroom: true,
+          sessions: true,
+        },
+      },
+    },
+  });
+
+  return {
+    data: registrations.map((registration) =>
+      toScheduleResponse(registration.schedule),
+    ),
+    page,
+    limit,
+    totalItems,
+    totalPages: Math.ceil(totalItems / limit),
   };
 };
 

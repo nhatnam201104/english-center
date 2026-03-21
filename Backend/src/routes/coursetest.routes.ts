@@ -5,6 +5,7 @@ import { validate } from "../middleware/validation.middleware";
 import {
   createCourseTest,
   getAllCourseTests,
+  getCourseTestsByCourseId,
   getCourseTestById,
   updateCourseTest,
   updateCourseTestFile,
@@ -30,7 +31,7 @@ const router = Router();
 router.post(
   "/",
   authenticate,
-  authorize("ADMIN"),
+  authorize("ADMIN", "TEACHER"),
   uploadCourseTestWithAudio.fields([
     { name: "fileTest", maxCount: 1 },
     { name: "audioTest", maxCount: 1 },
@@ -50,6 +51,18 @@ router.get(
   authenticate,
   authorize("ADMIN", "TEACHER", "STUDENT"),
   getAllCourseTests,
+);
+
+/**
+ * @route   GET /api/course-tests/course/:courseId
+ * @desc    Lấy danh sách bài kiểm tra theo courseId
+ * @access  Private (Admin, Teacher, Student)
+ */
+router.get(
+  "/course/:courseId",
+  authenticate,
+  authorize("ADMIN", "TEACHER", "STUDENT", "PARENT"),
+  getCourseTestsByCourseId,
 );
 
 /**

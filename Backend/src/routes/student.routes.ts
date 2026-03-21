@@ -14,6 +14,7 @@ import {
   deleteStudent,
   getStudentParents,
   getStudentCourses,
+  getStudentsByParent,
 } from "../controllers/student.controller";
 
 const router = Router();
@@ -59,6 +60,18 @@ router.get("/me/parents", authenticate, authorize("STUDENT"), getStudentParents)
  * @access  Private (Student only)
  */
 router.get("/me/courses", authenticate, authorize("STUDENT"), getStudentCourses);
+
+/**
+ * @route   GET /api/students/by-parent/me
+ * @desc    Lấy danh sách học sinh theo phụ huynh đang login
+ * @access  Private (Parent only)
+ */
+router.get(
+  "/by-parent/me",
+  authenticate,
+  authorize("PARENT"),
+  getStudentsByParent,
+);
 
 /**
  * @route   GET /api/students/:id

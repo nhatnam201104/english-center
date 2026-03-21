@@ -121,6 +121,7 @@ const ParentManagement = () => {
             parents={parents}
             loading={loading}
             onDelete={handleDelete}
+            onLinkedSuccess={loadParents}
           />
 
           <ParentPagination

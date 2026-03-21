@@ -3,6 +3,91 @@ import { AppError } from "../middleware/errorHandler";
 import { buildPaymentUrl, verifyIpn, verifyReturnUrl, formatVnpDate } from "../utils/vnpay.helper";
 import { finalizeEnrollmentService } from "./enrollment.service";
 
+type PaymentRequester = {
+  id: number;
+  role: string;
+  email?: string;
+};
+
+type PaymentHistoryQuery = {
+  page: number;
+  limit: number;
+  status?: string;
+};
+
+const buildAccessiblePaymentWhere = async (requester: PaymentRequester) => {
+  if (requester.role === "ADMIN") {
+    return {};
+  }
+
+  if (requester.role === "STUDENT") {
+    const student = await prisma.studentInfo.findUnique({
+      where: { userId: requester.id },
+      include: { user: true },
+    });
+
+    if (!student) {
+      throw new AppError("Không tìm thấy thông tin học sinh", 404);
+    }
+
+    return {
+      enrollmentDraft: {
+        admission: {
+          email: student.user.email,
+        },
+      },
+    };
+  }
+
+  if (requester.role === "PARENT") {
+    const parent = await prisma.parentInfo.findUnique({
+      where: { userId: requester.id },
+      include: {
+        user: true,
+        students: {
+          include: {
+            student: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!parent) {
+      throw new AppError("Không tìm thấy thông tin phụ huynh", 404);
+    }
+
+    const studentEmails = parent.students.map((item) => item.student.user.email);
+
+    return {
+      OR: [
+        {
+          enrollmentDraft: {
+            admission: {
+              email: {
+                in: studentEmails.length > 0 ? studentEmails : ["__NO_MATCH__"],
+              },
+            },
+          },
+        },
+        {
+          enrollmentDraft: {
+            parentData: {
+              path: ["email"],
+              equals: parent.user.email,
+            },
+          },
+        },
+      ],
+    };
+  }
+
+  throw new AppError("Bạn không có quyền truy cập dữ liệu thanh toán", 403);
+};
+
 // ─── Create Payment URL ───
 
 export const createPaymentUrlService = async (
@@ -278,5 +363,147 @@ export const returnHandlerService = async (
     txnRef,
     responseCode: vnpResponseCode,
     success: paymentSuccess,
+  };
+};
+
+// ─── Payment History ───
+
+export const getPaymentHistoryService = async (
+  requester: PaymentRequester,
+  query: PaymentHistoryQuery,
+) => {
+  const page = query.page > 0 ? query.page : 1;
+  const limit = query.limit > 0 ? query.limit : 10;
+  const skip = (page - 1) * limit;
+
+  const accessibleWhere = await buildAccessiblePaymentWhere(requester);
+
+  const where = {
+    ...accessibleWhere,
+    ...(query.status ? { status: query.status as any } : {}),
+  };
+
+  const [items, totalItems] = await Promise.all([
+    prisma.paymentTransaction.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      include: {
+        enrollmentDraft: {
+          include: {
+            admission: true,
+            seatReservation: {
+              include: {
+                schedule: {
+                  include: {
+                    course: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.paymentTransaction.count({ where }),
+  ]);
+
+  return {
+    data: items.map((payment) => ({
+      id: payment.id,
+      txnRef: payment.txnRef,
+      amount: payment.amount,
+      status: payment.status,
+      createdAt: payment.createdAt,
+      finalizedAt: payment.finalizedAt,
+      studentName: payment.enrollmentDraft.admission.fullname,
+      studentEmail: payment.enrollmentDraft.admission.email,
+      courseName: payment.enrollmentDraft.seatReservation?.schedule.course.name,
+    })),
+    page,
+    limit,
+    totalItems,
+    totalPages: Math.ceil(totalItems / limit),
+  };
+};
+
+// ─── Invoice Detail by TxnRef ───
+
+export const getPaymentInvoiceService = async (
+  requester: PaymentRequester,
+  txnRef: string,
+) => {
+  if (!txnRef) {
+    throw new AppError("TxnRef không hợp lệ", 400);
+  }
+
+  const accessibleWhere = await buildAccessiblePaymentWhere(requester);
+
+  const payment = await prisma.paymentTransaction.findFirst({
+    where: {
+      txnRef,
+      ...accessibleWhere,
+    },
+    include: {
+      enrollmentDraft: {
+        include: {
+          admission: true,
+          seatReservation: {
+            include: {
+              schedule: {
+                include: {
+                  course: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!payment) {
+    throw new AppError("Không tìm thấy hóa đơn", 404);
+  }
+
+  const schedule = payment.enrollmentDraft.seatReservation?.schedule;
+  const course = schedule?.course;
+  const rawPrice = course ? Number(course.price) : null;
+  const salePercent = course?.sale ?? 0;
+
+  return {
+    txnRef: payment.txnRef,
+    paymentId: payment.id,
+    status: payment.status,
+    amount: payment.amount,
+    paidAt: payment.finalizedAt,
+    paymentMeta: {
+      vnpTransactionNo: payment.vnpTransactionNo,
+      vnpBankCode: payment.vnpBankCode,
+      vnpPayDate: payment.vnpPayDate,
+      vnpResponseCode: payment.vnpResponseCode,
+    },
+    student: {
+      fullname: payment.enrollmentDraft.admission.fullname,
+      email: payment.enrollmentDraft.admission.email,
+      phone: payment.enrollmentDraft.admission.phone,
+    },
+    course: course
+      ? {
+          id: course.id,
+          name: course.name,
+          originalPrice: rawPrice,
+          salePercent,
+          finalPrice: payment.amount,
+        }
+      : null,
+    schedule: schedule
+      ? {
+          id: schedule.id,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+        }
+      : null,
   };
 };

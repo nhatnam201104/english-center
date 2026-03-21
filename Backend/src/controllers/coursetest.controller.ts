@@ -3,6 +3,7 @@ import { CustomResponse } from "../config/response.custom";
 import {
   createCourseTestService,
   getAllCourseTestsService,
+  getCourseTestsByCourseIdService,
   getCourseTestByIdService,
   updateCourseTestService,
   updateCourseTestFileService,
@@ -56,6 +57,22 @@ export const getAllCourseTests = async (req: Request, res: Response) => {
   };
   const result = await getAllCourseTestsService(queryParams);
   return customRes.success(result, "Lấy danh sách bài kiểm tra thành công");
+};
+
+// Lấy danh sách CourseTest theo courseId
+export const getCourseTestsByCourseId = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const courseId = Number(req.params.courseId);
+
+  if (!courseId) {
+    throw new AppError("ID khóa học không hợp lệ");
+  }
+
+  const result = await getCourseTestsByCourseIdService(courseId);
+  return customRes.success(
+    result,
+    "Lấy danh sách bài kiểm tra theo khóa học thành công",
+  );
 };
 
 // Lấy CourseTest theo ID

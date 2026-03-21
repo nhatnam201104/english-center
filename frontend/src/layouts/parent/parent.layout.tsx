@@ -28,7 +28,7 @@ const ParentLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Sidebar */}
       <div
         className={`fixed lg:sticky top-0 left-0 h-screen z-40 transition-all duration-300 ease-in-out ${
@@ -45,15 +45,15 @@ const ParentLayout = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-all duration-300">
         {/* Header */}
         <div className="sticky top-0 z-30">
           <ParentHeader toggleSidebar={toggleSidebar} openSidebar={openSidebar} />
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-full">
+        <main className="min-h-0 flex-1 overflow-auto overscroll-contain">
+          <div className="container mx-auto max-w-full px-4 py-6 sm:px-6 lg:px-8">
             <Outlet />
           </div>
         </main>

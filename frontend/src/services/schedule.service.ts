@@ -12,6 +12,67 @@ export interface ScheduleStudentListResponse {
   limit: number;
 }
 
+export interface StudentScheduleSessionResponse {
+  id: number;
+  day: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface StudentScheduleByIdResponse {
+  id: number;
+  teacher?: {
+    id: number;
+    userId: number;
+    fullname: string;
+    email: string;
+    phone: string;
+    degree: string;
+    isTeaching: boolean;
+    avatar: string;
+    createdAt: string;
+    updatedAt: string;
+    days: string[];
+  };
+  classroom?: {
+    id: number;
+    name: string;
+    maxSize: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+  totalSlot: number;
+  totalRegister: number;
+  startTime: string;
+  endTime: string;
+  createdAt: string;
+  updatedAt: string;
+  course?: {
+    id: number;
+    type: string;
+    name: string;
+    courseSkill: string;
+    status: string;
+    price: number;
+    sale: number;
+    thumbnail: string;
+    totalSession: number;
+    minBand: number;
+    maxBand: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+  sessions: StudentScheduleSessionResponse[];
+}
+
+export interface StudentSchedulesByStudentIdResponse {
+  data: StudentScheduleByIdResponse[];
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+}
+
 // Tạo schedule + session schedule
 export const createSchedule = async (
   data: CreateScheduleRequest
@@ -117,5 +178,20 @@ export const getStudentSchedules = async (
       params: { page, limit },
     }
   );
+  return response.data;
+};
+
+export const getSchedulesByStudentId = async (
+  studentId: number,
+  page = 1,
+  limit = 10,
+): Promise<ApiResponse<StudentSchedulesByStudentIdResponse>> => {
+  const response = await axios.get<ApiResponse<StudentSchedulesByStudentIdResponse>>(
+    `/schedules/student/${studentId}/schedules`,
+    {
+      params: { page, limit },
+    }
+  );
+
   return response.data;
 };

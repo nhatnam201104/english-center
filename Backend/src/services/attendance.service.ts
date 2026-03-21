@@ -926,6 +926,39 @@ export const getStudentAttendanceRecordsService = async (studentId: number) => {
 };
 
 /**
+ * Get student's attendance records for parent
+ * @param parentUserId - Parent user ID from JWT token
+ * @param studentId - Student ID to fetch attendance for
+ */
+export const getStudentAttendanceRecordsForParentService = async (
+  parentUserId: number,
+  studentId: number
+) => {
+  const parent = await prisma.parentInfo.findUnique({
+    where: { userId: parentUserId },
+    select: { id: true },
+  });
+
+  if (!parent) {
+    throw new AppError("Không tìm thấy thông tin phụ huynh", 404);
+  }
+
+  const linkedStudent = await prisma.parentStudent.findFirst({
+    where: {
+      parentId: parent.id,
+      studentId,
+    },
+    select: { id: true },
+  });
+
+  if (!linkedStudent) {
+    throw new AppError("Bạn không có quyền xem điểm danh của học sinh này", 403);
+  }
+
+  return getStudentAttendanceRecordsService(studentId);
+};
+
+/**
  * Get attendance history for a session with all registered students
  * Enhanced version to show all students with their attendance status
  * @param sessionId - The pattern session ID

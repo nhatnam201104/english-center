@@ -9,6 +9,7 @@ import {
   getFullAttendanceHistory,
   cancelAttendance,
   getStudentAttendance,
+  getStudentAttendanceForParent,
 } from "../controllers/attendance.controller";
 import { validate, validateZod } from "../middleware/validation.middleware";
 import { generateQRSchema, scanQRSchema, manualCheckInSchema } from "../validators/attendance.validator";
@@ -65,5 +66,13 @@ router.delete(
 router.post("/scan-qr", authenticateStudent, validateZod(scanQRSchema), scanQR);
 router.post("/checkin/:sessionId", authenticateStudent, checkIn);
 router.get("/student", authenticateStudent, getStudentAttendance);
+
+// Parent routes
+router.get(
+  "/parent/student/:studentId",
+  authenticate,
+  authorize("PARENT"),
+  getStudentAttendanceForParent
+);
 
 export default router;

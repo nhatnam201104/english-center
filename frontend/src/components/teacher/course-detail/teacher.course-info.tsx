@@ -49,9 +49,7 @@ const TeacherCourseInfo: React.FC<TeacherCourseInfoProps> = ({ course }) => {
         <div className="bg-gray-50 rounded-lg p-3">
           <span className="text-xs text-gray-500">Kỹ năng</span>
           <p className="font-semibold text-gray-800">
-            {course.course.courseSkill === "ALL"
-              ? "Tất cả"
-              : course.course.courseSkill === "READING_LISTENING"
+            {course.course.courseSkill === "READING_LISTENING"
               ? "Nghe & Đọc"
               : "Nói & Viết"}
           </p>

@@ -353,6 +353,102 @@ export const getStudentCoursesService = async (
   }
 };
 
+// Lấy danh sách học sinh theo phụ huynh (từ userId trong JWT)
+export const getStudentsByParentUserIdService = async (
+  userId: number,
+): Promise<Array<StudentResponse & { schedules: any[] }>> => {
+  try {
+    const parent = await prisma.parentInfo.findFirst({
+      where: {
+        userId,
+        deletedAt: null,
+        user: {
+          deletedAt: null,
+        },
+      },
+    });
+
+    if (!parent) {
+      throw new AppError("Không tìm thấy phụ huynh", 404);
+    }
+
+    const parentStudents = await prisma.parentStudent.findMany({
+      where: {
+        parentId: parent.id,
+        student: {
+          deletedAt: null,
+          user: {
+            deletedAt: null,
+          },
+        },
+      },
+      include: {
+        student: {
+          include: {
+            user: true,
+            scheduleRegistrations: {
+              include: {
+                schedule: {
+                  include: {
+                    teacher: {
+                      include: {
+                        user: true,
+                      },
+                    },
+                    classroom: true,
+                    course: true,
+                    sessions: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return parentStudents.map((parentStudent) => {
+      const student = parentStudent.student;
+      return {
+        ...toStudentResponse(student),
+        schedules: student.scheduleRegistrations.map((registration) => ({
+          registrationId: registration.id,
+          registrationCreatedAt: registration.createdAt,
+          id: registration.schedule.id,
+          teacher: {
+            fullname: registration.schedule.teacher.user.fullname,
+          },
+          classroom: {
+            name: registration.schedule.classroom.name,
+          },
+          course: {
+            courseId: registration.schedule.course.id,
+            name: registration.schedule.course.name,
+            skill: registration.schedule.course.courseSkill,
+            thumbnail: registration.schedule.course.thumbnail,
+          },
+          startTime: registration.schedule.startTime,
+          endTime: registration.schedule.endTime,
+         
+        })),
+      };
+    });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      "Lỗi khi lấy danh sách học sinh theo phụ huynh: " +
+        (error as Error).message,
+      500,
+    );
+  }
+};
+
 // Soft delete học sinh
 export const deleteStudentService = async (id: number): Promise<void> => {
   const student = await prisma.studentInfo.findFirst({

@@ -112,6 +112,34 @@ export const getAllCourseTestsService = async (
   }
 };
 
+// Lấy danh sách CourseTest theo courseId
+export const getCourseTestsByCourseIdService = async (
+  courseId: number,
+): Promise<CourseTestResponse[]> => {
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+  });
+
+  if (!course) {
+    throw new AppError("Không tìm thấy khóa học", 404);
+  }
+
+  try {
+    const courseTests = await prisma.courseTest.findMany({
+      where: { courseId },
+      orderBy: { index: "asc" },
+    });
+
+    return courseTests.map(toCourseTestResponse);
+  } catch (error) {
+    throw new AppError(
+      "Lỗi khi lấy danh sách bài kiểm tra theo khóa học: " +
+        (error as Error).message,
+      500,
+    );
+  }
+};
+
 // Lấy CourseTest theo ID
 export const getCourseTestByIdService = async (
   id: number,

@@ -50,6 +50,30 @@ export interface FullAttendanceData {
   students: StudentAttendance[];
 }
 
+export interface StudentAttendanceRecord {
+  id: number;
+  studentId: number;
+  scheduleAttendanceId: number;
+  time: string;
+  createdAt: string;
+  scheduleAttendance: {
+    id: number;
+    scheduleDayId: number;
+    date: string;
+    qrCode: string | null;
+    totalAbsent: number;
+    createdAt: string;
+    scheduleSession: {
+      id: number;
+      scheduleId: number;
+      day: string;
+      startTime: string;
+      endTime: string;
+      createdAt: string;
+    };
+  };
+}
+
 // Get all sessions with attendance data for a schedule
 export const getScheduleSessionsAttendance = async (
   scheduleId: number
@@ -184,23 +208,29 @@ export const cancelAttendance = async (
 };
 
 // Get student's attendance records
-export const getStudentAttendanceRecords = async (): Promise<{
-  id: number;
-  studentId: number;
-  scheduleAttendanceId: number;
-  time: string;
-  scheduleAttendance: {
-    id: number;
-    scheduleDayId: number;
-    date: string;
-    scheduleSession: {
-      id: number;
-    };
-  };
-}[]> => {
+export const getStudentAttendanceRecords = async (): Promise<StudentAttendanceRecord[]> => {
   const token = localStorage.getItem('token');
-  const response = await axiosInstance.get<ApiResponse<any[]>>(
+  const response = await axiosInstance.get<ApiResponse<StudentAttendanceRecord[]>>(
     '/attendance/student',
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  if (!response.data.data) {
+    throw new Error('No data received from server');
+  }
+  return response.data.data;
+};
+
+// Get a student's attendance records for parent account
+export const getStudentAttendanceForParent = async (
+  studentId: number
+): Promise<StudentAttendanceRecord[]> => {
+  const token = localStorage.getItem('token');
+  const response = await axiosInstance.get<ApiResponse<StudentAttendanceRecord[]>>(
+    `/attendance/parent/student/${studentId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

@@ -6,9 +6,11 @@ import {
   registerScheduleService,
   getScheduleStudentsService,
   getStudentSchedulesService,
+  getAllSchedulesByStudentIdService,
   removeStudentFromScheduleService,
 } from "../services/scheduleRegistration.service";
 import { getStudentByUserIdService } from "../services/student.service";
+import { AppError } from "../middleware/errorHandler";
 
 // Đăng ký khóa học (lịch học) dành cho Student
 export const registerSchedule = async (req: Request, res: Response) => {
@@ -58,6 +60,26 @@ export const getStudentSchedules = async (req: Request, res: Response) => {
 
   const result = await getStudentSchedulesService(student.id, { page, limit });
   return customRes.success(result, "Lấy danh sách lịch học thành công");
+};
+
+// Lấy tất cả schedules theo studentId
+export const getAllSchedulesByStudentId = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const studentId = Number(req.params.studentId);
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const limit = req.query.limit ? Number(req.query.limit) : 10;
+
+  if (!studentId) {
+    throw new AppError("studentId không hợp lệ", 400);
+  }
+
+  const result = await getAllSchedulesByStudentIdService({
+    studentId,
+    page,
+    limit,
+  });
+
+  return customRes.success(result, "Lấy tất cả lịch học của học sinh thành công");
 };
 
 // Admin: Xóa học sinh khỏi schedule

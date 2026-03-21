@@ -10,6 +10,7 @@ import {
   getFullAttendanceHistoryService,
   cancelAttendanceService,
   getStudentAttendanceRecordsService,
+  getStudentAttendanceRecordsForParentService,
 } from "../services/attendance.service";
 import { GenerateQRInput, ScanQRInput, GetAttendanceHistoryInput, ManualCheckInInput } from "../validators/attendance.validator";
 import { AppError } from "../middleware/errorHandler";
@@ -229,6 +230,25 @@ export const getStudentAttendance = async (req: StudentRequest, res: Response) =
   }
 
   const result = await getStudentAttendanceRecordsService(studentId);
+
+  return customRes.success(result.data, "Lấy lịch sử điểm danh thành công");
+};
+
+// Get student's attendance records by student ID (Parent only)
+export const getStudentAttendanceForParent = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const parentUserId = req.user?.id;
+  const studentId = Number(req.params.studentId);
+
+  if (!parentUserId) {
+    return customRes.error("Không tìm thấy thông tin phụ huynh", 404);
+  }
+
+  if (isNaN(studentId)) {
+    return customRes.error("Student ID không hợp lệ", 400);
+  }
+
+  const result = await getStudentAttendanceRecordsForParentService(parentUserId, studentId);
 
   return customRes.success(result.data, "Lấy lịch sử điểm danh thành công");
 };

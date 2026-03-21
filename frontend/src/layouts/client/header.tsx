@@ -64,10 +64,10 @@ const ClientHeader = () => {
         color="blue-gray"
         className="p-1 font-medium hover:text-blue-600 transition-all duration-300 hover:scale-105"
       >
-        <a href="#" className="flex items-center gap-2">
+        <Link to="/tuyen-sinh" className="flex items-center gap-2">
           <UserGroupIcon className="h-4 w-4" />
           Tuyển sinh
-        </a>
+        </Link>
       </Typography>
       
       <Typography
@@ -76,10 +76,10 @@ const ClientHeader = () => {
         color="blue-gray"
         className="p-1 font-medium hover:text-blue-600 transition-all duration-300 hover:scale-105"
       >
-        <a href="#" className="flex items-center gap-2">
+        <Link to="/dao-tao" className="flex items-center gap-2">
           <BuildingLibraryIcon className="h-4 w-4" />
           Đào tạo
-        </a>
+        </Link>
       </Typography>
 
       <Typography
@@ -88,10 +88,10 @@ const ClientHeader = () => {
         color="blue-gray"
         className="p-1 font-medium hover:text-blue-600 transition-all duration-300 hover:scale-105"
       >
-        <a href="#" className="flex items-center gap-2">
+        <Link to="/tin-tuc" className="flex items-center gap-2">
           <NewspaperIcon className="h-4 w-4" />
           Tin tức
-        </a>
+        </Link>
       </Typography>
 
       <Typography
@@ -100,10 +100,10 @@ const ClientHeader = () => {
         color="blue-gray"
         className="p-1 font-medium hover:text-blue-600 transition-all duration-300 hover:scale-105"
       >
-        <a href="#" className="flex items-center gap-2">
+        <Link to="/lien-he" className="flex items-center gap-2">
           <ChatBubbleLeftRightIcon className="h-4 w-4" />
           Liên hệ
-        </a>
+        </Link>
       </Typography>
     </ul>
   );

@@ -9,6 +9,7 @@ import {
   addStudentToSchedule,
   removeStudentFromSchedule,
   getStudentSchedules,
+  getAllSchedulesByStudentId,
 } from "../controllers/scheduleRegistration.controller";
 
 const router = Router();
@@ -66,6 +67,18 @@ router.get(
   authenticate,
   authorize("STUDENT"),
   getStudentSchedules
+);
+
+/**
+ * @route   GET /api/schedules/student/:studentId/schedules
+ * @desc    Get all schedules by studentId via ScheduleRegistration
+ * @access  Private (Admin, Teacher, Parent)
+ */
+router.get(
+  "/student/:studentId/schedules",
+  authenticate,
+  authorize("ADMIN", "TEACHER", "PARENT"),
+  getAllSchedulesByStudentId,
 );
 
 /**

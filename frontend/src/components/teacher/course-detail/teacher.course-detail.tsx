@@ -6,8 +6,9 @@ import { getMyCourseDetailService } from "../../../services/teacher-portal.servi
 import TeacherCourseInfo from "./teacher.course-info";
 import TeacherCourseStudents from "./teacher.course-students";
 import TeacherCourseAttendance from "./teacher.course-attendance";
+import TeacherCourseScores from "./teacher.course-scores";
 
-type TabType = "info" | "students" | "attendance";
+type TabType = "info" | "students" | "attendance" | "scores";
 
 const TeacherCourseDetail = () => {
   const { scheduleId } = useParams<{ scheduleId: string }>();
@@ -64,6 +65,7 @@ const TeacherCourseDetail = () => {
     { id: "info" as TabType, label: "Thông tin khóa học" },
     { id: "students" as TabType, label: "Danh sách học sinh" },
     { id: "attendance" as TabType, label: "Quản lý điểm danh" },
+    { id: "scores" as TabType, label: "Quản lý điểm số" },
   ];
 
   return (
@@ -104,6 +106,12 @@ const TeacherCourseDetail = () => {
           <TeacherCourseAttendance
             scheduleId={Number(scheduleId)}
             courseName={course.course.name}
+          />
+        )}
+        {activeTab === "scores" && (
+          <TeacherCourseScores
+            courseId={course.course.id}
+            scheduleId={Number(scheduleId)}
           />
         )}
       </div>

@@ -9,6 +9,7 @@ import {
   deleteStudentService,
   getStudentParentsService,
   getStudentCoursesService,
+  getStudentsByParentUserIdService,
 } from "../services/student.service";
 import { GetStudentRequest } from "../DTOS/Student";
 import type { AuthRequest } from "../types/express.request";
@@ -95,6 +96,20 @@ export const getStudentCourses = async (req: Request, res: Response) => {
   const student = await getStudentByUserIdService(userId);
   const result = await getStudentCoursesService(student.id);
   return customRes.success(result, "Lấy danh sách khóa học thành công");
+};
+
+// Lấy danh sách học sinh theo phụ huynh đang đăng nhập
+export const getStudentsByParent = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const authReq = req as AuthRequest;
+  const userId = authReq.user?.id;
+
+  if (!userId) {
+    return customRes.error("Không tìm thấy thông tin user", 401);
+  }
+
+  const result = await getStudentsByParentUserIdService(userId);
+  return customRes.success(result, "Lấy danh sách học sinh theo phụ huynh thành công");
 };
 
 // Cập nhật học sinh

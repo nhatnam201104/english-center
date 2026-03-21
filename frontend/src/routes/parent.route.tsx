@@ -1,6 +1,10 @@
 import type { RouteObject } from 'react-router-dom';
 import ParentLayout from '../layouts/parent/parent.layout';
 import ProtectedRoute from '../components/common/protected-route';
+import ChildrenManagement from '../pages/parent/ChildrenManagement';
+import CourseManagement from '../pages/parent/CourseManagement';
+import TimeTableManament from '../pages/parent/TimeTableManament';
+import AttendanceManagement from '../pages/parent/AttendanceManagement';
 
 const ParentRoutes: RouteObject = {
   path: 'parent',
@@ -13,6 +17,22 @@ const ParentRoutes: RouteObject = {
     {
       index: true,
       element: <div>Parent Dashboard</div>
+    },
+    {
+      path: 'academic/results',
+      element: <CourseManagement />,
+    },
+    {
+      path: 'academic/attendance',
+      element: <AttendanceManagement />,
+    },
+    {
+      path: 'children/list',
+      element: <ChildrenManagement />,
+    },
+    {
+      path: 'schedule/timetable',
+      element: <TimeTableManament />,
     },
   ],
 };

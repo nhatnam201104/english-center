@@ -191,15 +191,7 @@ const TeacherCourseAttendance = ({ scheduleId, courseName }: TeacherCourseAttend
       day: "2-digit",
     });
   };
-
-  const formatTime = (time: string) => {
-    const date = new Date(time);
-    return date.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
+  
   const getQRExpiryStatus = (qrCreatedAt: string | null) => {
     if (!qrCreatedAt) return null;
     const created = new Date(qrCreatedAt).getTime();

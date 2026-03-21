@@ -96,6 +96,56 @@ function calculateScheduleDates(
   };
 }
 
+/**
+ * Get previous occurrence dates of a weekday, bounded by minDate
+ */
+function getPreviousOccurrencesByDay(
+  targetDay: string,
+  count: number,
+  fromDate: Date,
+  minDate: Date
+): Date[] {
+  const dayMap: { [key: string]: number } = {
+    MONDAY: 1,
+    TUESDAY: 2,
+    WEDNESDAY: 3,
+    THURSDAY: 4,
+    FRIDAY: 5,
+    SATURDAY: 6,
+    SUNDAY: 0,
+  };
+
+  const result: Date[] = [];
+  const targetJsDay = dayMap[targetDay];
+  const cursor = new Date(fromDate);
+  cursor.setHours(0, 0, 0, 0);
+
+  while (cursor.getDay() !== targetJsDay) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  while (result.length < count && cursor >= minDate) {
+    result.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() - 7);
+  }
+
+  return result.reverse();
+}
+
+/**
+ * Build check-in time from session start time (e.g. 08:00 -> 08:05)
+ */
+function buildCheckInTime(startTime: string): string {
+  const [hourStr, minuteStr] = startTime.split(":");
+  const hour = Number(hourStr);
+  const minute = Number(minuteStr);
+
+  const date = new Date();
+  date.setHours(hour, minute + 5, 0, 0);
+
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
 async function main() {
   console.log("🌱 Start seeding database...");
 
@@ -937,6 +987,79 @@ async function main() {
     },
   });
   console.log(`✅ Student registered to schedule 5`);
+
+  // ============================================
+  // CREATE SCHEDULE ATTENDANCE & ATTENDANCE RECORDS
+  // ============================================
+
+  const schedulesForAttendance = [schedule1!, schedule2!, schedule4!, schedule5!];
+
+  for (const schedule of schedulesForAttendance) {
+    if (schedule.startTime > new Date()) {
+      continue;
+    }
+
+    const sessions = await prisma.scheduleSession.findMany({
+      where: { scheduleId: schedule.id },
+      orderBy: { id: "asc" },
+    });
+
+    for (const session of sessions) {
+      const attendanceDates = getPreviousOccurrencesByDay(
+        session.day,
+        2,
+        new Date(),
+        schedule.startTime
+      );
+
+      for (const attendanceDate of attendanceDates) {
+        const dayStart = new Date(attendanceDate);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(attendanceDate);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        let scheduleAttendance = await prisma.scheduleAttendance.findFirst({
+          where: {
+            scheduleDayId: session.id,
+            date: {
+              gte: dayStart,
+              lte: dayEnd,
+            },
+          },
+        });
+
+        if (!scheduleAttendance) {
+          scheduleAttendance = await prisma.scheduleAttendance.create({
+            data: {
+              scheduleDayId: session.id,
+              date: attendanceDate,
+              qrCode: `SEED_QR_${schedule.id}_${session.id}_${attendanceDate.toISOString().slice(0, 10)}`,
+              totalAbsent: 0,
+            },
+          });
+        }
+
+        await prisma.attendanceRecord.upsert({
+          where: {
+            scheduleAttendanceId_studentId: {
+              scheduleAttendanceId: scheduleAttendance.id,
+              studentId: studentInfo.id,
+            },
+          },
+          update: {
+            time: buildCheckInTime(session.startTime),
+          },
+          create: {
+            scheduleAttendanceId: scheduleAttendance.id,
+            studentId: studentInfo.id,
+            time: buildCheckInTime(session.startTime),
+          },
+        });
+      }
+    }
+  }
+
+  console.log("✅ Seeded ScheduleAttendance and AttendanceRecord for started schedules");
 
   console.log("\n🎉 Database seeding completed successfully!");
   console.log("\n📊 Summary:");
