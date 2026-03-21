@@ -22,6 +22,7 @@ import {
   DocumentDuplicateIcon,
   BuildingLibraryIcon,
   CalendarIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../../stores/auth.store";
 
@@ -76,19 +77,14 @@ const AdminSidebar = memo(() => {
       path: "/admin/admissions",
       children: [
         {
-          title: "Đơn đăng ký",
-          icon: DocumentTextIcon,
-          path: "/admin/admissions/applications",
+          title: "Quản lý học sinh",
+          icon: UserGroupIcon,
+          path: "/admin/admissions/students",
         },
         {
-          title: "Hồ sơ tuyển sinh",
-          icon: DocumentDuplicateIcon,
-          path: "/admin/admissions/records",
-        },
-        {
-          title: "Lịch tuyển sinh",
-          icon: CalendarIcon,
-          path: "/admin/admissions/schedule",
+          title: "Thống kê",
+          icon: ChartBarIcon,
+          path: "/admin/statistics",
         },
       ],
     },

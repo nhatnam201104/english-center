@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Card,
   CardBody,
@@ -15,15 +15,39 @@ import type { AvailableSchedule } from "../../../../types/enrollment/response";
 import { toast } from "react-toastify";
 
 const ScheduleSelector = () => {
-  const { tokenData, setSelectedSchedule, setStep } = useEnrollmentStore();
+  const {
+    tokenData,
+    setSelectedSchedule,
+    setStep,
+    scheduleFilterMonth,
+    scheduleFilterTeacher,
+    scheduleFilterAvailableOnly,
+    setScheduleFilter,
+    resetScheduleFilters,
+  } = useEnrollmentStore();
   const [schedules, setSchedules] = useState<AvailableSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<number | null>(null);
 
-  // ─── Filter state ───
-  const [filterAvailableOnly, setFilterAvailableOnly] = useState(false);
-  const [filterMonth, setFilterMonth] = useState<string>("");
-  const [filterTeacher, setFilterTeacher] = useState<string>("");
+  // Local state for filter values - initialized from store once
+  const [localFilterMonth, setLocalFilterMonth] = useState(() => scheduleFilterMonth);
+  const [localFilterTeacher, setLocalFilterTeacher] = useState(() => scheduleFilterTeacher);
+
+  // Handle month filter change
+  const handleMonthChange = useCallback((val: string | undefined) => {
+    const newVal = val ?? "";
+    setLocalFilterMonth(newVal);
+    setScheduleFilter({ month: newVal });
+    setSelected(null);
+  }, [setScheduleFilter]);
+
+  // Handle teacher filter change
+  const handleTeacherChange = useCallback((val: string | undefined) => {
+    const newVal = val ?? "";
+    setLocalFilterTeacher(newVal);
+    setScheduleFilter({ teacher: newVal });
+    setSelected(null);
+  }, [setScheduleFilter]);
 
   useEffect(() => {
     const fetchSchedules = async () => {
@@ -60,16 +84,16 @@ const ScheduleSelector = () => {
 
   const filtered = useMemo(() => {
     return schedules.filter((s) => {
-      if (filterAvailableOnly && s.available <= 0) return false;
-      if (filterMonth) {
+      if (scheduleFilterAvailableOnly && s.available <= 0) return false;
+      if (scheduleFilterMonth) {
         const d = new Date(s.startTime);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-        if (key !== filterMonth) return false;
+        if (key !== scheduleFilterMonth) return false;
       }
-      if (filterTeacher && s.teacher.fullname !== filterTeacher) return false;
+      if (scheduleFilterTeacher && s.teacher.fullname !== scheduleFilterTeacher) return false;
       return true;
     });
-  }, [schedules, filterAvailableOnly, filterMonth, filterTeacher]);
+  }, [schedules, scheduleFilterAvailableOnly, scheduleFilterMonth, scheduleFilterTeacher]);
 
   const handleContinue = () => {
     const schedule = schedules.find((s) => s.id === selected);
@@ -122,56 +146,56 @@ const ScheduleSelector = () => {
         </div>
 
         {/* ─── Filter Panel ─── */}
-        <div className="bg-gray-50 rounded-lg p-4 flex flex-wrap gap-4 items-end">
+        <div className="bg-gray-50 rounded-lg p-4 flex flex-wrap gap-4 items-end" key={`filter-panel-${schedules.length}`}>
           <Typography variant="small" className="font-semibold w-full mb-1">
             Bộ lọc
           </Typography>
 
           {/* Month filter */}
           <div className="w-48">
-            <Select
-              label="Tháng bắt đầu"
-              value={filterMonth}
-              onChange={(val) => {
-                setFilterMonth(val ?? "");
-                setSelected(null);
-              }}
-            >
-              <Option value="">Tất cả</Option>
-              {monthOptions.map((m) => (
-                <Option key={m} value={m}>
-                  {formatMonthLabel(m)}
-                </Option>
-              ))}
-            </Select>
+            <div className="relative">
+              <label className="block text-xs text-gray-500 mb-1">Tháng bắt đầu</label>
+              <select
+                value={localFilterMonth}
+                onChange={(e) => handleMonthChange(e.target.value || undefined)}
+                className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="">Tất cả</option>
+                {monthOptions.map((m) => (
+                  <option key={`month-${m}`} value={m}>
+                    {formatMonthLabel(m)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Teacher filter */}
           <div className="w-48">
-            <Select
-              label="Giáo viên"
-              value={filterTeacher}
-              onChange={(val) => {
-                setFilterTeacher(val ?? "");
-                setSelected(null);
-              }}
-            >
-              <Option value="">Tất cả</Option>
-              {teacherOptions.map((t) => (
-                <Option key={t} value={t}>
-                  {t}
-                </Option>
-              ))}
-            </Select>
+            <div className="relative">
+              <label className="block text-xs text-gray-500 mb-1">Giáo viên</label>
+              <select
+                value={localFilterTeacher}
+                onChange={(e) => handleTeacherChange(e.target.value || undefined)}
+                className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="">Tất cả</option>
+                {teacherOptions.map((t) => (
+                  <option key={`teacher-${t}`} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Available-only toggle */}
           <div className="flex items-center">
             <Checkbox
               id="available-only"
-              checked={filterAvailableOnly}
+              checked={scheduleFilterAvailableOnly}
               onChange={(e) => {
-                setFilterAvailableOnly(e.target.checked);
+                setScheduleFilter({ availableOnly: e.target.checked });
                 setSelected(null);
               }}
               label="Chỉ hiển thị còn chỗ"
@@ -180,15 +204,15 @@ const ScheduleSelector = () => {
           </div>
 
           {/* Reset */}
-          {(filterMonth || filterTeacher || filterAvailableOnly) && (
+          {(scheduleFilterMonth || scheduleFilterTeacher || scheduleFilterAvailableOnly) && (
             <Button
               variant="text"
               size="sm"
               color="gray"
               onClick={() => {
-                setFilterMonth("");
-                setFilterTeacher("");
-                setFilterAvailableOnly(false);
+                resetScheduleFilters();
+                setLocalFilterMonth("");
+                setLocalFilterTeacher("");
                 setSelected(null);
               }}
             >

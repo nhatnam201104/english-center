@@ -238,7 +238,7 @@ export const loadListeningService = async (admission: any) => {
         question: q.question,
         audio: buildEntranceExamLRAudioUrl(q.audio),
         image: buildEntranceExamLRImageUrl(q.image),
-        savedAnswer: answersMap[q.index] ?? null,
+        savedAnswer: answersMap[q.id] ?? null,
       })),
     });
   }
@@ -256,7 +256,7 @@ export const loadListeningService = async (admission: any) => {
         question: q.question,
         audio: buildEntranceExamLRAudioUrl(q.audio),
         image: null,
-        savedAnswer: answersMap[q.index] ?? null,
+        savedAnswer: answersMap[q.id] ?? null,
       })),
     });
   }
@@ -282,7 +282,7 @@ export const loadListeningService = async (admission: any) => {
           answerB: q.answerB,
           answerC: q.answerC,
           answerD: q.answerD,
-          savedAnswer: answersMap[q.index] ?? null,
+          savedAnswer: answersMap[q.id] ?? null,
         })),
       })),
     });
@@ -309,7 +309,7 @@ export const loadListeningService = async (admission: any) => {
           answerB: q.answerB,
           answerC: q.answerC,
           answerD: q.answerD,
-          savedAnswer: answersMap[q.index] ?? null,
+          savedAnswer: answersMap[q.id] ?? null,
         })),
       })),
     });
@@ -400,7 +400,7 @@ export const loadReadingService = async (admission: any) => {
         answerB: q.answerB,
         answerC: q.answerC,
         answerD: q.answerD,
-        savedAnswer: answersMap[q.index] ?? null,
+        savedAnswer: answersMap[q.id] ?? null,
       })),
     });
   }
@@ -426,7 +426,7 @@ export const loadReadingService = async (admission: any) => {
           answerB: q.answerB,
           answerC: q.answerC,
           answerD: q.answerD,
-          savedAnswer: answersMap[q.index] ?? null,
+          savedAnswer: answersMap[q.id] ?? null,
         })),
       })),
     });
@@ -453,7 +453,7 @@ export const loadReadingService = async (admission: any) => {
           answerB: q.answerB,
           answerC: q.answerC,
           answerD: q.answerD,
-          savedAnswer: answersMap[q.index] ?? null,
+          savedAnswer: answersMap[q.id] ?? null,
         })),
       })),
     });

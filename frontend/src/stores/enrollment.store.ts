@@ -14,6 +14,10 @@ interface EnrollmentState {
   draftId: number | null;
   txnRef: string | null;
   expiresAt: string | null;
+  // Schedule filter state
+  scheduleFilterMonth: string;
+  scheduleFilterTeacher: string;
+  scheduleFilterAvailableOnly: boolean;
 
   setToken: (token: string) => void;
   setTokenData: (data: ValidateTokenResponse) => void;
@@ -23,6 +27,8 @@ interface EnrollmentState {
   setDraft: (draftId: number, expiresAt: string) => void;
   setPayment: (txnRef: string) => void;
   setStep: (step: EnrollmentStep) => void;
+  setScheduleFilter: (filters: { month?: string; teacher?: string; availableOnly?: boolean }) => void;
+  resetScheduleFilters: () => void;
   reset: () => void;
 }
 
@@ -36,6 +42,9 @@ const initialState = {
   draftId: null as number | null,
   txnRef: null as string | null,
   expiresAt: null as string | null,
+  scheduleFilterMonth: "",
+  scheduleFilterTeacher: "",
+  scheduleFilterAvailableOnly: false,
 };
 
 export const useEnrollmentStore = create<EnrollmentState>()((set) => ({
@@ -49,5 +58,17 @@ export const useEnrollmentStore = create<EnrollmentState>()((set) => ({
   setDraft: (draftId, expiresAt) => set({ draftId, expiresAt }),
   setPayment: (txnRef) => set({ txnRef, step: "payment" }),
   setStep: (step) => set({ step }),
+  setScheduleFilter: (filters) =>
+    set((state) => ({
+      scheduleFilterMonth: filters.month ?? state.scheduleFilterMonth,
+      scheduleFilterTeacher: filters.teacher ?? state.scheduleFilterTeacher,
+      scheduleFilterAvailableOnly: filters.availableOnly ?? state.scheduleFilterAvailableOnly,
+    })),
+  resetScheduleFilters: () =>
+    set({
+      scheduleFilterMonth: "",
+      scheduleFilterTeacher: "",
+      scheduleFilterAvailableOnly: false,
+    }),
   reset: () => set(initialState),
 }));

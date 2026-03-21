@@ -31,6 +31,7 @@ const ReadingQuestion = ({
       <div className="grid gap-2">
         {LABELS.map((label, idx) => {
           const answerId = idx + 1;
+          const answerText = answers[idx];
           const isSelected = selectedAnswer === answerId;
 
           return (
@@ -50,7 +51,10 @@ const ReadingQuestion = ({
                 onChange={() => onAnswer(question.index, answerId)}
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
               />
-              <span className="text-gray-700">{answers[idx]}</span>
+              <span className="font-bold text-emerald-700 w-5">{label}</span>
+              <span className={answerText ? 'text-gray-800' : 'text-gray-400 font-medium'}>
+                {answerText || `(đáp án ${label})`}
+              </span>
             </label>
           );
         })}

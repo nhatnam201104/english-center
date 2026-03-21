@@ -52,3 +52,9 @@ export const deleteCourse = async (id: number): Promise<ApiResponse<void>> => {
   const response = await api.delete<ApiResponse<void>>(`/courses/${id}`);
   return response.data;
 };
+
+// Lấy danh sách khóa học đã đăng ký của học sinh
+export const getEnrolledCourses = async (): Promise<ApiResponse<Course[]>> => {
+  const response = await api.get<ApiResponse<Course[]>>("/students/me/courses");
+  return response.data;
+};

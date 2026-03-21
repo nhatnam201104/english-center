@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '../../stores/auth.store';
 import { useNavigate } from 'react-router-dom';
-import { getAllCourses } from '../../services/course.service';
-import type { Course, PaginatedCourseResponse } from '../../types/course/response';
+import { getEnrolledCourses } from '../../services/course.service';
+import type { Course } from '../../types/course/response';
 
 export const Courses = () => {
   const { user } = useAuthStore();
@@ -11,8 +11,6 @@ export const Courses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
   const handleCourseClick = (courseId: number) => {
     navigate(`/student/courses/${courseId}`);
@@ -29,10 +27,9 @@ export const Courses = () => {
         setLoading(true);
         setError(null);
 
-        const res = await getAllCourses({page: currentPage, limit: 10});
+        const res = await getEnrolledCourses();
         if (res.success && res.data) {
-          setCourses(res.data.data);
-          setTotalPages(res.data.totalPages);
+          setCourses(res.data);
         }
       } catch (err: any) {
         console.error('Error fetching courses:', err);
@@ -47,7 +44,7 @@ export const Courses = () => {
     };
 
     fetchCourses();
-  }, [user, currentPage]);
+  }, [user]);
 
   if (loading) {
     return (
@@ -151,29 +148,6 @@ export const Courses = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Trước
-              </button>
-              <span className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Sau
-              </button>
             </div>
           )}
         </div>

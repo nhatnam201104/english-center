@@ -335,7 +335,7 @@ export const getStudentCoursesService = async (
       id: r.course.id,
       name: r.course.name,
       type: r.course.type,
-      skill: r.course.courseSkill,
+      courseSkill: r.course.courseSkill,
       status: r.course.status,
       price: r.course.price,
       sale: r.course.sale,
@@ -343,7 +343,8 @@ export const getStudentCoursesService = async (
       totalSession: r.course.totalSession,
       minBand: r.course.minBand,
       maxBand: r.course.maxBand,
-      createdAt: r.createdAt,
+      createdAt: r.course.createdAt,
+      updatedAt: r.course.updatedAt,
     }));
   } catch (error) {
     throw new AppError(

@@ -19,6 +19,7 @@ import gradeRoute from "./grade.routes";
 import attendanceRoute from "./attendance.routes";
 import seedRoute from "./seed.routes";
 import scoreCourseRoute from "./scoreCourse.routes";
+import statisticsRoute from "./statistics.routes";
 
 const router = Router();
 
@@ -43,5 +44,6 @@ router.use("/grades", gradeRoute);
 router.use("/attendance", attendanceRoute);
 router.use("/seed", seedRoute);
 router.use("/score-courses", scoreCourseRoute);
+router.use("/statistics", statisticsRoute);
 
 export default router;

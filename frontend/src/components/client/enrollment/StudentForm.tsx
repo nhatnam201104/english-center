@@ -188,6 +188,16 @@ const StudentForm = () => {
                 {...candidateForm.register("dob")}
                 error={!!candidateForm.formState.errors.dob}
                 crossOrigin=""
+                min={(() => {
+                  const currentYear = new Date().getFullYear();
+                  const minYear = currentYear - 100;
+                  return `${minYear}-01-01`;
+                })()}
+                max={(() => {
+                  const currentYear = new Date().getFullYear();
+                  const maxYear = currentYear - 13;
+                  return `${maxYear}-12-31`;
+                })()}
               />
               {candidateForm.formState.errors.dob && (
                 <Typography color="red" variant="small">

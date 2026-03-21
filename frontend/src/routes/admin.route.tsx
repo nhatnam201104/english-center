@@ -55,6 +55,12 @@ import SpeakingExamEditor from "../components/admin/speaking/editor/speaking.edi
 // SW Dashboard component
 import SWDashboard from "../components/admin/sw-dashboard/sw.dashboard";
 
+// Statistics component
+import StatisticsPage from "../components/admin/statistics/StatisticsPage";
+
+// Admission Students component
+import AdmissionStudentsPage from "../components/admin/admissions/AdmissionStudentsPage";
+
 
 const AdminRoutes: RouteObject = {
   path: "admin",
@@ -206,9 +212,21 @@ const AdminRoutes: RouteObject = {
       path: "content/sw/speaking/new",
       element: <SpeakingExamEditor />,
     },
-    {
+{
       path: "content/sw/speaking/:id",
       element: <SpeakingExamEditor />,
+    },
+    
+    // Statistics routes
+    {
+      path: "statistics",
+      element: <StatisticsPage />,
+    },
+    
+    // Admission Students routes
+    {
+      path: "admissions/students",
+      element: <AdmissionStudentsPage />,
     },
   ],
 };
