@@ -15,6 +15,7 @@ export const useAntiCheat = ({
 }: UseAntiCheatOptions) => {
   const countRef = useRef(0);
   const cancelledRef = useRef(false);
+  const ignoreProgrammaticFullscreenExitRef = useRef(false);
 
   const handleViolation = useCallback(() => {
     if (cancelledRef.current) return;
@@ -47,6 +48,7 @@ export const useAntiCheat = ({
 
     return () => {
       if (document.fullscreenElement) {
+        ignoreProgrammaticFullscreenExitRef.current = true;
         document.exitFullscreen().catch(() => {});
       }
     };
@@ -66,6 +68,11 @@ export const useAntiCheat = ({
     };
 
     const handleFullscreenChange = () => {
+      if (ignoreProgrammaticFullscreenExitRef.current) {
+        ignoreProgrammaticFullscreenExitRef.current = false;
+        return;
+      }
+
       // If fullscreen was exited during exam, count as violation
       if (!document.fullscreenElement && enabled) {
         handleViolation();

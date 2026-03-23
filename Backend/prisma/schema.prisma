@@ -104,6 +104,8 @@ model User {
   teacherInfo TeacherInfo?
   studentInfo StudentInfo?
   parentInfo  ParentInfo?
+  paymentsAsStudent PaymentTransaction[] @relation("PaymentStudentUser")
+  paymentsAsPayer   PaymentTransaction[] @relation("PaymentPayerUser")
 
   @@map("user")
 }
@@ -1096,6 +1098,8 @@ model SeatReservation {
 model PaymentTransaction {
   id                Int           @id @default(autoincrement())
   enrollmentDraftId Int           @unique
+  studentUserId     Int?
+  payerUserId       Int?
   txnRef            String        @unique @db.VarChar(100)
   amount            Int
   status            PaymentStatus @default(PENDING)
@@ -1110,8 +1114,12 @@ model PaymentTransaction {
   updatedAt         DateTime      @updatedAt
 
   enrollmentDraft EnrollmentDraft @relation(fields: [enrollmentDraftId], references: [id], onDelete: Cascade)
+  studentUser    User?            @relation("PaymentStudentUser", fields: [studentUserId], references: [id], onDelete: SetNull)
+  payerUser      User?            @relation("PaymentPayerUser", fields: [payerUserId], references: [id], onDelete: SetNull)
 
   @@index([enrollmentDraftId])
+  @@index([studentUserId, status, finalizedAt])
+  @@index([payerUserId, status, finalizedAt])
   @@map("payment_transaction")
 }
 model Grade {

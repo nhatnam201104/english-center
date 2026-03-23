@@ -47,7 +47,7 @@ const TopStats = ({ schedule }: { schedule: ScheduleResponse }) => {
       <StatCard
         icon={<DoorOpen size={20} />}
         label="PHÒNG"
-        value={schedule.classroomId ? `Room ${schedule.classroomId}` : ""}
+        value={schedule.classroom?.name || "N/A"}
         color="text-blue-600"
       />
     </div>

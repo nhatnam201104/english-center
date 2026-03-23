@@ -16,7 +16,7 @@ pnpm-lock.yaml
 *.db
 *.db-journal
 dev.db
-
+englishcenter-credential.json
 
 # Build output
 dist/

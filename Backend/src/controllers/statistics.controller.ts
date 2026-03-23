@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { 
   getCourseRegistrationStatsService, 
-  getRevenueStatsService, 
+  getRevenueStatsByUserService,
   getAllCoursesForFilterService,
   getAdmissionStudentsService 
 } from "../services/statistics.service";
@@ -30,15 +30,24 @@ export class StatisticsController {
     try {
       const { courseId } = req.query;
       const courseIdNum = courseId ? parseInt(courseId as string) : undefined;
+      const userId = req.user?.id;
+      const role = req.user?.role;
+
+      if (!userId || !role) {
+        return res.status(401).json({
+          success: false,
+          message: "Bạn chưa đăng nhập",
+        });
+      }
       
-      const stats = await getRevenueStatsService(courseIdNum);
-      res.status(200).json({
+      const stats = await getRevenueStatsByUserService(userId, role, courseIdNum);
+      return res.status(200).json({
         success: true,
         data: stats,
       });
     } catch (error) {
       console.error("Error getting revenue stats:", error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: "Lỗi khi lấy thống kê doanh thu",
       });

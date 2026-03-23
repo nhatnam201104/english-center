@@ -346,8 +346,15 @@ export const finalizeEnrollmentService = async (
     // 2. Handle parent
     if (parentData) {
       let parentInfoId: number;
+      let parentUserId: number | null = null;
 
       if (parentData.existingParentId) {
+        const existingParent = await tx.parentInfo.findUnique({
+          where: { id: parentData.existingParentId },
+          select: { userId: true },
+        });
+
+        parentUserId = existingParent?.userId ?? null;
         parentInfoId = parentData.existingParentId;
       } else {
         const parentHashedPassword = await bcrypt.hash(
@@ -364,6 +371,8 @@ export const finalizeEnrollmentService = async (
           },
         });
 
+        parentUserId = parentUser.id;
+
         const parentInfo = await tx.parentInfo.create({
           data: { userId: parentUser.id },
         });
@@ -376,7 +385,27 @@ export const finalizeEnrollmentService = async (
           studentId: studentInfo.id,
         },
       });
+
+      await tx.paymentTransaction.updateMany({
+        where: {
+          enrollmentDraftId,
+          payerUserId: null,
+        },
+        data: {
+          payerUserId: parentUserId,
+        },
+      });
     }
+
+    await tx.paymentTransaction.updateMany({
+      where: {
+        enrollmentDraftId,
+        studentUserId: null,
+      },
+      data: {
+        studentUserId: studentUser.id,
+      },
+    });
 
     // 3. Register schedule
     await tx.scheduleRegistration.create({

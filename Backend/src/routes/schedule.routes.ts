@@ -6,6 +6,7 @@ import { authenticate, authorize } from "../middleware/auth.middleware";
 import {
   registerSchedule,
   getScheduleStudents,
+  getEligibleStudentsForSchedule,
   addStudentToSchedule,
   removeStudentFromSchedule,
   getStudentSchedules,
@@ -35,6 +36,8 @@ router.post(
  */
 router.post(
   "/register",
+  authenticate,
+  authorize("STUDENT"),
   validate,
   registerSchedule
 );
@@ -115,6 +118,18 @@ router.get(
   authenticate,
   authorize("ADMIN"),
   getScheduleStudents
+);
+
+/**
+ * @route   GET /api/schedules/:id/eligible-students
+ * @desc    Get eligible students that can be added to this schedule (admin)
+ * @access  ADMIN
+ */
+router.get(
+  "/:id/eligible-students",
+  authenticate,
+  authorize("ADMIN"),
+  getEligibleStudentsForSchedule
 );
 
 /**

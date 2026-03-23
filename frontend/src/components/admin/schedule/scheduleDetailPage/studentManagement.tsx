@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Users, UserPlus, X, Search, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import type { StudentResponse } from "../../../../types/student/response";
-import { getAllStudentsService } from "../../../../services/student.service";
 import {
   getScheduleStudents,
+  getEligibleStudentsForSchedule,
   addStudentToSchedule,
   removeStudentFromSchedule,
 } from "../../../../services/schedule.service";
@@ -59,11 +59,15 @@ const StudentManagement = ({ scheduleId, totalSlot }: Props) => {
   const fetchAll = useCallback(async (page = 1, q = debouncedSearch) => {
     setModalLoading(true);
     try {
-      const res = await getAllStudentsService({ page, limit: 6, search: q || undefined });
+      const res = await getEligibleStudentsForSchedule(scheduleId, {
+        page,
+        limit: 6,
+        search: q || undefined,
+      });
       if (res.success && res.data) {
         setAllStudents(res.data.data);
-        setAllTotal(res.data.pagination.totalItems);
-        setAllPages(res.data.pagination.totalPages);
+        setAllTotal(res.data.totalItems);
+        setAllPages(res.data.totalPages);
         setAllPage(page);
       }
     } catch {
@@ -71,7 +75,7 @@ const StudentManagement = ({ scheduleId, totalSlot }: Props) => {
     } finally {
       setModalLoading(false);
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, scheduleId]);
 
   useEffect(() => {
     if (modalOpen) fetchAll(1, debouncedSearch);

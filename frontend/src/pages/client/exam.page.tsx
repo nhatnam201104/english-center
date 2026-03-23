@@ -61,7 +61,10 @@ const ExamPage = () => {
   }, [accessToken, cancelExam]);
 
   useAntiCheat({
-    enabled: phase === "listening" || phase === "reading",
+    enabled:
+      phase === "listening" ||
+      phase === "listening_done" ||
+      phase === "reading",
     onWarning: handleWarning,
     onCancel: handleCancel,
     maxViolations: 3,

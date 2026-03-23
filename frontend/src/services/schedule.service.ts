@@ -144,6 +144,18 @@ export const getScheduleStudents = async (
   return response.data;
 };
 
+// Admin: Lấy danh sách học sinh hợp lệ để thêm vào schedule
+export const getEligibleStudentsForSchedule = async (
+  scheduleId: number,
+  params?: { search?: string; page?: number; limit?: number },
+): Promise<ApiResponse<ScheduleStudentListResponse>> => {
+  const response = await axios.get<ApiResponse<ScheduleStudentListResponse>>(
+    `/schedule/${scheduleId}/eligible-students`,
+    { params }
+  );
+  return response.data;
+};
+
 // Admin: Thêm học sinh vào schedule
 export const addStudentToSchedule = async (
   scheduleId: number,

@@ -8,6 +8,63 @@ import { toStudentResponse } from "../utils/Mapper/student.mapper";
 import { toScheduleResponse } from "../utils/Mapper/schedule.mapper";
 import { AppError } from "../middleware/errorHandler";
 
+const toMinutes = (time: string): number => {
+  const [hour, minute] = time.split(":").map(Number);
+  return hour * 60 + minute;
+};
+
+const isDateRangeOverlapped = (
+  aStart: Date,
+  aEnd: Date,
+  bStart: Date,
+  bEnd: Date,
+): boolean => aStart < bEnd && bStart < aEnd;
+
+const hasSessionOverlap = (
+  sourceSessions: Array<{ day: string; startTime: string; endTime: string }>,
+  targetSessions: Array<{ day: string; startTime: string; endTime: string }>,
+): boolean => {
+  for (const source of sourceSessions) {
+    for (const target of targetSessions) {
+      if (source.day !== target.day) continue;
+
+      const overlapped =
+        toMinutes(source.startTime) < toMinutes(target.endTime) &&
+        toMinutes(source.endTime) > toMinutes(target.startTime);
+
+      if (overlapped) return true;
+    }
+  }
+
+  return false;
+};
+
+const hasScheduleConflict = (
+  candidateSchedule: {
+    startTime: Date;
+    endTime: Date;
+    sessions: Array<{ day: string; startTime: string; endTime: string }>;
+  },
+  existingSchedule: {
+    startTime: Date;
+    endTime: Date;
+    sessions: Array<{ day: string; startTime: string; endTime: string }>;
+  },
+): boolean => {
+  if (
+    !isDateRangeOverlapped(
+      candidateSchedule.startTime,
+      candidateSchedule.endTime,
+      existingSchedule.startTime,
+      existingSchedule.endTime,
+    )
+  ) {
+    return false;
+  }
+
+  return hasSessionOverlap(candidateSchedule.sessions, existingSchedule.sessions);
+};
+
 // Đăng ký Schedule dành cho Student
 export const registerScheduleService = async (
   data: RegisterScheduleRequest,
@@ -17,12 +74,67 @@ export const registerScheduleService = async (
   // Kiểm tra schedule có tồn tại
   const schedule = await prisma.schedule.findUnique({
     where: { id: scheduleId },
+    include: {
+      course: {
+        select: {
+          id: true,
+          name: true,
+          courseSkill: true,
+        },
+      },
+      sessions: {
+        select: {
+          day: true,
+          startTime: true,
+          endTime: true,
+        },
+      },
+      _count: {
+        select: {
+          registrations: true,
+          seatReservations: {
+            where: {
+              status: "ACTIVE",
+              expiresAt: { gt: new Date() },
+            },
+          },
+        },
+      },
+    },
   });
   if (!schedule) throw new AppError("Schedule không tồn tại", 404);
+
+  const occupiedSeats = schedule._count.registrations + schedule._count.seatReservations;
+  if (occupiedSeats >= schedule.totalSlot) {
+    throw new AppError("Lịch học đã đủ sĩ số", 400);
+  }
 
   // Kiểm tra hs có tồn tại
   const student = await prisma.studentInfo.findUnique({
     where: { id: Number(studentId) },
+    include: {
+      scheduleRegistrations: {
+        include: {
+          schedule: {
+            include: {
+              course: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              sessions: {
+                select: {
+                  day: true,
+                  startTime: true,
+                  endTime: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
   if (!student) throw new AppError("Student không tồn tại", 404);
 
@@ -31,6 +143,29 @@ export const registerScheduleService = async (
     where: { scheduleId_studentId: { scheduleId, studentId: Number(studentId) } },
   });
   if (existing) throw new AppError("Student đã đăng ký lịch này", 400);
+
+  // Kiểm tra trùng lịch với các khóa học đã đăng ký
+  for (const registration of student.scheduleRegistrations) {
+    const conflict = hasScheduleConflict(
+      {
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        sessions: schedule.sessions,
+      },
+      {
+        startTime: registration.schedule.startTime,
+        endTime: registration.schedule.endTime,
+        sessions: registration.schedule.sessions,
+      },
+    );
+
+    if (conflict) {
+      throw new AppError(
+        `Học sinh bị trùng lịch với khóa "${registration.schedule.course.name}"`,
+        400,
+      );
+    }
+  }
 
   // Transaction: tạo schedule registration + tăng totalRegister
   const registration = await prisma.$transaction(async (tx) => {
@@ -258,4 +393,113 @@ export const removeStudentFromScheduleService = async (
       data: { totalRegister: { decrement: 1 } },
     });
   });
+};
+
+// Admin: Lấy danh sách học sinh hợp lệ để thêm vào một schedule
+export const getEligibleStudentsForScheduleService = async (
+  scheduleId: number,
+  {
+    search,
+    page = 1,
+    limit = 10,
+  }: { search?: string; page?: number; limit?: number },
+): Promise<{ data: StudentResponse[]; totalItems: number; totalPages: number; page: number; limit: number }> => {
+  const targetSchedule = await prisma.schedule.findUnique({
+    where: { id: scheduleId },
+    include: {
+      sessions: {
+        select: {
+          day: true,
+          startTime: true,
+          endTime: true,
+        },
+      },
+    },
+  });
+
+  if (!targetSchedule) {
+    throw new AppError("Schedule không tồn tại", 404);
+  }
+
+  const students = await prisma.studentInfo.findMany({
+    where: {
+      deletedAt: null,
+      user: {
+        deletedAt: null,
+        ...(search
+          ? {
+              OR: [
+                { fullname: { contains: search } },
+                { email: { contains: search } },
+                { phone: { contains: search } },
+              ],
+            }
+          : {}),
+      },
+    },
+    include: {
+      user: true,
+      scheduleRegistrations: {
+        include: {
+          schedule: {
+            include: {
+              sessions: {
+                select: {
+                  day: true,
+                  startTime: true,
+                  endTime: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const eligibleStudents = students.filter((student) => {
+    if (
+      student.scheduleRegistrations.some(
+        (registration) => registration.scheduleId === scheduleId,
+      )
+    ) {
+      return false;
+    }
+
+    for (const registration of student.scheduleRegistrations) {
+      const conflict = hasScheduleConflict(
+        {
+          startTime: targetSchedule.startTime,
+          endTime: targetSchedule.endTime,
+          sessions: targetSchedule.sessions,
+        },
+        {
+          startTime: registration.schedule.startTime,
+          endTime: registration.schedule.endTime,
+          sessions: registration.schedule.sessions,
+        },
+      );
+
+      if (conflict) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const totalItems = eligibleStudents.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const start = (safePage - 1) * limit;
+  const pageData = eligibleStudents.slice(start, start + limit);
+
+  return {
+    data: pageData.map((student) => toStudentResponse(student)),
+    totalItems,
+    totalPages,
+    page: safePage,
+    limit,
+  };
 };

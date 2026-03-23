@@ -84,8 +84,6 @@ export const getCourseRegistrationStatsService = async () => {
 // ─── Get Revenue Statistics by Course ───
 
 export const getRevenueStatsService = async (courseId?: number) => {
-  const now = new Date();
-
   // Build where clause for payments
   const whereClause: any = {
     status: "SUCCESS",
@@ -175,6 +173,198 @@ export const getRevenueStatsService = async (courseId?: number) => {
     totalRevenue,
     transactionCount: payments.length,
     courses: revenueData,
+  };
+};
+
+export const getRevenueStatsByUserService = async (
+  userId: number,
+  role: string,
+  courseId?: number,
+) => {
+  const whereClause: any = {
+    status: "SUCCESS",
+    finalizedAt: { not: null },
+  };
+
+  if (courseId) {
+    whereClause.enrollmentDraft = {
+      seatReservation: {
+        schedule: {
+          coursesId: courseId,
+        },
+      },
+    };
+  }
+
+  if (role === "STUDENT") {
+    whereClause.OR = [{ studentUserId: userId }, { payerUserId: userId }];
+  }
+
+  if (role === "PARENT") {
+    const parent = await prisma.parentInfo.findUnique({
+      where: { userId },
+      include: {
+        students: {
+          include: {
+            student: {
+              select: { userId: true },
+            },
+          },
+        },
+      },
+    });
+
+    const childUserIds = parent?.students
+      .map((item) => item.student.userId)
+      .filter((id) => Boolean(id));
+
+    whereClause.OR = [
+      { payerUserId: userId },
+      {
+        studentUserId: {
+          in: childUserIds && childUserIds.length > 0 ? childUserIds : [-1],
+        },
+      },
+    ];
+  }
+
+  const payments = await prisma.paymentTransaction.findMany({
+    where: whereClause,
+    include: {
+      studentUser: {
+        select: {
+          id: true,
+          fullname: true,
+          email: true,
+        },
+      },
+      payerUser: {
+        select: {
+          id: true,
+          fullname: true,
+          email: true,
+        },
+      },
+      enrollmentDraft: {
+        include: {
+          seatReservation: {
+            include: {
+              schedule: {
+                include: {
+                  course: {
+                    select: {
+                      id: true,
+                      name: true,
+                      price: true,
+                      sale: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { finalizedAt: "desc" },
+  });
+
+  const courseRevenue: Record<
+    string,
+    {
+      courseId: number;
+      courseName: string;
+      totalAmount: number;
+      transactionCount: number;
+      price: number;
+      sale: number;
+    }
+  > = {};
+
+  const userRevenue: Record<
+    string,
+    {
+      userId: number;
+      role: "STUDENT" | "PARENT";
+      fullname: string;
+      email: string;
+      totalAmount: number;
+      transactionCount: number;
+    }
+  > = {};
+
+  for (const payment of payments) {
+    const schedule = payment.enrollmentDraft?.seatReservation?.schedule;
+    if (!schedule) continue;
+
+    const course = schedule.course;
+    const courseKey = course.id.toString();
+
+    if (!courseRevenue[courseKey]) {
+      courseRevenue[courseKey] = {
+        courseId: course.id,
+        courseName: course.name,
+        totalAmount: 0,
+        transactionCount: 0,
+        price: Number(course.price),
+        sale: course.sale,
+      };
+    }
+
+    courseRevenue[courseKey].totalAmount += payment.amount;
+    courseRevenue[courseKey].transactionCount += 1;
+
+    if (payment.studentUser) {
+      const studentKey = `STUDENT-${payment.studentUser.id}`;
+      if (!userRevenue[studentKey]) {
+        userRevenue[studentKey] = {
+          userId: payment.studentUser.id,
+          role: "STUDENT",
+          fullname: payment.studentUser.fullname,
+          email: payment.studentUser.email,
+          totalAmount: 0,
+          transactionCount: 0,
+        };
+      }
+      userRevenue[studentKey].totalAmount += payment.amount;
+      userRevenue[studentKey].transactionCount += 1;
+    }
+
+    if (payment.payerUser) {
+      const parentKey = `PARENT-${payment.payerUser.id}`;
+      if (!userRevenue[parentKey]) {
+        userRevenue[parentKey] = {
+          userId: payment.payerUser.id,
+          role: "PARENT",
+          fullname: payment.payerUser.fullname,
+          email: payment.payerUser.email,
+          totalAmount: 0,
+          transactionCount: 0,
+        };
+      }
+      userRevenue[parentKey].totalAmount += payment.amount;
+      userRevenue[parentKey].transactionCount += 1;
+    }
+  }
+
+  const revenueByCourse = Object.values(courseRevenue)
+    .map((item) => ({
+      ...item,
+      finalPrice: Math.round(item.price * (1 - item.sale / 100)),
+    }))
+    .sort((a, b) => b.totalAmount - a.totalAmount);
+
+  const revenueByUser = Object.values(userRevenue).sort(
+    (a, b) => b.totalAmount - a.totalAmount,
+  );
+
+  const totalRevenue = revenueByCourse.reduce((sum, item) => sum + item.totalAmount, 0);
+
+  return {
+    totalRevenue,
+    transactionCount: payments.length,
+    courses: revenueByCourse,
+    users: revenueByUser,
   };
 };
 

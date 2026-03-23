@@ -21,21 +21,11 @@ const buildAccessiblePaymentWhere = async (requester: PaymentRequester) => {
   }
 
   if (requester.role === "STUDENT") {
-    const student = await prisma.studentInfo.findUnique({
-      where: { userId: requester.id },
-      include: { user: true },
-    });
-
-    if (!student) {
-      throw new AppError("Không tìm thấy thông tin học sinh", 404);
-    }
-
     return {
-      enrollmentDraft: {
-        admission: {
-          email: student.user.email,
-        },
-      },
+      OR: [
+        { studentUserId: requester.id },
+        { payerUserId: requester.id },
+      ],
     };
   }
 
@@ -43,12 +33,11 @@ const buildAccessiblePaymentWhere = async (requester: PaymentRequester) => {
     const parent = await prisma.parentInfo.findUnique({
       where: { userId: requester.id },
       include: {
-        user: true,
         students: {
           include: {
             student: {
-              include: {
-                user: true,
+              select: {
+                userId: true,
               },
             },
           },
@@ -60,25 +49,16 @@ const buildAccessiblePaymentWhere = async (requester: PaymentRequester) => {
       throw new AppError("Không tìm thấy thông tin phụ huynh", 404);
     }
 
-    const studentEmails = parent.students.map((item) => item.student.user.email);
+    const studentUserIds = parent.students
+      .map((item) => item.student.userId)
+      .filter((id) => Boolean(id));
 
     return {
       OR: [
+        { payerUserId: requester.id },
         {
-          enrollmentDraft: {
-            admission: {
-              email: {
-                in: studentEmails.length > 0 ? studentEmails : ["__NO_MATCH__"],
-              },
-            },
-          },
-        },
-        {
-          enrollmentDraft: {
-            parentData: {
-              path: ["email"],
-              equals: parent.user.email,
-            },
+          studentUserId: {
+            in: studentUserIds.length > 0 ? studentUserIds : [-1],
           },
         },
       ],
@@ -107,6 +87,29 @@ export const createPaymentUrlService = async (
     throw new AppError("Không tìm thấy đơn đăng ký", 404);
   }
 
+  const parentData = draft.parentData as { email?: string } | null;
+
+  const [studentUser, payerUser] = await Promise.all([
+    prisma.user.findFirst({
+      where: {
+        email: draft.admission.email,
+        role: "STUDENT",
+        deletedAt: null,
+      },
+      select: { id: true },
+    }),
+    parentData?.email
+      ? prisma.user.findFirst({
+          where: {
+            email: parentData.email,
+            role: "PARENT",
+            deletedAt: null,
+          },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
+  ]);
+
   if (draft.status === "COMPLETED") {
     throw new AppError("Đơn đăng ký đã hoàn tất", 400);
   }
@@ -117,6 +120,16 @@ export const createPaymentUrlService = async (
 
   // If there's already a pending payment, return existing
   if (draft.payment && draft.payment.status === "PENDING") {
+    if (!draft.payment.studentUserId || !draft.payment.payerUserId) {
+      await prisma.paymentTransaction.update({
+        where: { id: draft.payment.id },
+        data: {
+          studentUserId: draft.payment.studentUserId ?? studentUser?.id,
+          payerUserId: draft.payment.payerUserId ?? payerUser?.id,
+        },
+      });
+    }
+
     const existingUrl = buildPaymentUrl({
       txnRef: draft.payment.txnRef,
       amount: draft.payment.amount,
@@ -163,6 +176,8 @@ export const createPaymentUrlService = async (
     const paymentTx = await tx.paymentTransaction.create({
       data: {
         enrollmentDraftId: Number(draftId),
+        studentUserId: studentUser?.id,
+        payerUserId: payerUser?.id,
         txnRef,
         amount: finalAmount,
         status: "PENDING",
@@ -390,6 +405,20 @@ export const getPaymentHistoryService = async (
       skip,
       take: limit,
       include: {
+        studentUser: {
+          select: {
+            id: true,
+            fullname: true,
+            email: true,
+          },
+        },
+        payerUser: {
+          select: {
+            id: true,
+            fullname: true,
+            email: true,
+          },
+        },
         enrollmentDraft: {
           include: {
             admission: true,
@@ -417,6 +446,10 @@ export const getPaymentHistoryService = async (
       status: payment.status,
       createdAt: payment.createdAt,
       finalizedAt: payment.finalizedAt,
+      studentUserId: payment.studentUserId,
+      payerUserId: payment.payerUserId,
+      studentUser: payment.studentUser,
+      payerUser: payment.payerUser,
       studentName: payment.enrollmentDraft.admission.fullname,
       studentEmail: payment.enrollmentDraft.admission.email,
       courseName: payment.enrollmentDraft.seatReservation?.schedule.course.name,
@@ -446,6 +479,20 @@ export const getPaymentInvoiceService = async (
       ...accessibleWhere,
     },
     include: {
+      studentUser: {
+        select: {
+          id: true,
+          fullname: true,
+          email: true,
+        },
+      },
+      payerUser: {
+        select: {
+          id: true,
+          fullname: true,
+          email: true,
+        },
+      },
       enrollmentDraft: {
         include: {
           admission: true,
@@ -488,7 +535,15 @@ export const getPaymentInvoiceService = async (
       fullname: payment.enrollmentDraft.admission.fullname,
       email: payment.enrollmentDraft.admission.email,
       phone: payment.enrollmentDraft.admission.phone,
+      userId: payment.studentUserId,
     },
+    payer: payment.payerUser
+      ? {
+          userId: payment.payerUser.id,
+          fullname: payment.payerUser.fullname,
+          email: payment.payerUser.email,
+        }
+      : null,
     course: course
       ? {
           id: course.id,
