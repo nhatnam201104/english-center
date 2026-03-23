@@ -41,17 +41,6 @@ router.post(
   createCourseTest,
 );
 
-/**
- * @route   GET /api/course-tests
- * @desc    Lấy danh sách bài kiểm tra
- * @access  Private (Admin, Teacher, Student)
- */
-router.get(
-  "/",
-  authenticate,
-  authorize("ADMIN", "TEACHER", "STUDENT"),
-  getAllCourseTests,
-);
 
 /**
  * @route   GET /api/course-tests/course/:courseId

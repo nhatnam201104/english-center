@@ -12,18 +12,6 @@ import type {
 } from "../types/coursetest/request";
 
 // Service
-export const getAllCoursetests = async (
-  params: GetCourseTestRequest,
-): Promise<ApiResponse<PaginatedCourseTestResponse>> => {
-  const response = await api.get<ApiResponse<PaginatedCourseTestResponse>>(
-    "/course-tests",
-    {
-      params,
-    },
-  );
-  return response.data;
-};
-
 export const getCourseTestsByCourseId = async (
   courseId: number,
 ): Promise<ApiResponse<PaginatedCourseTestResponse>> => {

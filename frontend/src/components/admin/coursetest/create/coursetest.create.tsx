@@ -32,11 +32,7 @@ const CoursetestCreate = () => {
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<CreateCourseTestFormData>({
-    defaultValues: {
-      index: 1,
-    },
-  });
+  } = useForm<CreateCourseTestFormData>();
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -74,7 +70,6 @@ const CoursetestCreate = () => {
       const formData = new FormData();
       formData.append("courseId", data.courseId.toString());
       formData.append("name", data.name);
-      formData.append("index", data.index.toString());
       if (data.fileTest instanceof File) {
         formData.append("fileTest", data.fileTest);
       }
@@ -85,7 +80,11 @@ const CoursetestCreate = () => {
       const response = await createCoursetest(formData);
       if (response.success) {
         alert("Tạo bài kiểm tra thành công!");
-        navigate("/admin/coursetest");
+        if (courseIdParam) {
+          navigate(`/admin/coursetest?courseId=${courseIdParam}`);
+        } else {
+          navigate("/admin/coursetest");
+        }
       } else {
         alert(response.message || "Tạo bài kiểm tra thất bại!");
       }
@@ -112,7 +111,13 @@ const CoursetestCreate = () => {
             <Button
               variant="text"
               className="text-white hover:bg-white/10"
-              onClick={() => navigate("/admin/coursetest")}
+              onClick={() => {
+                if (courseIdParam) {
+                  navigate(`/admin/coursetest?courseId=${courseIdParam}`);
+                } else {
+                  navigate("/admin/coursetest");
+                }
+              }}
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </Button>
@@ -173,7 +178,7 @@ const CoursetestCreate = () => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+              <div className="md:col-span-2">
                 <Input
                   label="Tên bài kiểm tra"
                   {...register("name", {
@@ -185,24 +190,6 @@ const CoursetestCreate = () => {
                 {errors.name && (
                   <Typography variant="small" color="red" className="mt-1">
                     {errors.name.message}
-                  </Typography>
-                )}
-              </div>
-
-              <div>
-                <Input
-                  label="Thứ tự bài kiểm tra"
-                  type="number"
-                  {...register("index", {
-                    required: "Vui lòng nhập thứ tự bài kiểm tra",
-                    valueAsNumber: true,
-                  })}
-                  error={!!errors.index}
-                  crossOrigin={undefined}
-                />
-                {errors.index && (
-                  <Typography variant="small" color="red" className="mt-1">
-                    {errors.index.message}
                   </Typography>
                 )}
               </div>
@@ -255,7 +242,13 @@ const CoursetestCreate = () => {
             <div className="flex justify-end gap-4 pt-4">
               <Button
                 variant="outlined"
-                onClick={() => navigate("/admin/coursetest")}
+                onClick={() => {
+                  if (courseIdParam) {
+                    navigate(`/admin/coursetest?courseId=${courseIdParam}`);
+                  } else {
+                    navigate("/admin/coursetest");
+                  }
+                }}
                 disabled={loading}
               >
                 Hủy

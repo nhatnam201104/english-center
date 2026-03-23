@@ -3,7 +3,6 @@ import {
   LayoutDashboard, 
   Calendar, 
   BookOpen,
-  Trophy,
   User,
   X
 } from 'lucide-react';
@@ -30,11 +29,6 @@ const navItems: NavItem[] = [
     icon: <BookOpen size={20} />,
     label: 'Khóa học',
     path: '/student/courses',
-  },
-  {
-    icon: <Trophy size={20} />,
-    label: 'Xem điểm',
-    path: '/student/grades',
   },
   {
     icon: <User size={20} />,

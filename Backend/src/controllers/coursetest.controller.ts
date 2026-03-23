@@ -59,7 +59,7 @@ export const getAllCourseTests = async (req: Request, res: Response) => {
   return customRes.success(result, "Lấy danh sách bài kiểm tra thành công");
 };
 
-// Lấy danh sách CourseTest theo courseId
+// Lấy danh sách CourseTest theo courseId (paginated)
 export const getCourseTestsByCourseId = async (req: Request, res: Response) => {
   const customRes = res as CustomResponse;
   const courseId = Number(req.params.courseId);

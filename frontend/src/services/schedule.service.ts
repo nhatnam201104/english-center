@@ -179,6 +179,16 @@ export const removeStudentFromSchedule = async (
   return response.data;
 };
 
+// Student: Lấy schedule đã đăng ký theo courseId
+export const getStudentScheduleByCourseId = async (
+  courseId: number,
+): Promise<ApiResponse<StudentScheduleByIdResponse | null>> => {
+  const response = await axios.get<ApiResponse<StudentScheduleByIdResponse | null>>(
+    `/schedules/student/course/${courseId}`,
+  );
+  return response.data;
+};
+
 // Student: Lấy danh sách schedules đã đăng ký
 export const getStudentSchedules = async (
   page = 1,

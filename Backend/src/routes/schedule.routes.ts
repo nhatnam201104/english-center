@@ -9,6 +9,7 @@ import {
   getEligibleStudentsForSchedule,
   addStudentToSchedule,
   removeStudentFromSchedule,
+  getStudentScheduleByCourseId,
   getStudentSchedules,
   getAllSchedulesByStudentId,
 } from "../controllers/scheduleRegistration.controller";
@@ -58,6 +59,18 @@ router.get("/upcoming", validate, getUpcomingSchedules);
 router.get(
   "/active-schedule",
   getActiveSchedulesByCourseId
+);
+
+/**
+ * @route   GET /api/schedules/student/course/:courseId
+ * @desc    Get student's enrolled schedule by courseId
+ * @access  Student
+ */
+router.get(
+  "/student/course/:courseId",
+  authenticate,
+  authorize("STUDENT"),
+  getStudentScheduleByCourseId
 );
 
 /**

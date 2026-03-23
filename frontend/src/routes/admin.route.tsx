@@ -137,7 +137,7 @@ const AdminRoutes: RouteObject = {
       element: <ScheduleDetailPage />,
     },
 
-    // Coursetest routes
+    // Coursetest routes - always require courseId
     {
       path: "coursetest",
       element: <CoursetestManagement />,

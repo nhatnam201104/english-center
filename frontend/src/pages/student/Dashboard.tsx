@@ -34,6 +34,7 @@ interface Course {
   progress: number;
   teacherName: string;
   startDate?: string;
+  endDate?: string;
   classroom?: string;
   sessions?: Array<{
     day: string;
@@ -51,6 +52,23 @@ export const Dashboard = () => {
   const [checkedInSessions, setCheckedInSessions] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Filter active courses (currently happening)
+  const activeCourses = courses.filter(course => {
+    if (!course.startDate || !course.endDate) return false;
+    const now = new Date();
+    const startDate = new Date(course.startDate);
+    const endDate = new Date(course.endDate);
+    return startDate <= now && now <= endDate;
+  });
+
+  // Filter active schedules (currently happening)
+  const activeSchedules = schedules.filter(schedule => {
+    const now = new Date();
+    const startDate = new Date(schedule.startTime);
+    const endDate = new Date(schedule.endTime);
+    return startDate <= now && now <= endDate;
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,6 +109,7 @@ export const Dashboard = () => {
               progress: 0, // TODO: Calculate actual progress from completed sessions
               teacherName: schedule.teacher.fullname,
               startDate: schedule.startTime,
+              endDate: schedule.endTime,
               classroom: schedule.classroom.name,
               sessions: schedule.sessions ? schedule.sessions.map(session => ({
                 day: session.day,
@@ -187,10 +206,10 @@ export const Dashboard = () => {
         />
       </div>
 
-      {/* Weekly Schedule */}
-      {schedules.length > 0 ? (
+      {/* Weekly Schedule - Active Schedules Only */}
+      {activeSchedules.length > 0 ? (
         <WeeklySchedule
-          sessions={schedules.flatMap((schedule) => 
+          sessions={activeSchedules.flatMap((schedule) => 
             (schedule.sessions || []).map((session) => ({
               id: session.id,
               className: schedule.course.name,
@@ -206,12 +225,14 @@ export const Dashboard = () => {
         />
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
-          <p className="text-gray-500">Chưa có lịch học nào</p>
+          <p className="text-gray-500">
+            {schedules.length === 0 ? 'Chưa có lịch học nào' : 'Hiện tại không có lịch học đang diễn ra'}
+          </p>
         </div>
       )}
 
-      {/* Course Cards */}
-      <CourseCards courses={courses} />
+      {/* Course Cards - Active Courses Only */}
+      <CourseCards courses={activeCourses} />
     </div>
   );
 };

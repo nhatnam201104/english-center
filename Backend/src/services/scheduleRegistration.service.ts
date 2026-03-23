@@ -241,6 +241,69 @@ export const getScheduleStudentsService = async (
   };
 };
 
+// Student: Lấy schedule đã đăng ký theo courseId
+export const getStudentScheduleByCourseIdService = async (
+  studentId: number,
+  courseId: number,
+): Promise<any | null> => {
+  const where: any = {
+    studentId,
+    student: { deletedAt: null },
+    schedule: {
+      coursesId: courseId,
+    },
+  };
+
+  const registration = await prisma.scheduleRegistration.findFirst({
+    where,
+    include: {
+      schedule: {
+        include: {
+          teacher: { include: { user: true } },
+          course: true,
+          classroom: true,
+          sessions: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!registration) {
+    return null;
+  }
+
+  return {
+    id: registration.schedule.id,
+    teacher: {
+      id: registration.schedule.teacher.id,
+      fullname: registration.schedule.teacher.user.fullname,
+    },
+    classroom: {
+      id: registration.schedule.classroom.id,
+      name: registration.schedule.classroom.name,
+    },
+    course: {
+      id: registration.schedule.course.id,
+      name: registration.schedule.course.name,
+      type: registration.schedule.course.type,
+      skill: registration.schedule.course.courseSkill,
+    },
+    totalSlot: registration.schedule.totalSlot,
+    totalRegister: registration.schedule.totalRegister,
+    startTime: registration.schedule.startTime,
+    endTime: registration.schedule.endTime,
+    createdAt: registration.schedule.createdAt,
+    updatedAt: registration.schedule.updatedAt,
+    sessions: registration.schedule.sessions.map(session => ({
+      id: session.id,
+      day: session.day,
+      startTime: session.startTime,
+      endTime: session.endTime,
+    })),
+  };
+};
+
 // Student: Lấy danh sách schedules mà student đã đăng ký
 export const getStudentSchedulesService = async (
   studentId: number,

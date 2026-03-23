@@ -61,10 +61,10 @@ export const WeeklySchedule = ({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-xl font-bold text-gray-800 mb-2">
-          Lịch học tuần này
+          Lịch học đang diễn ra của bạn
         </h2>
         <p className="text-sm text-gray-600">
-          Theo dõi lịch học của bạn
+          Các khóa học đang hoạt động
         </p>
       </div>
 

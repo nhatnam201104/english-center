@@ -106,11 +106,6 @@ const AdminSidebar = memo(() => {
           path: "/admin/classrooms",
         },
         
-        {
-          title: "Bài kiểm tra",
-          icon: DocumentTextIcon,
-          path: "/admin/coursetest",
-        },
       ],
     },
     {

@@ -3,7 +3,6 @@ import { CalendarDays, GraduationCap, MapPin, User } from 'lucide-react';
 import { getStudentsByParentMeService } from '../../services/student.service';
 import { getSchedulesByStudentId, type StudentScheduleByIdResponse } from '../../services/schedule.service';
 import formatDate from '../../helpers/formatDate';
-import { TIME_SLOTS_90, TIME_SLOTS_120 } from '../../types/schedule/slot-time.type';
 import type { StudentResponse } from '../../types/student/response';
 
 const dayLabelMap: Record<string, string> = {
@@ -103,15 +102,7 @@ const TimeTableManament = () => {
   const timeSlots = useMemo(() => {
     const slotMap = new Map<string, { key: string; label: string; from: string; to: string }>();
 
-    for (const slot of [...TIME_SLOTS_90, ...TIME_SLOTS_120]) {
-      slotMap.set(createSlotKey(slot.from, slot.to), {
-        key: createSlotKey(slot.from, slot.to),
-        label: slot.label,
-        from: slot.from,
-        to: slot.to,
-      });
-    }
-
+    // Only add slots that actually have sessions
     for (const entry of timetableEntries) {
       if (!slotMap.has(entry.slotKey)) {
         slotMap.set(entry.slotKey, {

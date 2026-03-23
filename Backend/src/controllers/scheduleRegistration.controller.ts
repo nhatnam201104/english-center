@@ -6,6 +6,7 @@ import {
   registerScheduleService,
   getScheduleStudentsService,
   getEligibleStudentsForScheduleService,
+  getStudentScheduleByCourseIdService,
   getStudentSchedulesService,
   getAllSchedulesByStudentIdService,
   removeStudentFromScheduleService,
@@ -70,6 +71,26 @@ export const getEligibleStudentsForSchedule = async (req: Request, res: Response
   });
 
   return customRes.success(result, "Lấy danh sách học sinh hợp lệ thành công");
+};
+// Student: Lấy schedule đã đăng ký theo courseId
+export const getStudentScheduleByCourseId = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const authReq = req as AuthRequest;
+  const userId = authReq.user?.id;
+  const courseId = Number(req.params.courseId);
+
+  if (!userId) {
+    return customRes.error("Không tìm thấy thông tin user", 401);
+  }
+
+  if (!courseId) {
+    throw new AppError("ID khóa học không hợp lệ", 400);
+  }
+
+  // Lấy studentId từ userId
+  const student = await getStudentByUserIdService(userId);
+  const result = await getStudentScheduleByCourseIdService(student.id, courseId);
+  return customRes.success(result, "Lấy lịch học thành công");
 };
 
 // Student: Lấy danh sách schedules đã đăng ký

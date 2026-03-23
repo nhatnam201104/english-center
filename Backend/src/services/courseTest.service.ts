@@ -19,7 +19,6 @@ export const createCourseTestService = async (
 ): Promise<CourseTestResponse> => {
   // Convert ID to number
   const courseId = Number(data.courseId);
-  const index = Number(data.index);
 
   // Kiểm tra course tồn tại
   const course = await prisma.course.findUnique({
@@ -42,12 +41,21 @@ export const createCourseTestService = async (
     throw new AppError("Tên bài kiểm tra đã tồn tại trong khóa học này", 400);
   }
 
+  // Tự động tính index: tìm max index hiện tại của course và + 1
+  const maxIndexTest = await prisma.courseTest.findFirst({
+    where: { courseId },
+    orderBy: { index: "desc" },
+    select: { index: true },
+  });
+
+  const newIndex = maxIndexTest ? maxIndexTest.index + 1 : 1;
+
   try {
     const courseTest = await prisma.courseTest.create({
       data: {
         courseId: courseId,
         name: data.name,
-        index: index,
+        index: newIndex,
         fileTest: fileTest,
         audioTest: audioTest || null,
       },
@@ -112,10 +120,10 @@ export const getAllCourseTestsService = async (
   }
 };
 
-// Lấy danh sách CourseTest theo courseId
+// Lấy danh sách CourseTest theo courseId (paginated)
 export const getCourseTestsByCourseIdService = async (
   courseId: number,
-): Promise<CourseTestResponse[]> => {
+): Promise<PagingData<CourseTestResponse>> => {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
   });
@@ -125,12 +133,22 @@ export const getCourseTestsByCourseIdService = async (
   }
 
   try {
+    const totalItems = await prisma.courseTest.count({
+      where: { courseId },
+    });
+
     const courseTests = await prisma.courseTest.findMany({
       where: { courseId },
       orderBy: { index: "asc" },
     });
 
-    return courseTests.map(toCourseTestResponse);
+    return {
+      data: courseTests.map(toCourseTestResponse),
+      page: 1,
+      limit: courseTests.length,
+      totalPages: 1,
+      totalItems,
+    };
   } catch (error) {
     throw new AppError(
       "Lỗi khi lấy danh sách bài kiểm tra theo khóa học: " +

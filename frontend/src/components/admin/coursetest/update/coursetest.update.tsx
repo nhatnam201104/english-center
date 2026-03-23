@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
   Card,
@@ -32,6 +32,7 @@ const CoursetestUpdate = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [existingFileTest, setExistingFileTest] = useState<string>("");
   const [existingAudioTest, setExistingAudioTest] = useState<string>("");
+  const [courseId, setCourseId] = useState<number | null>(null);
 
   const {
     register,
@@ -74,6 +75,7 @@ const CoursetestUpdate = () => {
         if (response.success && response.data) {
           // Set all values including courseId
           setValue("courseId", response.data.courseId);
+          setCourseId(response.data.courseId);
           setValue("name", response.data.name);
           setValue("index", response.data.index);
           if (response.data.fileTest) {
@@ -85,7 +87,7 @@ const CoursetestUpdate = () => {
         }
       } catch {
         alert("Không thể tải thông tin bài kiểm tra!");
-        navigate("/admin/coursetest");
+        navigate("/admin/courses");
       } finally {
         setLoadingData(false);
       }
@@ -128,7 +130,11 @@ const CoursetestUpdate = () => {
       const response = await updateCoursetest(updateData);
       if (response.success) {
         alert("Cập nhật bài kiểm tra thành công!");
-        navigate("/admin/coursetest");
+        if (courseId) {
+          navigate(`/admin/coursetest?courseId=${courseId}`);
+        } else {
+          navigate("/admin/coursetest");
+        }
       } else {
         alert(response.message || "Cập nhật bài kiểm tra thất bại!");
       }
@@ -167,7 +173,13 @@ const CoursetestUpdate = () => {
             <Button
               variant="text"
               className="text-white hover:bg-white/10"
-              onClick={() => navigate("/admin/coursetest")}
+              onClick={() => {
+                if (courseId) {
+                  navigate(`/admin/coursetest?courseId=${courseId}`);
+                } else {
+                  navigate("/admin/coursetest");
+                }
+              }}
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </Button>
@@ -302,7 +314,13 @@ const CoursetestUpdate = () => {
             <div className="flex justify-end gap-4 pt-4">
               <Button
                 variant="outlined"
-                onClick={() => navigate("/admin/coursetest")}
+                onClick={() => {
+                  if (courseId) {
+                    navigate(`/admin/coursetest?courseId=${courseId}`);
+                  } else {
+                    navigate("/admin/coursetest");
+                  }
+                }}
                 disabled={loading}
               >
                 Hủy

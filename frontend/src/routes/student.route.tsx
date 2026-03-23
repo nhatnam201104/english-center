@@ -3,7 +3,6 @@ import { StudentLayout } from '../layouts/student/student.layout';
 import { Dashboard } from '../pages/student/Dashboard';
 import { Schedule } from '../pages/student/Schedule';
 import { Courses } from '../pages/student/Courses';
-import { Grades } from '../pages/student/Grades';
 import { Profile } from '../pages/student/Profile';
 import ScanQR from '../pages/student/ScanQR';
 import { RoleBasedRedirect } from '../components/common/RoleBasedRedirect';
@@ -32,10 +31,6 @@ const StudentRoutes: RouteObject = {
     {
       path: 'courses/:id',
       element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><CourseDetail /></>,
-    },
-    {
-      path: 'grades',
-      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><Grades /></>,
     },
     {
       path: 'profile',

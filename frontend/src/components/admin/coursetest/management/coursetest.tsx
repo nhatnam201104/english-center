@@ -9,9 +9,8 @@ import {
 } from "@material-tailwind/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import type { CourseTest } from "../../../../types/coursetest/response";
-import type { GetCourseTestRequest } from "../../../../types/coursetest/request";
 import {
-  getAllCoursetests,
+  getCourseTestsByCourseId,
   deleteCoursetest,
 } from "../../../../services/coursetest.service";
 import CoursetestFilter from "./coursetest.filter";
@@ -22,6 +21,13 @@ const CoursetestManagement = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const courseIdParam = searchParams.get("courseId");
+
+  // Redirect to courses if no courseId is provided
+  useEffect(() => {
+    if (!courseIdParam) {
+      navigate("/admin/courses");
+    }
+  }, [courseIdParam, navigate]);
 
   const [coursetests, setCoursetests] = useState<CourseTest[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,16 +43,11 @@ const CoursetestManagement = () => {
   const courseId = courseIdParam ? parseInt(courseIdParam) : undefined;
 
   const loadCoursetests = useCallback(async () => {
+    if (!courseId) return;
+    
     try {
       setLoading(true);
-      const params: GetCourseTestRequest = {
-        page: currentPage,
-        limit: 10,
-      };
-      if (search) params.search = search;
-      if (courseId) params.courseId = courseId;
-
-      const response = await getAllCoursetests(params);
+      const response = await getCourseTestsByCourseId(courseId);
       setCoursetests(response.data?.data || []);
       setTotalPages(response.data?.totalPages || 1);
       setTotalItems(response.data?.totalItems || 0);
@@ -55,7 +56,7 @@ const CoursetestManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, search, courseId]);
+  }, [courseId]);
 
   useEffect(() => {
     loadCoursetests();

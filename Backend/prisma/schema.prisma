@@ -158,7 +158,6 @@ model StudentInfo {
   scheduleRegistrations ScheduleRegistration[]
   attendanceRecords     AttendanceRecord[]
   scoreCourses          ScoreCourse[]
-  grades                Grade[]
 
   @@index([userId])
   @@map("student_info")
@@ -902,7 +901,6 @@ model Course {
   tests                CourseTest[]
   studentRegistrations StudentRegisterCourse[]
   schedules            Schedule[]
-  grades               Grade[]
 
   @@map("course")
 }
@@ -1121,30 +1119,4 @@ model PaymentTransaction {
   @@index([studentUserId, status, finalizedAt])
   @@index([payerUserId, status, finalizedAt])
   @@map("payment_transaction")
-}
-model Grade {
-  id                  Int      @id @default(autoincrement())
-  studentId           Int
-  courseId            Int
-  participationScore  Float?   @default(0)
-  examScore           Float?   @default(0)
-  finalScore          Float?   @default(0)
-  status              GradeStatus @default(NOT_GRADED)
-  gradedAt            DateTime?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  student StudentInfo @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  course  Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@unique([studentId, courseId])
-  @@index([studentId])
-  @@index([courseId])
-  @@map("grade")
-}
-
-enum GradeStatus {
-  NOT_GRADED
-  PASS
-  FAIL
 }

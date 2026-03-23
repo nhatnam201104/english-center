@@ -7,11 +7,6 @@ export const createCourseTestSchema = z.object({
     })
     .min(1, "ID khóa học phải lớn hơn 0"),
   name: z.string().min(1, "Tên bài kiểm tra là bắt buộc"),
-  index: z
-    .number({
-      message: "Thứ tự bài kiểm tra phải là số",
-    })
-    .min(1, "Thứ tự bài kiểm tra phải lớn hơn 0"),
   fileTest: z
     .any()
     .refine((file) => file instanceof File || typeof file === "string", {
