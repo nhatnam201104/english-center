@@ -58,3 +58,14 @@ export const getEnrolledCourses = async (): Promise<ApiResponse<Course[]>> => {
   const response = await api.get<ApiResponse<Course[]>>("/students/me/courses");
   return response.data;
 };
+
+// Lấy danh sách khóa học ACTIVE có lịch học trong tương lai
+export const getActiveCoursesWithFutureSchedules = async (): Promise<
+  ApiResponse<Course[]>
+> => {
+  const response = await api.get<ApiResponse<Course[]>>(
+    "/courses/active-with-future-schedules",
+  );
+  return response.data;
+};
+

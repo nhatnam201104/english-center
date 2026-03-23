@@ -8,6 +8,8 @@ import { getStudentScheduleByCourseId } from '../../services/schedule.service';
 import { getStudentScoresByCourseService, type CourseScoreData } from '../../services/score-course.service';
 
 import { CourseHeader } from '../../components/course-detail/CourseHeader';
+import InstructorCard from '../../components/course-detail/InstructorCard';
+
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();

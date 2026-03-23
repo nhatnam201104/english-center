@@ -3,7 +3,7 @@ import type { ScheduleResponse } from "../../../../types/schedule/schedule.respo
 import StatCard from "./statCard";
 
 const TopStats = ({ schedule }: { schedule: ScheduleResponse }) => {
-  const price = schedule.course.price - (schedule.course.price*schedule.course.sale/100)
+  const price = schedule.course?.price - (schedule.course.price*schedule.course.sale/100);
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
       <StatCard
@@ -47,7 +47,7 @@ const TopStats = ({ schedule }: { schedule: ScheduleResponse }) => {
       <StatCard
         icon={<DoorOpen size={20} />}
         label="PHÒNG"
-        value={schedule.classroom?.name || "N/A"}
+        value={schedule.classroom?.name ? `${schedule.classroom.name}` : ""}
         color="text-blue-600"
       />
     </div>

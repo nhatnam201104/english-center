@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarClock, CheckCircle2, UserRound } from 'lucide-react';
 import { getStudentsByParentMeService } from '../../services/student.service';
-import { getSchedulesByStudentId, type StudentScheduleByIdResponse } from '../../services/schedule.service';
+import { getSchedulesByStudentId } from '../../services/schedule.service';
+import type { StudentScheduleByIdResponse } from '../../types/schedule/student-schedule.response';
 import {
   getStudentAttendanceForParent,
   type StudentAttendanceRecord,

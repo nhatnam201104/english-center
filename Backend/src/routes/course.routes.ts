@@ -8,6 +8,7 @@ import {
 import {
   createCourse,
   getAllCourses,
+  getActiveCoursesWithFutureSchedules,
   getCourseById,
   updateCourse,
   deleteCourse,
@@ -41,6 +42,15 @@ router.get(
   authenticate,
   authorize("ADMIN", "TEACHER", "STUDENT"),
   getAllCourses,
+);
+
+/**
+ * @route   GET /api/courses/active-with-future-schedules
+ * @desc    Lấy danh sách khóa học đang ACTIVE và có lịch học trong tương lai
+ */
+router.get(
+  "/active-with-future-schedules",
+  getActiveCoursesWithFutureSchedules,
 );
 
 /**

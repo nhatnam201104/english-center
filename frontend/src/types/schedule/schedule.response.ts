@@ -1,13 +1,9 @@
-import type { Course } from "../course/response";
 import type { TeacherResponse } from "../teacher/response";
 import type { ScheduleSessionResponse } from "./schedule-session.response";
 
 export interface ScheduleResponse {
   id: number;
-  teacher: {
-    id: number;
-    fullname: string;
-  };
+  teacher: TeacherResponse;
   classroom: {
     id: number;
     name: string;
@@ -17,6 +13,10 @@ export interface ScheduleResponse {
     name: string;
     type: string;
     skill: string;
+    price: number;
+    sale: number;
+    thumbnail: string;
+    totalSession: number;
   };
   totalSlot: number;
   totalRegister: number;

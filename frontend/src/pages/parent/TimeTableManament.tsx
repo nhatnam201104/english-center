@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { CalendarDays, GraduationCap, MapPin, User } from 'lucide-react';
 import { getStudentsByParentMeService } from '../../services/student.service';
-import { getSchedulesByStudentId, type StudentScheduleByIdResponse } from '../../services/schedule.service';
+import { getSchedulesByStudentId } from '../../services/schedule.service';
+import type { StudentScheduleByIdResponse } from '../../types/schedule/student-schedule.response';
 import formatDate from '../../helpers/formatDate';
 import type { StudentResponse } from '../../types/student/response';
 

@@ -49,8 +49,7 @@ const ScheduleDetailPage = () => {
         <TopStats schedule={schedule} />
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <CourseInfo schedule={schedule} />
-          <WeeklySchedule sessions={schedule.sessions} />
+          <WeeklySchedule sessions={schedule.sessions ?? []} />
           <TeacherInfo teacher={schedule.teacher} />
         </div>
 

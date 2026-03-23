@@ -1,12 +1,10 @@
 import { CalendarDays, Percent, Users } from "lucide-react";
 import formatPrice from "../../helpers/formatPrice";
 import { useNavigate } from "react-router";
-import type { ScheduleResponse } from "../../types/schedule/schedule.response";
-import formatDate from "../../helpers/formatDate";
+import type { Course } from "../../types/course/response";
 
-const ScheduleCard: React.FC<{ schedule: ScheduleResponse }> = ({ schedule }) => {
+const ScheduleCard: React.FC<{ course: Course }> = ({ course }) => {
   const navigate = useNavigate();
-  const { course } = schedule;
   const discountedPrice = course.price - (course.price * course.sale) / 100;
 
   return (
@@ -59,37 +57,6 @@ const ScheduleCard: React.FC<{ schedule: ScheduleResponse }> = ({ schedule }) =>
         <h3 className="text-lg font-bold text-gray-800 mb-4 line-clamp-2 group-hover:text-blue-600 transition-colors">
           {course.name}
         </h3>
-
-        {/* Schedule Grid Info */}
-        <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-2xl mb-6">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2 text-gray-500">
-              <CalendarDays className="w-4 h-4 text-blue-500" />
-              <span className="text-xs font-bold uppercase tracking-wide">
-                Khai giảng
-              </span>
-            </div>
-            <span className="text-base font-semibold text-gray-700">
-              {formatDate(schedule.startTime)}
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-1.5 border-l border-gray-200 pl-4">
-            <div className="flex items-center gap-2 text-gray-500">
-              <Users className="w-4 h-4 text-blue-500" />
-              <span className="text-xs font-bold uppercase tracking-wide">
-                Sĩ số
-              </span>
-            </div>
-            <span className="text-base font-semibold text-gray-700">
-              {schedule.totalRegister}/{schedule.totalSlot}
-              <span className="ml-1 text-xs text-gray-600 font-normal">
-                học viên
-              </span>
-            </span>
-          </div>
-        </div>
-
 
         {/* Price Section */}
         <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">

@@ -17,10 +17,8 @@ import {
   UserGroupIcon,
   CalendarDaysIcon,
   BanknotesIcon,
-  BellIcon,
   AcademicCapIcon,
   ClockIcon,
-  ChatBubbleLeftRightIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   DocumentTextIcon,
@@ -73,7 +71,6 @@ const ParentSidebar = () => {
       badge: { value: 2, color: "purple" },
       children: [
         { title: "Danh sách con", icon: UserGroupIcon, path: "/parent/children/list" },
-        { title: "Thêm con mới", icon: UserGroupIcon, path: "/parent/children/add" },
       ]
     },
     {
@@ -84,7 +81,6 @@ const ParentSidebar = () => {
       children: [
         { title: "Thời khóa biểu", icon: ClockIcon, path: "/parent/schedule/timetable" },
         { title: "Lịch thi", icon: DocumentTextIcon, path: "/parent/schedule/exams" },
-        { title: "Sự kiện sắp tới", icon: CalendarDaysIcon, path: "/parent/schedule/events" },
       ]
     },
     {
@@ -109,29 +105,6 @@ const ParentSidebar = () => {
         { title: "Hóa đơn học phí", icon: DocumentTextIcon, path: "/parent/tuition/invoices" },
         { title: "Lịch sử thanh toán", icon: ClockIcon, path: "/parent/tuition/history" },
         { title: "Phương thức thanh toán", icon: BanknotesIcon, path: "/parent/tuition/methods" },
-      ]
-    },
-    {
-      id: "notifications",
-      title: "Thông báo & Tin tức",
-      icon: BellIcon,
-      path: "/parent/notifications",
-      badge: { value: 5, color: "red" },
-      children: [
-        { title: "Thông báo chung", icon: BellIcon, path: "/parent/notifications/general" },
-        { title: "Tin nhắn từ giáo viên", icon: ChatBubbleLeftRightIcon, path: "/parent/notifications/messages" },
-        { title: "Tin tức trường", icon: DocumentTextIcon, path: "/parent/notifications/news" },
-      ]
-    },
-    {
-      id: "communication",
-      title: "Liên hệ & Hỗ trợ",
-      icon: ChatBubbleLeftRightIcon,
-      path: "/parent/communication",
-      children: [
-        { title: "Nhắn tin giáo viên", icon: ChatBubbleLeftRightIcon, path: "/parent/communication/teachers" },
-        { title: "Liên hệ nhà trường", icon: HeartIcon, path: "/parent/communication/school" },
-        { title: "Câu hỏi thường gặp", icon: DocumentTextIcon, path: "/parent/communication/faq" },
       ]
     },
     {

@@ -162,6 +162,39 @@ export const getAllCoursesService = async (
   }
 };
 
+// Lấy danh sách khóa học đang ACTIVE và có lịch học trong tương lai
+export const getActiveCoursesWithFutureSchedulesService = async (): Promise<
+  CourseResponse[]
+> => {
+  try {
+    const now = new Date();
+
+    const courses = await prisma.course.findMany({
+      where: {
+        status: "ACTIVE",
+        schedules: {
+          some: {
+            startTime: {
+              gt: now,
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return courses.map(toCourseResponse);
+  } catch (error) {
+    throw new AppError(
+      "Lỗi khi lấy danh sách khóa học đang hoạt động: " +
+        (error as Error).message,
+      500,
+    );
+  }
+};
+
 // Lấy khóa học theo ID
 export const getCourseByIdService = async (
   id: number,

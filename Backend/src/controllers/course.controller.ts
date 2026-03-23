@@ -3,6 +3,7 @@ import { CustomResponse } from "../config/response.custom";
 import {
   createCourseService,
   getAllCoursesService,
+  getActiveCoursesWithFutureSchedulesService,
   getCourseByIdService,
   updateCourseService,
   deleteCourseService,
@@ -46,6 +47,19 @@ export const getAllCourses = async (req: Request, res: Response) => {
   };
   const result = await getAllCoursesService(queryParams);
   return customRes.success(result, "Lấy danh sách khóa học thành công");
+};
+
+// Lấy danh sách khóa học đang ACTIVE và có lịch học trong tương lai
+export const getActiveCoursesWithFutureSchedules = async (
+  req: Request,
+  res: Response,
+) => {
+  const customRes = res as CustomResponse;
+  const result = await getActiveCoursesWithFutureSchedulesService();
+  return customRes.success(
+    result,
+    "Lấy danh sách khóa học đang hoạt động thành công",
+  );
 };
 
 // Lấy khóa học theo ID

@@ -1,4 +1,5 @@
 import { CreateScheduleRequest } from "../DTOS/Schedule/create-schedule.request";
+import { UpdateScheduleRequest } from "../DTOS/Schedule/update-schedule.request";
 import {
   SchedulePagingResponse,
   ScheduleResponse,
@@ -6,6 +7,7 @@ import {
 import { AppError } from "../middleware/errorHandler";
 import prisma from "../config/database";
 import { toScheduleResponse } from "../utils/Mapper/schedule.mapper";
+import { Prisma } from "@prisma/client";
 
 // Tạo schedule mới
 export const createScheduleService = async (
@@ -208,7 +210,7 @@ export const getUpcomingSchedulesService = async (): Promise<
   return schedules.map(toScheduleResponse);
 };
 
-// Lấy tất cả Schedule còn hiệu lực (startTime > hôm nay) + phân trang
+// Lấy tất cả Schedule chưa bắt đầu (startTime > hiện tại) + phân trang
 // Nếu có courseId thì lấy tất cả schedule của course đó
 export const getActiveSchedulesByCourseIdService = async ({
   page = 1,
@@ -222,11 +224,11 @@ export const getActiveSchedulesByCourseIdService = async ({
   const now = new Date();
   const skip = (page - 1) * limit;
 
-  // Nếu có courseId thì chỉ filter theo course (không filter thời gian)
-  // Nếu không có courseId thì filter theo thời gian (schedule đang hoạt động)
-  const where: any = courseId 
-    ? { coursesId: courseId }
-    : { startTime: { gt: now } };
+  // Luôn lọc schedule chưa bắt đầu theo thời gian, courseId chỉ là điều kiện bổ sung.
+  const where: Prisma.ScheduleWhereInput = {
+    startTime: { gt: now },
+    ...(courseId !== undefined ? { coursesId: courseId } : {}),
+  };
 
   const totalItems = await prisma.schedule.count({
     where,
@@ -323,5 +325,239 @@ export const getScheduleByIdService = async (
   }
 
   return toScheduleResponse(schedule);
+};
+
+// Cập nhật schedule (chỉ khi chưa có học sinh đăng ký)
+export const updateScheduleService = async (
+  id: number,
+  data: UpdateScheduleRequest,
+): Promise<ScheduleResponse> => {
+  const existingSchedule = await prisma.schedule.findUnique({
+    where: { id },
+    include: {
+      sessions: true,
+    },
+  });
+
+  if (!existingSchedule) {
+    throw new AppError("Không tìm thấy đợt mở lớp", 404);
+  }
+
+  const registrationCount = await prisma.scheduleRegistration.count({
+    where: { scheduleId: id },
+  });
+
+  if (registrationCount > 0) {
+    throw new AppError(
+      "Không thể cập nhật lịch học vì đã có học sinh đăng ký",
+      400,
+    );
+  }
+
+  const courseId = existingSchedule.coursesId;
+  const teacherId =
+    data.teacherId !== undefined ? Number(data.teacherId) : existingSchedule.teacherId;
+  const classroomId =
+    data.classroomId !== undefined
+      ? Number(data.classroomId)
+      : existingSchedule.classroomId;
+
+  const start = data.startTime
+    ? new Date(data.startTime)
+    : new Date(existingSchedule.startTime);
+  const end = data.endTime
+    ? new Date(data.endTime)
+    : new Date(existingSchedule.endTime);
+
+  const sessionsToUse =
+    data.sessions ??
+    existingSchedule.sessions.map((session) => ({
+      day: session.day,
+      startTime: session.startTime,
+      endTime: session.endTime,
+    }));
+
+  if (end <= start) {
+    throw new AppError("Thời gian kết thúc phải sau thời gian bắt đầu", 400);
+  }
+
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+  });
+
+  if (!course) {
+    throw new AppError("Khóa học không tồn tại", 404);
+  }
+
+  if (course.status !== "ACTIVE") {
+    throw new AppError(
+      `Không thể tạo lịch cho khóa học ở trạng thái ${course.status}`,
+      400,
+    );
+  }
+
+  const teacher = await prisma.teacherInfo.findUnique({
+    where: { id: teacherId },
+    include: { freeDays: true },
+  });
+
+  if (!teacher) {
+    throw new AppError("Giáo viên không tồn tại", 404);
+  }
+
+  const classroom = await prisma.classroom.findUnique({
+    where: { id: classroomId },
+  });
+
+  if (!classroom) {
+    throw new AppError("Phòng học không tồn tại", 404);
+  }
+
+  const teacherFreeDaySet = new Set(teacher.freeDays.map((d) => d.day));
+
+  const toMinutes = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  for (const session of sessionsToUse) {
+    if (teacherFreeDaySet.size > 0 && !teacherFreeDaySet.has(session.day)) {
+      const freeDaysList = [...teacherFreeDaySet].join(", ");
+      throw new AppError(
+        `Giáo viên không rảnh vào ${session.day}. Ngày rảnh của giáo viên: ${freeDaysList}`,
+        400,
+      );
+    }
+
+    if (toMinutes(session.endTime) <= toMinutes(session.startTime)) {
+      throw new AppError(
+        `Giờ kết thúc phải sau giờ bắt đầu (${session.day})`,
+        400,
+      );
+    }
+  }
+
+  const days = [...new Set(sessionsToUse.map((s) => s.day))];
+
+  const conflictSessions = await prisma.scheduleSession.findMany({
+    where: {
+      day: { in: days },
+      schedule: {
+        AND: [
+          {
+            id: { not: id },
+          },
+          {
+            startTime: { lte: end },
+            endTime: { gte: start },
+          },
+          {
+            OR: [{ teacherId }, { classroomId }],
+          },
+        ],
+      },
+    },
+    include: {
+      schedule: {
+        select: {
+          teacherId: true,
+          classroomId: true,
+        },
+      },
+    },
+  });
+
+  for (const session of sessionsToUse) {
+    for (const conflict of conflictSessions) {
+      if (conflict.day !== session.day) continue;
+
+      const isOverlap =
+        toMinutes(conflict.startTime) < toMinutes(session.endTime) &&
+        toMinutes(conflict.endTime) > toMinutes(session.startTime);
+
+      if (!isOverlap) continue;
+
+      if (conflict.schedule.teacherId === teacherId) {
+        throw new AppError(
+          `Giáo viên bị trùng lịch vào ${session.day} (${session.startTime} - ${session.endTime})`,
+          400,
+        );
+      }
+
+      if (conflict.schedule.classroomId === classroomId) {
+        throw new AppError(
+          `Phòng học bị trùng lịch vào ${session.day} (${session.startTime} - ${session.endTime})`,
+          400,
+        );
+      }
+    }
+  }
+
+  const updatedSchedule = await prisma.$transaction(async (tx) => {
+    if (data.sessions) {
+      await tx.scheduleSession.deleteMany({
+        where: { scheduleId: id },
+      });
+    }
+
+    return tx.schedule.update({
+      where: { id },
+      data: {
+        teacherId,
+        classroomId,
+        coursesId: courseId,
+        totalSlot: classroom.maxSize,
+        startTime: start,
+        endTime: end,
+        ...(data.sessions
+          ? {
+              sessions: {
+                create: data.sessions.map((s) => ({
+                  day: s.day,
+                  startTime: s.startTime,
+                  endTime: s.endTime,
+                })),
+              },
+            }
+          : {}),
+      },
+      include: {
+        course: true,
+        sessions: true,
+        classroom: true,
+        teacher: {
+          include: {
+            user: true,
+            freeDays: true,
+          },
+        },
+      },
+    });
+  });
+
+  return toScheduleResponse(updatedSchedule);
+};
+
+// Xóa schedule (chỉ khi chưa có học sinh đăng ký)
+export const deleteScheduleService = async (id: number): Promise<void> => {
+  const schedule = await prisma.schedule.findUnique({
+    where: { id },
+  });
+
+  if (!schedule) {
+    throw new AppError("Không tìm thấy đợt mở lớp", 404);
+  }
+
+  const registrationCount = await prisma.scheduleRegistration.count({
+    where: { scheduleId: id },
+  });
+
+  if (registrationCount > 0) {
+    throw new AppError("Không thể xóa lịch học vì đã có học sinh đăng ký", 400);
+  }
+
+  await prisma.schedule.delete({
+    where: { id },
+  });
 };
 

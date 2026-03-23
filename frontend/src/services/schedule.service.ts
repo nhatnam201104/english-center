@@ -1,77 +1,12 @@
 import type { ApiResponse } from "../types/api.type";
 import type { ScheduleListResponse, ScheduleResponse } from "../types/schedule/schedule.response";
+import type {
+  ScheduleStudentListResponse,
+  StudentSchedulesByStudentIdResponse,
+} from "../types/schedule/student-schedule.response";
 import axios from "../configs/axios.config";
 import type { CreateScheduleRequest } from "../types/schedule/create-schedule.request";
-import type { StudentResponse } from "../types/student/response";
-
-export interface ScheduleStudentListResponse {
-  data: StudentResponse[];
-  totalItems: number;
-  totalPages: number;
-  page: number;
-  limit: number;
-}
-
-export interface StudentScheduleSessionResponse {
-  id: number;
-  day: string;
-  startTime: string;
-  endTime: string;
-}
-
-export interface StudentScheduleByIdResponse {
-  id: number;
-  teacher?: {
-    id: number;
-    userId: number;
-    fullname: string;
-    email: string;
-    phone: string;
-    degree: string;
-    isTeaching: boolean;
-    avatar: string;
-    createdAt: string;
-    updatedAt: string;
-    days: string[];
-  };
-  classroom?: {
-    id: number;
-    name: string;
-    maxSize: number;
-    createdAt: string;
-    updatedAt: string;
-  };
-  totalSlot: number;
-  totalRegister: number;
-  startTime: string;
-  endTime: string;
-  createdAt: string;
-  updatedAt: string;
-  course?: {
-    id: number;
-    type: string;
-    name: string;
-    courseSkill: string;
-    status: string;
-    price: number;
-    sale: number;
-    thumbnail: string;
-    totalSession: number;
-    minBand: number;
-    maxBand: number;
-    createdAt: string;
-    updatedAt: string;
-  };
-  sessions: StudentScheduleSessionResponse[];
-}
-
-export interface StudentSchedulesByStudentIdResponse {
-  data: StudentScheduleByIdResponse[];
-  page: number;
-  limit: number;
-  totalItems: number;
-  totalPages: number;
-}
+import type { UpdateScheduleRequest } from "../types/schedule/update-schedule.request";
 
 // Tạo schedule + session schedule
 export const createSchedule = async (
@@ -106,6 +41,7 @@ export const getActiveSchedules = async (
   return response.data;
 };
 
+
 // Lấy tất cả Schedule + phân trang
 export const getAllSchedules = async (
   page = 1,
@@ -129,6 +65,26 @@ export const getScheduleById = async (
     `/schedule/${id}`
   );
 
+  return response.data;
+};
+
+// Admin: Cập nhật Schedule theo ID
+export const updateSchedule = async (
+  id: number,
+  data: UpdateScheduleRequest,
+): Promise<ApiResponse<ScheduleResponse>> => {
+  const response = await axios.put<ApiResponse<ScheduleResponse>>(
+    `/schedule/${id}`,
+    data,
+  );
+  return response.data;
+};
+
+// Admin: Xóa Schedule theo ID
+export const deleteSchedule = async (
+  id: number,
+): Promise<ApiResponse<null>> => {
+  const response = await axios.delete<ApiResponse<null>>(`/schedule/${id}`);
   return response.data;
 };
 

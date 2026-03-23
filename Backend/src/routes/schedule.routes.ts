@@ -1,7 +1,18 @@
 import { Router } from "express";
-import { createScheduleValidation } from "../validators/schedule.validator";
+import {
+  createScheduleValidation,
+  updateScheduleValidation,
+} from "../validators/schedule.validator";
 import { validate } from "../middleware/validation.middleware";
-import { createSchedule, getActiveSchedulesByCourseId, getAllSchedules, getScheduleById, getUpcomingSchedules } from "../controllers/schedule.controller";
+import {
+  createSchedule,
+  deleteSchedule,
+  getActiveSchedulesByCourseId,
+  getAllSchedules,
+  getScheduleById,
+  getUpcomingSchedules,
+  updateSchedule,
+} from "../controllers/schedule.controller";
 import { authenticate, authorize } from "../middleware/auth.middleware";
 import {
   registerSchedule,
@@ -119,6 +130,32 @@ router.get(
   authenticate,
   authorize("ADMIN"),
   getScheduleById
+);
+
+/**
+ * @route   PUT /api/schedules/:id
+ * @desc    Update schedule (chỉ khi chưa có học sinh đăng ký)
+ * @access  ADMIN
+ */
+router.put(
+  "/:id",
+  authenticate,
+  authorize("ADMIN"),
+  updateScheduleValidation,
+  validate,
+  updateSchedule,
+);
+
+/**
+ * @route   DELETE /api/schedules/:id
+ * @desc    Delete schedule (chỉ khi chưa có học sinh đăng ký)
+ * @access  ADMIN
+ */
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("ADMIN"),
+  deleteSchedule,
 );
 
 /**

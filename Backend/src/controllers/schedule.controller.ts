@@ -1,11 +1,19 @@
 import { Request, Response } from "express";
 import { CustomResponse } from "../config/response.custom";
-import { createScheduleService, getActiveSchedulesByCourseIdService, getAllSchedulesService, getScheduleByIdService, getUpcomingSchedulesService } from "../services/schedule.service";
+import {
+  createScheduleService,
+  deleteScheduleService,
+  getActiveSchedulesByCourseIdService,
+  getAllSchedulesService,
+  getScheduleByIdService,
+  getUpcomingSchedulesService,
+  updateScheduleService,
+} from "../services/schedule.service";
 
 // Tạo lịch
 export const createSchedule = async (req: Request, res: Response) => {
   const customRes = res as CustomResponse;
-2
+
   const result = await createScheduleService(req.body);
 
   return customRes.success(result, "Tạo lịch học thành công");
@@ -69,5 +77,31 @@ export const getScheduleById = async (req: Request, res: Response) => {
   }
 
   return customRes.success(result, "Lấy chi tiết lịch học thành công");
+};
+
+// Cập nhật Schedule theo ID
+export const updateSchedule = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const id = Number(req.params.id);
+
+  if (isNaN(id)) {
+    return customRes.error("ID không hợp lệ", 400);
+  }
+
+  const result = await updateScheduleService(id, req.body);
+  return customRes.success(result, "Cập nhật lịch học thành công");
+};
+
+// Xóa Schedule theo ID
+export const deleteSchedule = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const id = Number(req.params.id);
+
+  if (isNaN(id)) {
+    return customRes.error("ID không hợp lệ", 400);
+  }
+
+  await deleteScheduleService(id);
+  return customRes.success(null, "Xóa lịch học thành công");
 };
 
