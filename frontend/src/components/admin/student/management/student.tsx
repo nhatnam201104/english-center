@@ -14,6 +14,7 @@ import {
   getAllStudentsService,
   deleteStudentService,
 } from "../../../../services/student.service";
+import { useDebounce } from "../../../../helpers/useDebounce";
 import StudentFilter from "./student.filter";
 import StudentTable from "./student.table";
 import StudentPagination from "./student.pagination";
@@ -42,6 +43,12 @@ const StudentManagement = () => {
   const [minScoreSw, setMinScoreSw] = useState("");
   const [maxScoreSw, setMaxScoreSw] = useState("");
 
+  const debouncedSearch = useDebounce(search);
+  const debouncedMinScoreRl = useDebounce(minScoreRl);
+  const debouncedMaxScoreRl = useDebounce(maxScoreRl);
+  const debouncedMinScoreSw = useDebounce(minScoreSw);
+  const debouncedMaxScoreSw = useDebounce(maxScoreSw);
+
   const loadStudents = useCallback(async () => {
     try {
       setLoading(true);
@@ -49,24 +56,24 @@ const StudentManagement = () => {
         page: currentPage,
         limit: 10,
       };
-      if (search) params.search = search;
-      if (minScoreRl) params.minScoreRl = Number(minScoreRl);
-      if (maxScoreRl) params.maxScoreRl = Number(maxScoreRl);
-      if (minScoreSw) params.minScoreSw = Number(minScoreSw);
-      if (maxScoreSw) params.maxScoreSw = Number(maxScoreSw);
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (debouncedMinScoreRl) params.minScoreRl = Number(debouncedMinScoreRl);
+      if (debouncedMaxScoreRl) params.maxScoreRl = Number(debouncedMaxScoreRl);
+      if (debouncedMinScoreSw) params.minScoreSw = Number(debouncedMinScoreSw);
+      if (debouncedMaxScoreSw) params.maxScoreSw = Number(debouncedMaxScoreSw);
 
       const response = await getAllStudentsService(params);
       if (response.success && response.data) {
         setStudents(response.data.data);
-        setTotalPages(response.data.pagination.totalPages);
-        setTotalItems(response.data.pagination.totalItems);
+        setTotalPages(response.data.totalPages);
+        setTotalItems(response.data.totalItems);
       }
     } catch (error: unknown) {
       console.error("Lỗi khi tải danh sách học sinh:", error);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, search, minScoreRl, maxScoreRl, minScoreSw, maxScoreSw]);
+  }, [currentPage, debouncedSearch, debouncedMinScoreRl, debouncedMaxScoreRl, debouncedMinScoreSw, debouncedMaxScoreSw]);
 
   useEffect(() => {
     loadStudents();

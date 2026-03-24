@@ -117,7 +117,7 @@ const CheckoutSummary = () => {
               <Typography variant="small">{parentData.fullname}</Typography>
               <Typography variant="small" color="gray">SĐT:</Typography>
               <Typography variant="small">{parentData.phone}</Typography>
-              {parentData.existingParentId && (
+              {"existingParentId" in parentData && parentData.existingParentId && (
                 <>
                   <Typography variant="small" color="gray">Trạng thái:</Typography>
                   <Typography variant="small" color="green">

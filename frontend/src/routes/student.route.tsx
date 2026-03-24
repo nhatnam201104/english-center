@@ -7,6 +7,8 @@ import { Profile } from '../pages/student/Profile';
 import ScanQR from '../pages/student/ScanQR';
 import { RoleBasedRedirect } from '../components/common/RoleBasedRedirect';
 import CourseDetail from '../pages/client/courseDetail';
+import CourseRegistration from '../pages/student/CourseRegistration';
+import StudentPaymentResult from '../pages/student/PaymentResult';
 
 const StudentRoutes: RouteObject = {
   element: <StudentLayout />,
@@ -31,6 +33,14 @@ const StudentRoutes: RouteObject = {
     {
       path: 'courses/:id',
       element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><CourseDetail /></>,
+    },
+    {
+      path: 'course-registration',
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><CourseRegistration /></>,
+    },
+    {
+      path: 'payment-result',
+      element: <><RoleBasedRedirect allowedRole="STUDENT" redirectTo="/student/dashboard" /><StudentPaymentResult /></>,
     },
     {
       path: 'profile',

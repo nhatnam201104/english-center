@@ -34,11 +34,22 @@ export interface AvailableSchedule {
     id: number;
     fullname: string;
   };
+  sessions?: Array<{
+    id: number;
+    day: string;
+    startTime: string;
+    endTime: string;
+  }>;
   startTime: string;
   endTime: string;
   totalSlot: number;
   occupied: number;
   available: number;
+}
+
+export interface StudentAvailableSchedulesResponse {
+  blockedSkills: string[];
+  schedules: AvailableSchedule[];
 }
 
 export interface CreateDraftResponse {

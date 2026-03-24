@@ -29,6 +29,7 @@ import {
   activateListening,
   activateReading,
 } from "../../../../services/entranceExamLR.service";
+import { useDebounce } from "../../../../helpers/useDebounce";
 import type { ErrorApiResponse } from "../../../../types/api.type";
 import ExamTable from "./exam.table";
 import CreateExamDialog from "./create-exam.dialog";
@@ -45,6 +46,7 @@ const EntranceExamLRManagement = () => {
   const [listeningTotalPages, setListeningTotalPages] = useState(1);
   const [listeningTotal, setListeningTotal] = useState(0);
   const [listeningSearch, setListeningSearch] = useState("");
+  const debouncedListeningSearch = useDebounce(listeningSearch);
 
   /*  Reading state  */
   const [readingExams, setReadingExams] = useState<ReadingExam[]>([]);
@@ -53,6 +55,7 @@ const EntranceExamLRManagement = () => {
   const [readingTotalPages, setReadingTotalPages] = useState(1);
   const [readingTotal, setReadingTotal] = useState(0);
   const [readingSearch, setReadingSearch] = useState("");
+  const debouncedReadingSearch = useDebounce(readingSearch);
 
   /*  Dialog state  */
   const [showCreate, setShowCreate] = useState(false);
@@ -62,7 +65,7 @@ const EntranceExamLRManagement = () => {
     try {
       setListeningLoading(true);
       const params: GetEntranceExamLRRequest = { page: listeningPage, limit: 10 };
-      if (listeningSearch) params.search = listeningSearch;
+      if (debouncedListeningSearch) params.search = debouncedListeningSearch;
       const res = await getAllListening(params);
       setListeningExams(res.data?.data || []);
       setListeningTotalPages(res.data?.totalPages || 1);
@@ -72,13 +75,13 @@ const EntranceExamLRManagement = () => {
     } finally {
       setListeningLoading(false);
     }
-  }, [listeningPage, listeningSearch]);
+  }, [listeningPage, debouncedListeningSearch]);
 
   const loadReading = useCallback(async () => {
     try {
       setReadingLoading(true);
       const params: GetEntranceExamLRRequest = { page: readingPage, limit: 10 };
-      if (readingSearch) params.search = readingSearch;
+      if (debouncedReadingSearch) params.search = debouncedReadingSearch;
       const res = await getAllReading(params);
       setReadingExams(res.data?.data || []);
       setReadingTotalPages(res.data?.totalPages || 1);
@@ -88,7 +91,7 @@ const EntranceExamLRManagement = () => {
     } finally {
       setReadingLoading(false);
     }
-  }, [readingPage, readingSearch]);
+  }, [readingPage, debouncedReadingSearch]);
 
   useEffect(() => { loadListening(); }, [loadListening]);
   useEffect(() => { loadReading(); }, [loadReading]);

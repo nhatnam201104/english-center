@@ -4,6 +4,7 @@ import type {
   ValidateTokenResponse,
   CheckParentResponse,
   AvailableSchedule,
+  StudentAvailableSchedulesResponse,
   CreateDraftResponse,
   CreatePaymentUrlResponse,
   EnrollmentStatusResponse,
@@ -48,6 +49,25 @@ export const createDraft = async (
 ): Promise<ApiResponse<CreateDraftResponse>> => {
   const response = await api.post<ApiResponse<CreateDraftResponse>>(
     `/enrollment/draft`,
+    data,
+  );
+  return response.data;
+};
+
+export const getStudentAvailableSchedules = async (): Promise<
+  ApiResponse<StudentAvailableSchedulesResponse>
+> => {
+  const response = await api.get<ApiResponse<StudentAvailableSchedulesResponse>>(
+    `/enrollment/student/schedules`,
+  );
+  return response.data;
+};
+
+export const createStudentDraft = async (
+  data: Omit<CreateEnrollmentDraftRequest, "token" | "candidateData">,
+): Promise<ApiResponse<CreateDraftResponse>> => {
+  const response = await api.post<ApiResponse<CreateDraftResponse>>(
+    `/enrollment/student/draft`,
     data,
   );
   return response.data;

@@ -36,10 +36,8 @@ export interface StudentResponse {
 
 export interface StudentListResponse {
   data: StudentResponse[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-  };
+  page: number;
+  limit: number;
+  totalPages: number;
+  totalItems: number;
 }

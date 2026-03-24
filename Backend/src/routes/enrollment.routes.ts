@@ -4,6 +4,7 @@ import {
   validateTokenParam,
   checkParentQuery,
   createDraftValidation,
+  createStudentDraftValidation,
   enrollmentStatusParam,
 } from "../validators/enrollment.validator";
 import {
@@ -11,8 +12,11 @@ import {
   checkParent,
   getAvailableSchedules,
   createDraft,
+  getStudentAvailableSchedules,
+  createStudentDraft,
   getEnrollmentStatus,
 } from "../controllers/enrollment.controller";
+import { authenticate, authorize } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -29,6 +33,24 @@ router.get("/schedules", getAvailableSchedules);
 
 // POST /api/enrollment/draft
 router.post("/draft", createDraftValidation, validate, createDraft);
+
+// GET /api/enrollment/student/schedules
+router.get(
+  "/student/schedules",
+  authenticate,
+  authorize("STUDENT"),
+  getStudentAvailableSchedules,
+);
+
+// POST /api/enrollment/student/draft
+router.post(
+  "/student/draft",
+  authenticate,
+  authorize("STUDENT"),
+  createStudentDraftValidation,
+  validate,
+  createStudentDraft,
+);
 
 // GET /api/enrollment/status/:txnRef
 router.get("/status/:txnRef", enrollmentStatusParam, validate, getEnrollmentStatus);

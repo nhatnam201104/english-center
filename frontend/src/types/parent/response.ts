@@ -1,4 +1,4 @@
-import { StudentResponse } from "../student/response";
+import type { StudentResponse } from "../student/response";
 
 export interface ParentResponse {
   id: number;
@@ -12,10 +12,8 @@ export interface ParentResponse {
 
 export interface ParentListResponse {
   data: ParentResponse[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-  };
+  page: number;
+  limit: number;
+  totalPages: number;
+  totalItems: number;
 }

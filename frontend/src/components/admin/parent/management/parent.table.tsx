@@ -12,6 +12,7 @@ import {
   unlinkStudentFromParentService,
 } from "../../../../services/parent.service";
 import { getAllStudentsService } from "../../../../services/student.service";
+import { useDebounce } from "../../../../helpers/useDebounce";
 import type { ParentResponse } from "../../../../types/parent/response";
 import type { StudentResponse } from "../../../../types/student/response";
 
@@ -31,46 +32,149 @@ interface ApiError {
 }
 
 const TABLE_HEAD = ["Họ Tên", "Email", "Số Điện Thoại", "Số Học Sinh", "Thao Tác"];
+const STUDENTS_PER_PAGE = 20;
 
 const ParentTable = ({ parents, loading, onDelete, onLinkedSuccess }: ParentTableProps) => {
   const navigate = useNavigate();
-  const [allStudents, setAllStudents] = useState<StudentResponse[]>([]);
+  const [studentOptions, setStudentOptions] = useState<StudentResponse[]>([]);
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentTotalPages, setStudentTotalPages] = useState(1);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [loadingMoreStudents, setLoadingMoreStudents] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedParent, setSelectedParent] = useState<ParentResponse | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [studentSearchKeyword, setStudentSearchKeyword] = useState("");
+  const debouncedStudentSearchKeyword = useDebounce(studentSearchKeyword);
   const [linking, setLinking] = useState(false);
   const [unlinkingStudentId, setUnlinkingStudentId] = useState<number | null>(null);
   const [modalError, setModalError] = useState("");
 
-  useEffect(() => {
-    const loadStudents = async () => {
-      try {
-        const response = await getAllStudentsService({ page: 1, limit: 500 });
-        setAllStudents(response.data?.data || []);
-      } catch (error) {
-        console.error("Lỗi khi tải danh sách học sinh:", error);
-      }
-    };
+  const linkedStudentIds = useMemo(
+    () => new Set((selectedParent?.students || []).map((student) => student.id)),
+    [selectedParent],
+  );
 
-    loadStudents();
-  }, []);
+  const fetchStudents = async (page: number, append: boolean) => {
+    try {
+      if (append) {
+        setLoadingMoreStudents(true);
+      } else {
+        setLoadingStudents(true);
+      }
+
+      const response = await getAllStudentsService({
+        page,
+        limit: STUDENTS_PER_PAGE,
+        search: debouncedStudentSearchKeyword.trim() || undefined,
+      });
+
+      const nextStudents = response.data?.data || [];
+
+      setStudentOptions((prevStudents) => {
+        if (!append) {
+          return nextStudents;
+        }
+
+        const merged = [...prevStudents, ...nextStudents];
+        const uniqueById = new Map<number, StudentResponse>();
+        merged.forEach((student) => uniqueById.set(student.id, student));
+        return Array.from(uniqueById.values());
+      });
+      setStudentPage(page);
+      setStudentTotalPages(response.data?.totalPages || 1);
+      setModalError("");
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách học sinh:", error);
+      setModalError("Không thể tải danh sách học sinh.");
+    } finally {
+      setLoadingStudents(false);
+      setLoadingMoreStudents(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isModalOpen || !selectedParent) {
+      return;
+    }
+
+    setStudentPage(1);
+    setStudentTotalPages(1);
+    fetchStudents(1, false);
+  }, [isModalOpen, selectedParent?.id, debouncedStudentSearchKeyword]);
 
   const availableStudents = useMemo(() => {
     if (!selectedParent) {
       return [];
     }
 
-    const linkedStudentIds = new Set((selectedParent.students || []).map((student) => student.id));
-    return allStudents.filter((student) => !linkedStudentIds.has(student.id));
-  }, [allStudents, selectedParent]);
+    return studentOptions.filter((student) => !linkedStudentIds.has(student.id));
+  }, [studentOptions, selectedParent, linkedStudentIds]);
+
+  const filteredAvailableStudents = useMemo(() => {
+    const keyword = studentSearchKeyword.trim().toLowerCase();
+    if (!keyword) {
+      return availableStudents;
+    }
+
+    return availableStudents.filter((student) => {
+      return (
+        student.fullname.toLowerCase().includes(keyword)
+        || student.email.toLowerCase().includes(keyword)
+        || student.phone.toLowerCase().includes(keyword)
+      );
+    });
+  }, [availableStudents, studentSearchKeyword]);
+
+  useEffect(() => {
+    if (!isModalOpen) {
+      return;
+    }
+
+    if (filteredAvailableStudents.length === 0) {
+      setSelectedStudentId("");
+      return;
+    }
+
+    const stillInFilteredList = filteredAvailableStudents.some(
+      (student) => String(student.id) === selectedStudentId,
+    );
+
+    if (!stillInFilteredList) {
+      setSelectedStudentId(String(filteredAvailableStudents[0].id));
+    }
+  }, [filteredAvailableStudents, isModalOpen, selectedStudentId]);
+
+  useEffect(() => {
+    if (!isModalOpen) {
+      return;
+    }
+
+    if (availableStudents.length === 0) {
+      setSelectedStudentId("");
+      return;
+    }
+
+    const isStillAvailable = availableStudents.some(
+      (student) => String(student.id) === selectedStudentId,
+    );
+
+    if (!isStillAvailable) {
+      setSelectedStudentId(String(availableStudents[0].id));
+    }
+  }, [availableStudents, isModalOpen, selectedStudentId]);
 
   const handleOpenLinkModal = (parent: ParentResponse) => {
     const linkedStudentIds = new Set((parent.students || []).map((student) => student.id));
-    const notLinkedStudents = allStudents.filter((student) => !linkedStudentIds.has(student.id));
+    const notLinkedStudents = studentOptions.filter((student) => !linkedStudentIds.has(student.id));
 
     setSelectedParent(parent);
     setSelectedStudentId(notLinkedStudents[0] ? String(notLinkedStudents[0].id) : "");
+    setStudentSearchKeyword("");
     setModalError("");
+    setStudentOptions([]);
+    setStudentPage(1);
+    setStudentTotalPages(1);
     setIsModalOpen(true);
   };
 
@@ -78,8 +182,14 @@ const ParentTable = ({ parents, loading, onDelete, onLinkedSuccess }: ParentTabl
     setIsModalOpen(false);
     setSelectedParent(null);
     setSelectedStudentId("");
+    setStudentSearchKeyword("");
+    setStudentOptions([]);
+    setStudentPage(1);
+    setStudentTotalPages(1);
     setModalError("");
     setUnlinkingStudentId(null);
+    setLoadingStudents(false);
+    setLoadingMoreStudents(false);
   };
 
   const handleLinkStudent = async () => {
@@ -100,7 +210,7 @@ const ParentTable = ({ parents, loading, onDelete, onLinkedSuccess }: ParentTabl
 
       const response = await linkStudentToParentService(selectedParent.id, studentId);
       if (response.success) {
-        const linkedStudent = allStudents.find((student) => student.id === studentId);
+        const linkedStudent = studentOptions.find((student) => student.id === studentId);
         if (linkedStudent) {
           const nextSelectedParent: ParentResponse = {
             ...selectedParent,
@@ -109,8 +219,9 @@ const ParentTable = ({ parents, loading, onDelete, onLinkedSuccess }: ParentTabl
           setSelectedParent(nextSelectedParent);
 
           const linkedIds = new Set((nextSelectedParent.students || []).map((student) => student.id));
-          const nextAvailable = allStudents.find((student) => !linkedIds.has(student.id));
+          const nextAvailable = studentOptions.find((student) => !linkedIds.has(student.id));
           setSelectedStudentId(nextAvailable ? String(nextAvailable.id) : "");
+          setStudentSearchKeyword("");
         }
 
         alert("Liên kết học sinh thành công!");
@@ -163,6 +274,25 @@ const ParentTable = ({ parents, loading, onDelete, onLinkedSuccess }: ParentTabl
     } finally {
       setUnlinkingStudentId(null);
     }
+  };
+
+  const handleStudentListScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget;
+
+    if (loadingStudents || loadingMoreStudents) {
+      return;
+    }
+
+    if (studentPage >= studentTotalPages) {
+      return;
+    }
+
+    const reachedBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 12;
+    if (!reachedBottom) {
+      return;
+    }
+
+    fetchStudents(studentPage + 1, true);
   };
 
   return (
@@ -265,23 +395,57 @@ const ParentTable = ({ parents, loading, onDelete, onLinkedSuccess }: ParentTabl
             </Typography>
 
             <div className="mt-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700">Chọn học sinh</label>
-              <select
-                value={selectedStudentId}
-                onChange={(event) => setSelectedStudentId(event.target.value)}
-                disabled={availableStudents.length === 0}
+              <label className="mb-1 block text-sm font-medium text-gray-700">Tìm học sinh để liên kết</label>
+              <input
+                type="text"
+                value={studentSearchKeyword}
+                onChange={(event) => setStudentSearchKeyword(event.target.value)}
+                placeholder="Nhập tên, email hoặc số điện thoại..."
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 outline-none transition-colors focus:border-purple-500"
-              >
-                {availableStudents.length === 0 ? (
-                  <option value="">Không còn học sinh chưa liên kết</option>
-                ) : (
-                  availableStudents.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.fullname} - {student.phone}
-                    </option>
-                  ))
-                )}
-              </select>
+              />
+
+              {loadingStudents ? (
+                <div className="mt-2 rounded-lg border border-gray-200 px-3 py-4 text-center text-sm text-gray-500">
+                  Đang tải danh sách học sinh...
+                </div>
+              ) : availableStudents.length === 0 ? (
+                <Typography variant="small" className="mt-2 text-gray-500">
+                  Không còn học sinh chưa liên kết.
+                </Typography>
+              ) : (
+                <div
+                  onScroll={handleStudentListScroll}
+                  className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-gray-200"
+                >
+                  {filteredAvailableStudents.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      Không tìm thấy học sinh phù hợp.
+                    </div>
+                  ) : (
+                    filteredAvailableStudents.map((student) => {
+                      const isSelected = String(student.id) === selectedStudentId;
+
+                      return (
+                        <button
+                          key={student.id}
+                          type="button"
+                          onClick={() => setSelectedStudentId(String(student.id))}
+                          className={`w-full border-b border-gray-100 px-3 py-2 text-left transition-colors last:border-b-0 ${isSelected ? "bg-purple-50" : "hover:bg-gray-50"}`}
+                        >
+                          <p className="text-sm font-medium text-gray-900">{student.fullname}</p>
+                          <p className="text-xs text-gray-600">{student.phone} • {student.email}</p>
+                        </button>
+                      );
+                    })
+                  )}
+
+                  {loadingMoreStudents ? (
+                    <div className="px-3 py-2 text-center text-sm text-gray-500">
+                      Đang tải thêm học sinh...
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             <div className="mt-5 rounded-lg border border-gray-200 p-3">

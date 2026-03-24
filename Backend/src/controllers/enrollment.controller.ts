@@ -5,8 +5,11 @@ import {
   checkParentService,
   getAvailableSchedulesService,
   createDraftService,
+  getStudentAvailableSchedulesService,
+  createStudentDraftService,
   getEnrollmentStatusService,
 } from "../services/enrollment.service";
+import type { AuthRequest } from "../types/express.request";
 
 // ─── Validate Registration Token ───
 
@@ -38,6 +41,37 @@ export const getAvailableSchedules = async (req: Request, res: Response) => {
 export const createDraft = async (req: Request, res: Response) => {
   const customRes = res as CustomResponse;
   const result = await createDraftService(req.body);
+  return customRes.success(result, "Tạo đơn đăng ký thành công");
+};
+
+// ─── Student Self Enrollment: Get Available Schedules ───
+
+export const getStudentAvailableSchedules = async (
+  req: Request,
+  res: Response,
+) => {
+  const customRes = res as CustomResponse;
+  const authReq = req as AuthRequest;
+
+  if (!authReq.user?.id) {
+    return customRes.error("Không tìm thấy thông tin người dùng", 401);
+  }
+
+  const result = await getStudentAvailableSchedulesService(authReq.user.id);
+  return customRes.success(result, "Lấy danh sách lịch học thành công");
+};
+
+// ─── Student Self Enrollment: Create Draft ───
+
+export const createStudentDraft = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const authReq = req as AuthRequest;
+
+  if (!authReq.user?.id) {
+    return customRes.error("Không tìm thấy thông tin người dùng", 401);
+  }
+
+  const result = await createStudentDraftService(authReq.user.id, req.body);
   return customRes.success(result, "Tạo đơn đăng ký thành công");
 };
 

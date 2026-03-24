@@ -73,7 +73,16 @@ const buildAccessiblePaymentWhere = async (requester: PaymentRequester) => {
 export const createPaymentUrlService = async (
   draftId: number,
   ipAddr: string,
+  returnUrl?: string,
 ) => {
+  const clientUrl = process.env.CLIENT_URL;
+  const defaultReturnUrl = process.env.VNP_RETURN_URL!;
+
+  const resolvedReturnUrl =
+    returnUrl && clientUrl && returnUrl.startsWith(clientUrl)
+      ? returnUrl
+      : defaultReturnUrl;
+
   const draft = await prisma.enrollmentDraft.findUnique({
     where: { id: Number(draftId) },
     include: {
@@ -135,7 +144,7 @@ export const createPaymentUrlService = async (
       amount: draft.payment.amount,
       orderInfo: `Thanh toan khoa hoc ${draft.payment.txnRef}`,
       ipAddr,
-      returnUrl: process.env.VNP_RETURN_URL!,
+      returnUrl: resolvedReturnUrl,
     });
 
     return {
@@ -193,7 +202,7 @@ export const createPaymentUrlService = async (
     amount: payment.amount,
     orderInfo: `Thanh toan khoa hoc ${payment.txnRef}`,
     ipAddr,
-    returnUrl: process.env.VNP_RETURN_URL!,
+    returnUrl: resolvedReturnUrl,
   });
 
   return {

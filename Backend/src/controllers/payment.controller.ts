@@ -12,7 +12,7 @@ import {
 
 export const createPaymentUrl = async (req: Request, res: Response) => {
   const customRes = res as CustomResponse;
-  const { draftId } = req.body;
+  const { draftId, returnUrl } = req.body;
   const rawIp =
     (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
     req.socket.remoteAddress ||
@@ -20,7 +20,7 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   // VNPay requires IPv4 — map IPv6 loopback to IPv4 equivalent
   const ipAddr = rawIp === "::1" || rawIp === "::ffff:127.0.0.1" ? "127.0.0.1" : rawIp.replace(/^::ffff:/, "");
 
-  const result = await createPaymentUrlService(draftId, ipAddr);
+  const result = await createPaymentUrlService(draftId, ipAddr, returnUrl);
   return customRes.success(result, "Tạo link thanh toán thành công");
 };
 

@@ -14,6 +14,7 @@ import {
   getAllParentsService,
   deleteParentService,
 } from "../../../../services/parent.service";
+import { useDebounce } from "../../../../helpers/useDebounce";
 import ParentFilter from "./parent.filter";
 import ParentTable from "./parent.table";
 import ParentPagination from "./parent.pagination";
@@ -35,6 +36,7 @@ const ParentManagement = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
 
   const loadParents = useCallback(async () => {
     try {
@@ -44,20 +46,20 @@ const ParentManagement = () => {
         limit: 10,
         includeStudents: true,
       };
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
 
       const response = await getAllParentsService(params);
       if (response.success && response.data) {
         setParents(response.data.data);
-        setTotalPages(response.data.pagination.totalPages);
-        setTotalItems(response.data.pagination.totalItems);
+        setTotalPages(response.data.totalPages);
+        setTotalItems(response.data.totalItems);
       }
     } catch (error: unknown) {
       console.error("Lỗi khi tải danh sách phụ huynh:", error);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, search]);
+  }, [currentPage, debouncedSearch]);
 
   useEffect(() => {
     loadParents();

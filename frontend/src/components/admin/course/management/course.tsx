@@ -14,6 +14,7 @@ import {
   getAllCourses,
   deleteCourse,
 } from "../../../../services/course.service";
+import { useDebounce } from "../../../../helpers/useDebounce";
 import CourseFilter from "./course.filter";
 import CourseTable from "./course.table";
 import CoursePagination from "./course.pagination";
@@ -35,6 +36,11 @@ const CourseManagement = () => {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
+  const debouncedSearch = useDebounce(search);
+  const debouncedType = useDebounce(type);
+  const debouncedMinPrice = useDebounce(minPrice);
+  const debouncedMaxPrice = useDebounce(maxPrice);
+
   const loadCourses = useCallback(async () => {
     try {
       setLoading(true);
@@ -42,10 +48,10 @@ const CourseManagement = () => {
         page: currentPage,
         limit: 10,
       };
-      if (search) params.search = search;
-      if (type) params.type = type as "COURSE" | "TEST_PREPARATION";
-      if (minPrice) params.minPrice = Number(minPrice);
-      if (maxPrice) params.maxPrice = Number(maxPrice);
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (debouncedType) params.type = debouncedType as "COURSE" | "TEST_PREPARATION";
+      if (debouncedMinPrice) params.minPrice = Number(debouncedMinPrice);
+      if (debouncedMaxPrice) params.maxPrice = Number(debouncedMaxPrice);
 
       const response = await getAllCourses(params);
       setCourses(response.data?.data || []);
@@ -56,7 +62,7 @@ const CourseManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, search, type, minPrice, maxPrice]);
+  }, [currentPage, debouncedSearch, debouncedType, debouncedMinPrice, debouncedMaxPrice]);
 
   useEffect(() => {
     loadCourses();

@@ -8,10 +8,10 @@ export interface CandidateFormData {
 }
 
 export interface ParentFormData {
-  fullname: string;
-  email: string;
-  phone: string;
-  password: string;
+  fullname?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
   existingParentId?: number;
 }
 
@@ -22,6 +22,12 @@ export interface CreateEnrollmentDraftRequest {
   scheduleId: number;
 }
 
+export interface CreateStudentEnrollmentDraftRequest {
+  scheduleId: number;
+  parentData?: ParentFormData;
+}
+
 export interface CreatePaymentUrlRequest {
   draftId: number;
+  returnUrl?: string;
 }

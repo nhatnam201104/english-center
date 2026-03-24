@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 const PASSWORD = "Nam@12345";
+const BULK_SEED_COUNT = 100;
 
 // ============================================
 // HELPER FUNCTIONS FOR DATE CALCULATION
@@ -211,6 +212,93 @@ async function main() {
     },
   });
   console.log(`✅ ParentInfo created for ${parentUser.fullname}`);
+
+  // ============================================
+  // BULK CREATE 100 STUDENTS + 100 PARENTS
+  // ============================================
+
+  for (let i = 1; i <= BULK_SEED_COUNT; i++) {
+    const index = String(i).padStart(3, "0");
+
+    const bulkStudentEmail = `student${index}@seed.test`;
+    const bulkParentEmail = `parent${index}@seed.test`;
+
+    const bulkStudentPhone = `081${String(i).padStart(7, "0")}`;
+    const bulkParentPhone = `082${String(i).padStart(7, "0")}`;
+
+    const bulkStudentUser = await prisma.user.upsert({
+      where: { email: bulkStudentEmail },
+      update: {
+        fullname: `Học Sinh Seed ${index}`,
+        phone: bulkStudentPhone,
+        role: "STUDENT",
+      },
+      create: {
+        fullname: `Học Sinh Seed ${index}`,
+        email: bulkStudentEmail,
+        password: hashedPassword,
+        phone: bulkStudentPhone,
+        role: "STUDENT",
+      },
+    });
+
+    const bulkParentUser = await prisma.user.upsert({
+      where: { email: bulkParentEmail },
+      update: {
+        fullname: `Phụ Huynh Seed ${index}`,
+        phone: bulkParentPhone,
+        role: "PARENT",
+      },
+      create: {
+        fullname: `Phụ Huynh Seed ${index}`,
+        email: bulkParentEmail,
+        password: hashedPassword,
+        phone: bulkParentPhone,
+        role: "PARENT",
+      },
+    });
+
+    const bulkStudentInfo = await prisma.studentInfo.upsert({
+      where: { userId: bulkStudentUser.id },
+      update: {
+        dob: new Date("2006-01-01"),
+        cccd: `30${String(i).padStart(10, "0")}`,
+        scoreRl: 300 + (i % 600),
+        scoreSw: 300 + ((i * 3) % 600),
+      },
+      create: {
+        userId: bulkStudentUser.id,
+        dob: new Date("2006-01-01"),
+        cccd: `30${String(i).padStart(10, "0")}`,
+        scoreRl: 300 + (i % 600),
+        scoreSw: 300 + ((i * 3) % 600),
+      },
+    });
+
+    const bulkParentInfo = await prisma.parentInfo.upsert({
+      where: { userId: bulkParentUser.id },
+      update: {},
+      create: {
+        userId: bulkParentUser.id,
+      },
+    });
+
+    await prisma.parentStudent.upsert({
+      where: {
+        parentId_studentId: {
+          parentId: bulkParentInfo.id,
+          studentId: bulkStudentInfo.id,
+        },
+      },
+      update: {},
+      create: {
+        parentId: bulkParentInfo.id,
+        studentId: bulkStudentInfo.id,
+      },
+    });
+  }
+
+  console.log(`✅ Seeded ${BULK_SEED_COUNT} students and ${BULK_SEED_COUNT} parents (paired 1:1)`);
 
   // ============================================
   // CREATE 3 TEACHERS WITH FREE DAYS

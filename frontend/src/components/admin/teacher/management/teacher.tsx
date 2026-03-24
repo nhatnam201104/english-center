@@ -14,6 +14,7 @@ import {
   getAllTeachersService,
   deleteTeacherService,
 } from "../../../../services/teacher.service";
+import { useDebounce } from "../../../../helpers/useDebounce";
 import TeacherFilter from "./teacher.filter";
 import TeacherTable from "./teacher.table";
 import TeacherPagination from "./teacher.pagination";
@@ -45,6 +46,10 @@ const TeacherManagement = () => {
   const [degree, setDegree] = useState<string>("");
   const [isTeaching, setIsTeaching] = useState<string>("");
 
+  const debouncedSearch = useDebounce(search);
+  const debouncedDegree = useDebounce(degree);
+  const debouncedIsTeaching = useDebounce(isTeaching);
+
   const loadTeachers = useCallback(async () => {
     try {
       setLoading(true);
@@ -52,22 +57,22 @@ const TeacherManagement = () => {
         page: currentPage,
         limit: 10,
       };
-      if (search) params.search = search;
-      if (degree) params.degree = degree;
-      if (isTeaching) params.isTeaching = isTeaching === "true";
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (debouncedDegree) params.degree = debouncedDegree;
+      if (debouncedIsTeaching) params.isTeaching = debouncedIsTeaching === "true";
 
       const response = await getAllTeachersService(params);
       if (response.success && response.data) {
         setTeachers(response.data.data);
-        setTotalPages(response.data.pagination.totalPages);
-        setTotalItems(response.data.pagination.totalItems);
+        setTotalPages(response.data.totalPages);
+        setTotalItems(response.data.totalItems);
       }
     } catch (error) {
       console.error("Lỗi khi tải danh sách giáo viên:", error);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, search, degree, isTeaching]);
+  }, [currentPage, debouncedSearch, debouncedDegree, debouncedIsTeaching]);
 
   useEffect(() => {
     loadTeachers();

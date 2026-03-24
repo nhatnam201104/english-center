@@ -7,13 +7,20 @@ export interface CandidateFormData {
   password: string;
 }
 
-export interface ParentFormData {
+export interface NewParentFormData {
   fullname: string;
   email: string;
   phone: string;
   password: string;
-  existingParentId?: number;
 }
+
+export interface ExistingParentLinkData {
+  existingParentId: number;
+  fullname?: string;
+  phone?: string;
+}
+
+export type ParentFormData = NewParentFormData | ExistingParentLinkData;
 
 export interface CreateEnrollmentDraftRequest {
   token: string;
@@ -24,4 +31,5 @@ export interface CreateEnrollmentDraftRequest {
 
 export interface CreatePaymentUrlRequest {
   draftId: number;
+  returnUrl?: string;
 }

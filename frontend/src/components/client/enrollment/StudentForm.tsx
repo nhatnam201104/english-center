@@ -89,11 +89,9 @@ const StudentForm = () => {
     if (showParent) {
       if (foundParent) {
         setParentData({
-          fullname: foundParent.fullname,
-          email: "",
-          phone: foundParent.phone,
-          password: "",
           existingParentId: foundParent.parentId,
+          fullname: foundParent.fullname,
+          phone: foundParent.phone,
         });
       } else {
         const isValid = await parentForm.trigger();

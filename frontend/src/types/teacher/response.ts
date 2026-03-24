@@ -12,10 +12,8 @@
 
 export interface TeacherListResponse {
   data: TeacherResponse[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-  };
+  page: number;
+  limit: number;
+  totalPages: number;
+  totalItems: number;
 }

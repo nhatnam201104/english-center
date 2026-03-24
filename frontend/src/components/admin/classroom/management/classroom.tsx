@@ -14,6 +14,7 @@ import {
   getAllClassrooms,
   deleteClassroom,
 } from "../../../../services/classroom.service";
+import { useDebounce } from "../../../../helpers/useDebounce";
 import ClassroomFilter from "./classroom.filter";
 import ClassroomTable from "./classroom.table";
 import ClassroomPagination from "./classroom.pagination";
@@ -31,6 +32,7 @@ const ClassroomManagement = () => {
 
   // Filters
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
 
   const loadClassrooms = useCallback(async () => {
     try {
@@ -39,8 +41,8 @@ const ClassroomManagement = () => {
         page: currentPage,
         limit: 10,
       };
-      if (search) {
-        params.search = search;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
 
       const response = await getAllClassrooms(params);
@@ -54,7 +56,7 @@ const ClassroomManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, search]);
+  }, [currentPage, debouncedSearch]);
 
   useEffect(() => {
     loadClassrooms();
