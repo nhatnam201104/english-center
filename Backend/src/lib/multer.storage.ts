@@ -104,4 +104,25 @@ const entranceExamLRFileFilter = function (
   cb(null, true);
 };
 
-export { fileFilter, courseTestFileFilter, entranceExamLRFileFilter, storage };
+const speakingAudioFileFilter = function (
+  _req: Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+) {
+  // Accept only audio files for speaking exam
+  const allowedExtensions = [".mp3", ".wav", ".ogg", ".m4a", ".webm"];
+  if (
+    !allowedExtensions.some((ext) =>
+      file.originalname.toLowerCase().endsWith(ext),
+    )
+  ) {
+    return cb(
+      new Error(
+        "Only audio files (mp3, wav, ogg, m4a, webm) are allowed for speaking exam!",
+      ),
+    );
+  }
+  cb(null, true);
+};
+
+export { fileFilter, courseTestFileFilter, entranceExamLRFileFilter, speakingAudioFileFilter, storage };

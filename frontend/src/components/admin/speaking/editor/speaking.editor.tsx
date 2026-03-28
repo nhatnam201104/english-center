@@ -301,7 +301,8 @@ const SpeakingExamEditor: React.FC = () => {
                           )}
                         </div>
 
-                        <div className="flex items-center gap-4">
+                   {isEditing && (
+                           <div className="flex items-center gap-4">
                           <input
                             type="checkbox"
                             id="isActive"
@@ -312,6 +313,7 @@ const SpeakingExamEditor: React.FC = () => {
                             Kích hoạt đề thi
                           </label>
                         </div>
+                        )}
                       </div>
 
                       <div className="flex justify-end gap-4 pt-4">

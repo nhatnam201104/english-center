@@ -102,9 +102,18 @@ const ExamList: React.FC = () => {
         setToggleDialog({ open: false, examId: null, examName: "", isActive: false });
         loadExams();
       }
-    } catch (error) {
-      console.error("Error toggling exam status:", error);
-      alert("Lỗi khi thay đổi trạng thái đề thi");
+    } catch (error : unknown) {
+      console.error("Error toggling exam status:",error);
+        alert(
+        "Lỗi khi thay đổi trạng thái đề thi: " +
+          (error as { message?: string }).message,
+      );
+      setToggleDialog({
+        open: false,
+        examId: null,
+        examName: "",
+        isActive: false,
+      });
     }
   };
 

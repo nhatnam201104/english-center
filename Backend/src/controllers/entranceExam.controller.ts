@@ -13,6 +13,13 @@ import {
   cancelAttemptService,
   getResultsService,
   getResultByCccdService,
+  startSpeakingAttemptService,
+  loadSpeakingService,
+  saveSpeakingAnswerService,
+  submitSpeakingService,
+  loadWritingService,
+  saveWritingAnswerService,
+  submitWritingService,
 } from "../services/entranceExam.service";
 
 // ─── Admin: Entrance Exam List ───
@@ -104,4 +111,62 @@ export const getResultByCccd = async (req: Request, res: Response) => {
   const customRes = res as CustomResponse;
   const result = await getResultByCccdService(req.params.cccd as string);
   return customRes.success(result, "Lấy kết quả thành công");
+};
+
+// ─── Speaking & Writing Exam Methods ───
+
+export const startSpeakingAttempt = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const result = await startSpeakingAttemptService(req.admission);
+  return customRes.success(result, "Bắt đầu bài Speaking thành công");
+};
+
+export const loadSpeaking = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const result = await loadSpeakingService(req.admission);
+  return customRes.success(result, "Tải câu hỏi Speaking thành công");
+};
+
+export const saveSpeakingAnswer = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const { questionIndex, databaseQuestionId } = req.body;
+  
+  const audioPath = req.file?.filename || "";
+  const result = await saveSpeakingAnswerService(
+    req.admission,
+    parseInt(questionIndex, 10),
+    databaseQuestionId,
+    audioPath
+  );
+  return customRes.success(result, "Lưu câu trả lời Speaking thành công");
+};
+
+export const submitSpeaking = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const result = await submitSpeakingService(req.admission);
+  return customRes.success(result, "Nộp bài Speaking thành công");
+};
+
+export const loadWriting = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const result = await loadWritingService(req.admission);
+  return customRes.success(result, "Tải câu hỏi Writing thành công");
+};
+
+export const saveWritingAnswer = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const { questionIndex, databaseQuestionId, answer } = req.body;
+  const result = await saveWritingAnswerService(
+    req.admission,
+    parseInt(questionIndex, 10),
+    databaseQuestionId,
+    answer
+  );
+  return customRes.success(result, "Lưu câu trả lời Writing thành công");
+};
+
+export const submitWriting = async (req: Request, res: Response) => {
+  const customRes = res as CustomResponse;
+  const result = await submitWritingService(req.admission);
+  return customRes.success(result, "Nộp bài Writing thành công");
 };

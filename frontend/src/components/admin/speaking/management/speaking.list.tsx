@@ -104,7 +104,16 @@ const SpeakingExamList: React.FC = () => {
       }
     } catch (error) {
       console.error("Error toggling exam status:", error);
-      alert("Lỗi khi thay đổi trạng thái đề thi");
+        alert(
+        "Lỗi khi thay đổi trạng thái đề thi: " +
+          (error as { message?: string }).message,
+      );
+      setToggleDialog({
+        open: false,
+        examId: null,
+        examName: "",
+        isActive: false,
+      });
     }
   };
 

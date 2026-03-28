@@ -105,17 +105,28 @@ CREATE TABLE `admission` (
     `entranceExamId` INTEGER NULL,
     `email` VARCHAR(191) NOT NULL,
     `fullname` VARCHAR(191) NOT NULL,
+    `phone` VARCHAR(191) NOT NULL DEFAULT '',
+    `cccd` VARCHAR(191) NOT NULL DEFAULT '',
+    `accessToken` VARCHAR(191) NULL,
+    `status` ENUM('REGISTERED', 'PENDING', 'LISTENING', 'LISTENING_DONE', 'READING', 'SPEAKING', 'SPEAKING_DONE', 'WRITING', 'WRITING_DONE', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'REGISTERED',
     `entranceScore` INTEGER NOT NULL DEFAULT 0,
     `type` ENUM('READING_LISTENING', 'SPEAKING_WRITING') NOT NULL,
+    `scoreListening` INTEGER NOT NULL DEFAULT 0,
+    `scoreReading` INTEGER NOT NULL DEFAULT 0,
+    `scoreSpeaking` INTEGER NOT NULL DEFAULT 0,
+    `scoreWriting` INTEGER NOT NULL DEFAULT 0,
     `isDone` BOOLEAN NOT NULL DEFAULT false,
     `totalListening` INTEGER NOT NULL DEFAULT 0,
     `totalReading` INTEGER NOT NULL DEFAULT 0,
     `totalSpeaking` INTEGER NOT NULL DEFAULT 0,
     `totalWriting` INTEGER NOT NULL DEFAULT 0,
+    `expiresAt` DATETIME(3) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    UNIQUE INDEX `admission_accessToken_key`(`accessToken`),
     INDEX `admission_entranceExamId_idx`(`entranceExamId`),
+    INDEX `admission_cccd_idx`(`cccd`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -165,7 +176,7 @@ CREATE TABLE `admissions_writing` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `admissionId` INTEGER NOT NULL,
     `questionId` INTEGER NOT NULL,
-    `answer` VARCHAR(191) NULL,
+    `answer` TEXT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `admissions_writing_admissionId_idx`(`admissionId`),
@@ -193,7 +204,9 @@ CREATE TABLE `entrance_exam` (
 CREATE TABLE `entrance_exam_listening` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
-    `direction` VARCHAR(191) NOT NULL,
+    `direction` TEXT NOT NULL,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
+    `isActive` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -205,8 +218,10 @@ CREATE TABLE `entrance_exam_listening` (
 CREATE TABLE `part_one` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `listeningExamId` INTEGER NOT NULL,
-    `direction` VARCHAR(191) NOT NULL,
-    `totalQuestion` INTEGER NOT NULL DEFAULT 6,
+    `direction` TEXT NOT NULL,
+    `totalQuestion` INTEGER NOT NULL DEFAULT 2,
+    `quantityQuestionDone` INTEGER NOT NULL DEFAULT 0,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -232,8 +247,10 @@ CREATE TABLE `part_one_question` (
 CREATE TABLE `part_two` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `listeningExamId` INTEGER NOT NULL,
-    `direction` VARCHAR(191) NOT NULL,
-    `totalQuestion` INTEGER NOT NULL DEFAULT 25,
+    `direction` TEXT NOT NULL,
+    `totalQuestion` INTEGER NOT NULL DEFAULT 2,
+    `quantityQuestionDone` INTEGER NOT NULL DEFAULT 0,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -258,8 +275,10 @@ CREATE TABLE `part_two_question` (
 CREATE TABLE `part_three` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `listeningExamId` INTEGER NOT NULL,
-    `direction` VARCHAR(191) NOT NULL,
-    `totalQuestion` INTEGER NOT NULL DEFAULT 39,
+    `direction` TEXT NOT NULL,
+    `totalQuestion` INTEGER NOT NULL DEFAULT 6,
+    `quantityQuestionDone` INTEGER NOT NULL DEFAULT 0,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -302,8 +321,10 @@ CREATE TABLE `part_three_question` (
 CREATE TABLE `part_four` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `listeningExamId` INTEGER NOT NULL,
-    `direction` VARCHAR(191) NOT NULL,
-    `totalQuestion` INTEGER NOT NULL DEFAULT 30,
+    `direction` TEXT NOT NULL,
+    `totalQuestion` INTEGER NOT NULL DEFAULT 6,
+    `quantityQuestionDone` INTEGER NOT NULL DEFAULT 0,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -346,7 +367,9 @@ CREATE TABLE `part_four_question` (
 CREATE TABLE `entrance_exam_reading` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
-    `direction` VARCHAR(191) NOT NULL,
+    `direction` TEXT NOT NULL,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
+    `isActive` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -358,8 +381,10 @@ CREATE TABLE `entrance_exam_reading` (
 CREATE TABLE `part_five` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `readingExamId` INTEGER NOT NULL,
-    `direction` VARCHAR(191) NOT NULL,
-    `totalQuestion` INTEGER NOT NULL DEFAULT 30,
+    `direction` TEXT NOT NULL,
+    `totalQuestion` INTEGER NOT NULL DEFAULT 2,
+    `quantityQuestionDone` INTEGER NOT NULL DEFAULT 0,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -387,8 +412,10 @@ CREATE TABLE `part_five_question` (
 CREATE TABLE `part_six` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `readingExamId` INTEGER NOT NULL,
-    `direction` VARCHAR(191) NOT NULL,
-    `totalQuestion` INTEGER NOT NULL DEFAULT 16,
+    `direction` TEXT NOT NULL,
+    `totalQuestion` INTEGER NOT NULL DEFAULT 8,
+    `quantityQuestionDone` INTEGER NOT NULL DEFAULT 0,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -431,8 +458,10 @@ CREATE TABLE `part_six_question` (
 CREATE TABLE `part_seven` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `readingExamId` INTEGER NOT NULL,
-    `direction` VARCHAR(191) NOT NULL,
-    `totalQuestion` INTEGER NOT NULL DEFAULT 54,
+    `direction` TEXT NOT NULL,
+    `totalQuestion` INTEGER NOT NULL DEFAULT 4,
+    `quantityQuestionDone` INTEGER NOT NULL DEFAULT 0,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -499,6 +528,8 @@ CREATE TABLE `entrance_exam_reading_true_answer` (
 CREATE TABLE `entrance_exam_speaking` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
+    `isActive` BOOLEAN NOT NULL DEFAULT false,
     `totalQuestion` INTEGER NOT NULL DEFAULT 11,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -510,69 +541,74 @@ CREATE TABLE `entrance_exam_speaking` (
 -- CreateTable
 CREATE TABLE `speaking_one_two` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `index` INTEGER NOT NULL,
+    `index` INTEGER NOT NULL DEFAULT 1,
     `speakingExamId` INTEGER NOT NULL,
-    `questionOne` VARCHAR(191) NOT NULL,
-    `questionTwo` VARCHAR(191) NOT NULL,
+    `questionOne` TEXT NOT NULL,
+    `questionTwo` TEXT NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `speaking_one_two_speakingExamId_idx`(`speakingExamId`),
+    UNIQUE INDEX `speaking_one_two_speakingExamId_index_key`(`speakingExamId`, `index`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `speaking_three_four` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `index` INTEGER NOT NULL,
+    `index` INTEGER NOT NULL DEFAULT 2,
     `speakingExamId` INTEGER NOT NULL,
     `imageThree` VARCHAR(191) NOT NULL,
     `imageFour` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `speaking_three_four_speakingExamId_idx`(`speakingExamId`),
+    UNIQUE INDEX `speaking_three_four_speakingExamId_index_key`(`speakingExamId`, `index`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `speaking_five_to_seven` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `index` INTEGER NOT NULL,
+    `index` INTEGER NOT NULL DEFAULT 3,
     `speakingExamId` INTEGER NOT NULL,
     `passage` VARCHAR(191) NOT NULL,
-    `questionFive` VARCHAR(191) NOT NULL,
-    `questionSix` VARCHAR(191) NOT NULL,
-    `questionSeven` VARCHAR(191) NOT NULL,
+    `questionFive` TEXT NOT NULL,
+    `questionSix` TEXT NOT NULL,
+    `questionSeven` TEXT NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `speaking_five_to_seven_speakingExamId_idx`(`speakingExamId`),
+    UNIQUE INDEX `speaking_five_to_seven_speakingExamId_index_key`(`speakingExamId`, `index`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `speaking_eight_to_ten` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `index` INTEGER NOT NULL,
+    `index` INTEGER NOT NULL DEFAULT 4,
     `speakingExamId` INTEGER NOT NULL,
     `passage` VARCHAR(191) NOT NULL,
-    `questionEight` VARCHAR(191) NOT NULL,
-    `questionNine` VARCHAR(191) NOT NULL,
-    `questionTen` VARCHAR(191) NOT NULL,
+    `questionEight` TEXT NOT NULL,
+    `questionNine` TEXT NOT NULL,
+    `questionTen` TEXT NOT NULL,
     `image` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `speaking_eight_to_ten_speakingExamId_idx`(`speakingExamId`),
+    UNIQUE INDEX `speaking_eight_to_ten_speakingExamId_index_key`(`speakingExamId`, `index`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `speaking_eleven` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `index` INTEGER NOT NULL,
+    `index` INTEGER NOT NULL DEFAULT 5,
     `speakingExamId` INTEGER NOT NULL,
-    `question` VARCHAR(191) NOT NULL,
+    `question` TEXT NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `speaking_eleven_speakingExamId_idx`(`speakingExamId`),
+    UNIQUE INDEX `speaking_eleven_speakingExamId_index_key`(`speakingExamId`, `index`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -580,6 +616,8 @@ CREATE TABLE `speaking_eleven` (
 CREATE TABLE `entrance_exam_writing` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDone` BOOLEAN NOT NULL DEFAULT false,
+    `isActive` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -590,7 +628,7 @@ CREATE TABLE `entrance_exam_writing` (
 -- CreateTable
 CREATE TABLE `writing_one_to_five` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `index` INTEGER NOT NULL,
+    `index` INTEGER NOT NULL DEFAULT 1,
     `writingExamId` INTEGER NOT NULL,
     `imageOne` VARCHAR(191) NOT NULL,
     `imageTwo` VARCHAR(191) NOT NULL,
@@ -600,31 +638,34 @@ CREATE TABLE `writing_one_to_five` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `writing_one_to_five_writingExamId_idx`(`writingExamId`),
+    UNIQUE INDEX `writing_one_to_five_writingExamId_index_key`(`writingExamId`, `index`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `writing_six_seven` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `index` INTEGER NOT NULL,
+    `index` INTEGER NOT NULL DEFAULT 2,
     `writingExamId` INTEGER NOT NULL,
     `imageSix` VARCHAR(191) NOT NULL,
     `imageSeven` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `writing_six_seven_writingExamId_idx`(`writingExamId`),
+    UNIQUE INDEX `writing_six_seven_writingExamId_index_key`(`writingExamId`, `index`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `writing_eight` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `index` INTEGER NOT NULL,
+    `index` INTEGER NOT NULL DEFAULT 3,
     `writingExamId` INTEGER NOT NULL,
-    `questionEight` VARCHAR(191) NOT NULL,
+    `questionEight` TEXT NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `writing_eight_writingExamId_idx`(`writingExamId`),
+    UNIQUE INDEX `writing_eight_writingExamId_index_key`(`writingExamId`, `index`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -633,11 +674,12 @@ CREATE TABLE `course` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `type` ENUM('COURSE', 'TEST_PREPARATION') NOT NULL,
     `name` VARCHAR(191) NOT NULL,
-    `courseSkill` ENUM('READING_LISTENING', 'SPEAKING_WRITING', 'ALL') NOT NULL,
+    `courseSkill` ENUM('READING_LISTENING', 'SPEAKING_WRITING') NOT NULL,
     `status` ENUM('PLANNING', 'ACTIVE', 'INACTIVE') NOT NULL,
     `price` DECIMAL(10, 2) NOT NULL,
     `sale` INTEGER NOT NULL DEFAULT 0,
     `thumbnail` VARCHAR(191) NOT NULL,
+    `totalSession` INTEGER NOT NULL DEFAULT 0,
     `minBand` INTEGER NULL DEFAULT 0,
     `maxBand` INTEGER NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -721,11 +763,13 @@ CREATE TABLE `schedule_registration` (
 CREATE TABLE `schedule_attendance` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `scheduleDayId` INTEGER NOT NULL,
+    `date` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `qrCode` VARCHAR(191) NOT NULL,
     `totalAbsent` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `schedule_attendance_scheduleDayId_idx`(`scheduleDayId`),
+    INDEX `schedule_attendance_date_idx`(`date`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -754,6 +798,80 @@ CREATE TABLE `score_course` (
     INDEX `score_course_courseTestId_idx`(`courseTestId`),
     INDEX `score_course_studentId_idx`(`studentId`),
     UNIQUE INDEX `score_course_courseTestId_studentId_key`(`courseTestId`, `studentId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `registration_token` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `token` VARCHAR(36) NOT NULL,
+    `admissionId` INTEGER NOT NULL,
+    `expiresAt` DATETIME(3) NOT NULL,
+    `usedAt` DATETIME(3) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `registration_token_token_key`(`token`),
+    INDEX `registration_token_admissionId_idx`(`admissionId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `enrollment_draft` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `admissionId` INTEGER NOT NULL,
+    `registrationTokenId` INTEGER NOT NULL,
+    `candidateData` JSON NOT NULL,
+    `parentData` JSON NULL,
+    `scheduleId` INTEGER NULL,
+    `status` ENUM('DRAFT', 'PENDING_PAYMENT', 'COMPLETED', 'FAILED', 'EXPIRED') NOT NULL DEFAULT 'DRAFT',
+    `expiresAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `enrollment_draft_admissionId_idx`(`admissionId`),
+    INDEX `enrollment_draft_registrationTokenId_idx`(`registrationTokenId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `seat_reservation` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `enrollmentDraftId` INTEGER NOT NULL,
+    `scheduleId` INTEGER NOT NULL,
+    `status` ENUM('ACTIVE', 'EXPIRED', 'CONVERTED', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
+    `expiresAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `seat_reservation_enrollmentDraftId_key`(`enrollmentDraftId`),
+    INDEX `seat_reservation_scheduleId_status_expiresAt_idx`(`scheduleId`, `status`, `expiresAt`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `payment_transaction` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `enrollmentDraftId` INTEGER NOT NULL,
+    `studentUserId` INTEGER NULL,
+    `payerUserId` INTEGER NULL,
+    `txnRef` VARCHAR(100) NOT NULL,
+    `amount` INTEGER NOT NULL,
+    `status` ENUM('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED', 'EXPIRED') NOT NULL DEFAULT 'PENDING',
+    `vnpTransactionNo` VARCHAR(191) NULL,
+    `vnpBankCode` VARCHAR(191) NULL,
+    `vnpPayDate` VARCHAR(191) NULL,
+    `vnpResponseCode` VARCHAR(191) NULL,
+    `vnpCreateDate` VARCHAR(14) NOT NULL,
+    `ipnReceivedAt` DATETIME(3) NULL,
+    `finalizedAt` DATETIME(3) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `payment_transaction_enrollmentDraftId_key`(`enrollmentDraftId`),
+    UNIQUE INDEX `payment_transaction_txnRef_key`(`txnRef`),
+    INDEX `payment_transaction_enrollmentDraftId_idx`(`enrollmentDraftId`),
+    INDEX `payment_transaction_studentUserId_status_finalizedAt_idx`(`studentUserId`, `status`, `finalizedAt`),
+    INDEX `payment_transaction_payerUserId_status_finalizedAt_idx`(`payerUserId`, `status`, `finalizedAt`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -927,3 +1045,27 @@ ALTER TABLE `score_course` ADD CONSTRAINT `score_course_courseTestId_fkey` FOREI
 
 -- AddForeignKey
 ALTER TABLE `score_course` ADD CONSTRAINT `score_course_studentId_fkey` FOREIGN KEY (`studentId`) REFERENCES `student_info`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `registration_token` ADD CONSTRAINT `registration_token_admissionId_fkey` FOREIGN KEY (`admissionId`) REFERENCES `admission`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `enrollment_draft` ADD CONSTRAINT `enrollment_draft_admissionId_fkey` FOREIGN KEY (`admissionId`) REFERENCES `admission`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `enrollment_draft` ADD CONSTRAINT `enrollment_draft_registrationTokenId_fkey` FOREIGN KEY (`registrationTokenId`) REFERENCES `registration_token`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `seat_reservation` ADD CONSTRAINT `seat_reservation_enrollmentDraftId_fkey` FOREIGN KEY (`enrollmentDraftId`) REFERENCES `enrollment_draft`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `seat_reservation` ADD CONSTRAINT `seat_reservation_scheduleId_fkey` FOREIGN KEY (`scheduleId`) REFERENCES `schedule`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `payment_transaction` ADD CONSTRAINT `payment_transaction_enrollmentDraftId_fkey` FOREIGN KEY (`enrollmentDraftId`) REFERENCES `enrollment_draft`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `payment_transaction` ADD CONSTRAINT `payment_transaction_studentUserId_fkey` FOREIGN KEY (`studentUserId`) REFERENCES `user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `payment_transaction` ADD CONSTRAINT `payment_transaction_payerUserId_fkey` FOREIGN KEY (`payerUserId`) REFERENCES `user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

@@ -72,6 +72,9 @@ export const buildEntranceExamLRImageUrl = (
   if (!image) return null;
   return buildFileUrl(`uploads/entrance-exam-lr/${image}`);
 }
+
+
+
 export const buildWritingImageUrl = (
   filename: string | null,
 ): string | null => {
@@ -87,4 +90,14 @@ export const buildSpeakingImageUrl = (
 ): string | null => {
   if (!filename) return null;
   return buildFileUrl(`uploads/speaking/${filename}`);
+};
+
+/**
+ * Build URL cho audio answer của Speaking Exam (user upload)
+ */
+export const buildSpeakingAudioUrl = (
+  filename: string | null,
+): string | null => {
+  if (!filename) return null;
+  return buildFileUrl(`uploads/speaking-audio/${filename}`);
 };

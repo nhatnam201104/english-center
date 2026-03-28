@@ -10,6 +10,15 @@ import type {
   SaveAnswerRequest,
   ScoreResponse,
 } from "../types/entrance-exam/candidate.types";
+import type {
+  SpeakingQuestionsResponse,
+  SpeakingSubmitResponse,
+} from "../types/entrance-exam/speaking.types";
+import type {
+  WritingQuestionsResponse,
+  WritingAnswerRequest,
+  WritingSubmitResponse,
+} from "../types/entrance-exam/writing.types";
 
 export const registerCandidate = async (
   data: RegisterCandidateRequest,
@@ -91,6 +100,80 @@ export const cancelAttempt = async (
 ): Promise<ApiResponse<{ cancelled: boolean }>> => {
   const response = await api.post<ApiResponse<{ cancelled: boolean }>>(
     `/entrance-exam/attempt/${accessToken}/cancel`,
+  );
+  return response.data;
+};
+
+// ─── Speaking & Writing Exam Methods ───
+
+export const startSpeakingAttempt = async (
+  accessToken: string,
+): Promise<ApiResponse<{ started: boolean }>> => {
+  const response = await api.post<ApiResponse<{ started: boolean }>>(
+    `/entrance-exam/attempt/${accessToken}/speaking/start`,
+  );
+  return response.data;
+};
+
+export const loadSpeakingQuestions = async (
+  accessToken: string,
+): Promise<ApiResponse<SpeakingQuestionsResponse>> => {
+  const response = await api.get<ApiResponse<SpeakingQuestionsResponse>>(
+    `/entrance-exam/attempt/${accessToken}/speaking`,
+  );
+  return response.data;
+};
+
+export const saveSpeakingAnswer = async (
+  accessToken: string,
+  data: FormData,
+): Promise<ApiResponse<{ saved: boolean }>> => {
+  const response = await api.post<ApiResponse<{ saved: boolean }>>(
+    `/entrance-exam/attempt/${accessToken}/speaking/answer`,
+    data,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+  return response.data;
+};
+
+export const submitSpeaking = async (
+  accessToken: string,
+): Promise<ApiResponse<SpeakingSubmitResponse>> => {
+  const response = await api.post<ApiResponse<SpeakingSubmitResponse>>(
+    `/entrance-exam/attempt/${accessToken}/speaking/submit`,
+  );
+  return response.data;
+};
+
+export const loadWritingQuestions = async (
+  accessToken: string,
+): Promise<ApiResponse<WritingQuestionsResponse>> => {
+  const response = await api.get<ApiResponse<WritingQuestionsResponse>>(
+    `/entrance-exam/attempt/${accessToken}/writing`,
+  );
+  return response.data;
+};
+
+export const saveWritingAnswer = async (
+  accessToken: string,
+  data: WritingAnswerRequest,
+): Promise<ApiResponse<{ saved: boolean }>> => {
+  const response = await api.put<ApiResponse<{ saved: boolean }>>(
+    `/entrance-exam/attempt/${accessToken}/writing/answer`,
+    data,
+  );
+  return response.data;
+};
+
+export const submitWriting = async (
+  accessToken: string,
+): Promise<ApiResponse<WritingSubmitResponse>> => {
+  const response = await api.post<ApiResponse<WritingSubmitResponse>>(
+    `/entrance-exam/attempt/${accessToken}/writing/submit`,
   );
   return response.data;
 };

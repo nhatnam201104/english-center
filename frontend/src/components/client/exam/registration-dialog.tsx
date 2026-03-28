@@ -74,7 +74,13 @@ const RegistrationDialog = ({ open, onClose }: RegistrationDialogProps) => {
       toast.success("Đăng ký thành công! Đang chuyển đến bài thi...");
       reset();
       onClose();
-      navigate(`/exam/${startRes.data.accessToken}`);
+
+      // Route based on exam type
+      if (data.examType === "READING_LISTENING") {
+        navigate(`/exam/${startRes.data.accessToken}`);
+      } else if (data.examType === "SPEAKING_WRITING") {
+        navigate(`/exam/sw/${startRes.data.accessToken}`);
+      }
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "message" in err
@@ -95,12 +101,7 @@ const RegistrationDialog = ({ open, onClose }: RegistrationDialogProps) => {
   };
 
   return createPortal(
-    <Dialog 
-      open={open} 
-      handler={handleClose} 
-      size="md" 
-      className="z-[10000]"
-    >
+    <Dialog open={open} handler={handleClose} size="md" className="z-[10000]">
       <DialogHeader className="border-b pb-3">
         <Typography variant="h5" className="font-bold text-blue-gray-800">
           Đăng ký thi đầu vào TOEIC
@@ -177,7 +178,10 @@ const RegistrationDialog = ({ open, onClose }: RegistrationDialogProps) => {
 
             {/* Exam type selector */}
             <div>
-              <Typography variant="small" className="font-medium text-blue-gray-700 mb-2">
+              <Typography
+                variant="small"
+                className="font-medium text-blue-gray-700 mb-2"
+              >
                 Loại bài thi
               </Typography>
               <Controller
@@ -185,7 +189,7 @@ const RegistrationDialog = ({ open, onClose }: RegistrationDialogProps) => {
                 control={control}
                 render={({ field }) => (
                   <div className="grid grid-cols-2 gap-3">
-                    {([
+                    {[
                       {
                         value: "READING_LISTENING" as const,
                         label: "Listening & Reading",
@@ -196,34 +200,46 @@ const RegistrationDialog = ({ open, onClose }: RegistrationDialogProps) => {
                       {
                         value: "SPEAKING_WRITING" as const,
                         label: "Speaking & Writing",
-                        desc: "Nói & Viết (Sắp ra mắt)",
+                        desc: "Nói & Viết ",
                         icon: "✏️",
-                        disabled: true,
+                        disabled: false,
                       },
-                    ]).map((opt) => (
+                    ].map((opt) => (
                       <button
                         key={opt.value}
                         type="button"
                         disabled={opt.disabled}
-                        onClick={() => !opt.disabled && field.onChange(opt.value)}
+                        onClick={() =>
+                          !opt.disabled && field.onChange(opt.value)
+                        }
                         className={`relative flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all duration-200
                           ${
                             opt.disabled
                               ? "cursor-not-allowed opacity-40 border-gray-200 bg-gray-50"
                               : field.value === opt.value
-                              ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
-                              : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50 cursor-pointer"
+                                ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+                                : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50 cursor-pointer"
                           }`}
                       >
                         <span className="text-xl">{opt.icon}</span>
                         <span className="text-sm font-semibold text-blue-gray-800">
                           {opt.label}
                         </span>
-                        <span className="text-xs text-gray-500">{opt.desc}</span>
+                        <span className="text-xs text-gray-500">
+                          {opt.desc}
+                        </span>
                         {field.value === opt.value && !opt.disabled && (
                           <span className="absolute top-2 right-2 h-4 w-4 rounded-full bg-blue-500 flex items-center justify-center">
-                            <svg className="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <svg
+                              className="h-2.5 w-2.5 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </span>
                         )}
@@ -258,10 +274,10 @@ const RegistrationDialog = ({ open, onClose }: RegistrationDialogProps) => {
             Đăng ký & Bắt đầu thi
           </Button>
         </DialogFooter>
-        </form>
-      </Dialog>,
-      document.body
-    );
+      </form>
+    </Dialog>,
+    document.body,
+  );
 };
 
 export default RegistrationDialog;

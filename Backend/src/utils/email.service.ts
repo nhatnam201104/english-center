@@ -116,3 +116,27 @@ export const sendExamResultEmail = async (
     html,
   });
 };
+
+export const sendEmail = async (options: { to: string; subject: string; html: string }) => {
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASS;
+
+  if (!user || !pass) {
+    console.warn("[Email] EMAIL_USER or EMAIL_PASS is not configured");
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || "smtp.gmail.com",
+    port: Number(process.env.EMAIL_PORT) || 587,
+    secure: false,
+    auth: { user, pass },
+  });
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+  });
+};

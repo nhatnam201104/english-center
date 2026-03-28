@@ -39,3 +39,25 @@ export const violationValidation = [
     .notEmpty().withMessage("eventType không được để trống")
     .isIn(["TAB_SWITCH", "FULLSCREEN_EXIT", "FOCUS_LOST"]).withMessage("eventType không hợp lệ"),
 ];
+
+export const saveSpeakingAnswerValidation = [
+  body("questionIndex")
+    .notEmpty().withMessage("Câu hỏi không được để trống")
+    .isInt({ min:1 }).withMessage("questionIndex phải là số nguyên dương"),
+  body("databaseQuestionId")
+    .optional()
+    .isString().withMessage("databaseQuestionId phải là chuỗi"),
+];
+
+export const saveWritingAnswerValidation = [
+  body("questionIndex")
+    .notEmpty().withMessage("Câu hỏi không được để trống")
+    .isInt({ min: 1 }).withMessage("questionIndex phải là số nguyên dương"),
+  body("databaseQuestionId")
+    .optional()
+    .isString().withMessage("databaseQuestionId phải là chuỗi"),
+  body("answer")
+    .notEmpty().withMessage("Đáp án không được để trống")
+    .isString().withMessage("Đáp án phải là chuỗi")
+    .isLength({ min: 1, max: 5000 }).withMessage("Đáp án phải từ 1-5000 ký tự"),
+];

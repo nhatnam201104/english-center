@@ -2,10 +2,7 @@ import { AppError } from "../middleware/errorHandler";
 import prisma from "../config/database";
 import { SpeakingResponse } from "../DTOS/Speaking";
 import { PagingData } from "../DTOS/pagination";
-import {
-  CreateSpeakingRequest,
-  UpdateSpeakingRequest,
-} from "../DTOS/Speaking";
+import { CreateSpeakingRequest, UpdateSpeakingRequest } from "../DTOS/Speaking";
 import { deleteOldFiles } from "../utils/dataCoercion";
 import { buildSpeakingImageUrl } from "../utils/fileUrl";
 
@@ -25,7 +22,7 @@ export const createSpeakingService = async (
 
     return toSpeakingResponse(speaking);
   } catch (error) {
-    if ((error as any).code === 'P2002') {
+    if ((error as any).code === "P2002") {
       throw new AppError("Tên đề thi đã tồn tại", 400);
     }
     throw new AppError(
@@ -81,19 +78,19 @@ export const getSpeakingByIdService = async (
       where: { id },
       include: {
         speakingOneTwos: {
-          orderBy: { index: 'asc' },
+          orderBy: { index: "asc" },
         },
         speakingThreeFours: {
-          orderBy: { index: 'asc' },
+          orderBy: { index: "asc" },
         },
         speakingFiveToSevens: {
-          orderBy: { index: 'asc' },
+          orderBy: { index: "asc" },
         },
         speakingEightToTens: {
-          orderBy: { index: 'asc' },
+          orderBy: { index: "asc" },
         },
         speakingElevens: {
-          orderBy: { index: 'asc' },
+          orderBy: { index: "asc" },
         },
       },
     });
@@ -160,22 +157,35 @@ export const toggleActiveSpeakingService = async (
   try {
     const speaking = await prisma.entranceExamSpeaking.findUnique({
       where: { id },
+      include: {
+        speakingOneTwos: true,
+        speakingThreeFours: true,
+        speakingFiveToSevens: true,
+        speakingEightToTens: true,
+        speakingElevens: true,
+      },
     });
 
     if (!speaking) {
       throw new AppError("Không tìm thấy đề thi Speaking", 404);
     }
-
+    if (!checkIsdone(speaking)) {
+      throw new AppError(
+        "Không thể thay đổi trạng thái của đề thi chưa hoàn chỉnh",
+        400,
+      );
+    }
     const updated = await prisma.entranceExamSpeaking.update({
       where: { id },
-      data: { isActive: !speaking.isActive },
+      data: { isActive: !speaking.isActive, isDone: checkIsdone(speaking) },
     });
 
     return toSpeakingResponse(updated);
   } catch (error) {
     if (error instanceof AppError) throw error;
     throw new AppError(
-      "Lỗi khi cập nhật trạng thái đề thi Speaking: " + (error as Error).message,
+      "Lỗi khi cập nhật trạng thái đề thi Speaking: " +
+        (error as Error).message,
       500,
     );
   }
@@ -196,7 +206,9 @@ export const deleteSpeakingService = async (id: number): Promise<void> => {
       // Delete all related parts
       await tx.speakingOneTwo.deleteMany({ where: { speakingExamId: id } });
       await tx.speakingThreeFour.deleteMany({ where: { speakingExamId: id } });
-      await tx.speakingFiveToSeven.deleteMany({ where: { speakingExamId: id } });
+      await tx.speakingFiveToSeven.deleteMany({
+        where: { speakingExamId: id },
+      });
       await tx.speakingEightToTen.deleteMany({ where: { speakingExamId: id } });
       await tx.speakingEleven.deleteMany({ where: { speakingExamId: id } });
 
@@ -230,8 +242,12 @@ export const upsertSpeakingPart1Service = async (
     const result = await prisma.speakingOneTwo.upsert({
       where: { speakingExamId_index: { speakingExamId, index: 1 } },
       update: {
-        ...(data.questionOne !== undefined && { questionOne: data.questionOne }),
-        ...(data.questionTwo !== undefined && { questionTwo: data.questionTwo }),
+        ...(data.questionOne !== undefined && {
+          questionOne: data.questionOne,
+        }),
+        ...(data.questionTwo !== undefined && {
+          questionTwo: data.questionTwo,
+        }),
       },
       create: {
         speakingExamId,
@@ -250,11 +266,13 @@ export const upsertSpeakingPart1Service = async (
   }
 };
 
-export const getSpeakingPart1ByExamIdService = async (speakingExamId: number): Promise<any[]> => {
+export const getSpeakingPart1ByExamIdService = async (
+  speakingExamId: number,
+): Promise<any[]> => {
   try {
     const parts = await prisma.speakingOneTwo.findMany({
       where: { speakingExamId },
-      orderBy: { index: 'asc' },
+      orderBy: { index: "asc" },
     });
     return parts;
   } catch (error) {
@@ -322,17 +340,28 @@ export const upsertSpeakingPart2Service = async (
 
       // Delete old files only if they are being replaced
       const filesToDelete: string[] = [];
-      if (data.imageThree && existing.imageThree && data.imageThree !== existing.imageThree) {
+      if (
+        data.imageThree &&
+        existing.imageThree &&
+        data.imageThree !== existing.imageThree
+      ) {
         filesToDelete.push(existing.imageThree);
       }
-      if (data.imageFour && existing.imageFour && data.imageFour !== existing.imageFour) {
+      if (
+        data.imageFour &&
+        existing.imageFour &&
+        data.imageFour !== existing.imageFour
+      ) {
         filesToDelete.push(existing.imageFour);
       }
       await deleteOldFiles(filesToDelete);
     } else {
       // CREATE: Validate all required fields
       if (!data.imageThree || !data.imageFour) {
-        throw new AppError("Khi tạo mới, phải cung cấp cả 2 ảnh (Câu 3 và Câu 4)", 400);
+        throw new AppError(
+          "Khi tạo mới, phải cung cấp cả 2 ảnh (Câu 3 và Câu 4)",
+          400,
+        );
       }
       finalData = {
         imageThree: data.imageThree,
@@ -360,11 +389,13 @@ export const upsertSpeakingPart2Service = async (
   }
 };
 
-export const getSpeakingPart2ByExamIdService = async (speakingExamId: number): Promise<any[]> => {
+export const getSpeakingPart2ByExamIdService = async (
+  speakingExamId: number,
+): Promise<any[]> => {
   try {
     const parts = await prisma.speakingThreeFour.findMany({
       where: { speakingExamId },
-      orderBy: { index: 'asc' },
+      orderBy: { index: "asc" },
     });
     // Build URL for images
     return parts.map((part) => ({
@@ -392,11 +423,10 @@ export const deleteSpeakingPart2Service = async (
       throw new AppError(`Không tìm thấy Part 2 Speaking`, 404);
     }
 
-    const filesToDelete = [
-      existing.imageThree,
-      existing.imageFour,
-    ].filter(Boolean);
-    
+    const filesToDelete = [existing.imageThree, existing.imageFour].filter(
+      Boolean,
+    );
+
     await deleteOldFiles(filesToDelete);
 
     await prisma.speakingThreeFour.delete({
@@ -430,9 +460,15 @@ export const upsertSpeakingPart3Service = async (
       where: { speakingExamId_index: { speakingExamId, index: 3 } },
       update: {
         ...(data.passage !== undefined && { passage: data.passage }),
-        ...(data.questionFive !== undefined && { questionFive: data.questionFive }),
-        ...(data.questionSix !== undefined && { questionSix: data.questionSix }),
-        ...(data.questionSeven !== undefined && { questionSeven: data.questionSeven }),
+        ...(data.questionFive !== undefined && {
+          questionFive: data.questionFive,
+        }),
+        ...(data.questionSix !== undefined && {
+          questionSix: data.questionSix,
+        }),
+        ...(data.questionSeven !== undefined && {
+          questionSeven: data.questionSeven,
+        }),
       },
       create: {
         speakingExamId,
@@ -453,11 +489,13 @@ export const upsertSpeakingPart3Service = async (
   }
 };
 
-export const getSpeakingPart3ByExamIdService = async (speakingExamId: number): Promise<any[]> => {
+export const getSpeakingPart3ByExamIdService = async (
+  speakingExamId: number,
+): Promise<any[]> => {
   try {
     const parts = await prisma.speakingFiveToSeven.findMany({
       where: { speakingExamId },
-      orderBy: { index: 'asc' },
+      orderBy: { index: "asc" },
     });
     return parts;
   } catch (error) {
@@ -534,8 +572,17 @@ export const upsertSpeakingPart4Service = async (
       await deleteOldFiles(filesToDelete);
     } else {
       // CREATE: At least one field is required (image is optional)
-      if (!data.passage && !data.questionEight && !data.questionNine && !data.questionTen && !data.image) {
-        throw new AppError("Khi tạo mới, phải cung cấp ít nhất một trường dữ liệu", 400);
+      if (
+        !data.passage &&
+        !data.questionEight &&
+        !data.questionNine &&
+        !data.questionTen &&
+        !data.image
+      ) {
+        throw new AppError(
+          "Khi tạo mới, phải cung cấp ít nhất một trường dữ liệu",
+          400,
+        );
       }
       finalData = {
         passage: data.passage,
@@ -566,11 +613,13 @@ export const upsertSpeakingPart4Service = async (
   }
 };
 
-export const getSpeakingPart4ByExamIdService = async (speakingExamId: number): Promise<any[]> => {
+export const getSpeakingPart4ByExamIdService = async (
+  speakingExamId: number,
+): Promise<any[]> => {
   try {
     const parts = await prisma.speakingEightToTen.findMany({
       where: { speakingExamId },
-      orderBy: { index: 'asc' },
+      orderBy: { index: "asc" },
     });
     // Build URL for image
     return parts.map((part) => ({
@@ -649,11 +698,13 @@ export const upsertSpeakingPart5Service = async (
   }
 };
 
-export const getSpeakingPart5ByExamIdService = async (speakingExamId: number): Promise<any[]> => {
+export const getSpeakingPart5ByExamIdService = async (
+  speakingExamId: number,
+): Promise<any[]> => {
   try {
     const parts = await prisma.speakingEleven.findMany({
       where: { speakingExamId },
-      orderBy: { index: 'asc' },
+      orderBy: { index: "asc" },
     });
     return parts;
   } catch (error) {
@@ -724,4 +775,15 @@ function toSpeakingResponseWithParts(speaking: any): SpeakingResponse {
     })),
     speakingElevens: speaking.speakingElevens,
   };
+}
+
+function checkIsdone(speaking: any): boolean {
+  console.log("Checking if speaking exam is done:", speaking.speakingEightToTens);
+
+  const part1Done = speaking.speakingOneTwos.length > 0;
+  const part2Done = speaking.speakingThreeFours.length > 0;
+  const part3Done = speaking.speakingFiveToSevens.length > 0;
+  const part4Done = speaking.speakingEightToTens.length > 0;
+  const part5Done = speaking.speakingElevens.length > 0;
+  return part1Done && part2Done && part3Done && part4Done && part5Done;
 }

@@ -2,9 +2,12 @@ import { Router } from "express";
 import { validate } from "../middleware/validation.middleware";
 import { validateAttemptAccess } from "../middleware/attemptAccess.middleware";
 import { authenticate, authorize } from "../middleware/auth.middleware";
+import { uploadSpeakingExamAudio } from "../middleware/upload.middleware";
 import {
   registerCandidateValidation,
   saveAnswerValidation,
+  saveSpeakingAnswerValidation,
+  saveWritingAnswerValidation,
 } from "../validators/entranceExam.validator";
 import {
   getAllEntranceExams,
@@ -19,6 +22,13 @@ import {
   cancelAttempt,
   getResults,
   getResultByCccd,
+  startSpeakingAttempt,
+  loadSpeaking,
+  saveSpeakingAnswer,
+  submitSpeaking,
+  loadWriting,
+  saveWritingAnswer,
+  submitWriting,
 } from "../controllers/entranceExam.controller";
 
 const router = Router();
@@ -50,6 +60,28 @@ router.put(
 router.post("/attempt/:accessToken/listening/submit", validateAttemptAccess, submitListening);
 router.post("/attempt/:accessToken/reading/submit", validateAttemptAccess, submitReading);
 router.post("/attempt/:accessToken/cancel", validateAttemptAccess, cancelAttempt);
+
+// ─── Speaking & Writing Exam Endpoints ───
+router.post("/attempt/:accessToken/speaking/start", validateAttemptAccess, startSpeakingAttempt);
+router.get("/attempt/:accessToken/speaking", validateAttemptAccess, loadSpeaking);
+router.post(
+  "/attempt/:accessToken/speaking/answer",
+  validateAttemptAccess,
+  uploadSpeakingExamAudio,
+  saveSpeakingAnswerValidation,
+  validate,
+  saveSpeakingAnswer
+);
+router.post("/attempt/:accessToken/speaking/submit", validateAttemptAccess, submitSpeaking);
+router.get("/attempt/:accessToken/writing", validateAttemptAccess, loadWriting);
+router.put(
+  "/attempt/:accessToken/writing/answer",
+  validateAttemptAccess,
+  saveWritingAnswerValidation,
+  validate,
+  saveWritingAnswer
+);
+router.post("/attempt/:accessToken/writing/submit", validateAttemptAccess, submitWriting);
 
 // ─── Admin: Results ───
 router.get("/results", authenticate, authorize("ADMIN"), getResults);

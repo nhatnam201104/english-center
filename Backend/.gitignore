@@ -54,3 +54,5 @@ Thumbs.db
 /generated/prisma
 
 /uploads
+# Google Cloud credentials
+englishcenter-credential.json

@@ -7,6 +7,7 @@ import ParentRoutes from "./parent.route";
 import TeacherRoutes from "./teacher.route";
 import ExamPage from "../pages/client/exam.page";
 import StudentRoutes from "./student.route";
+import ExamSWPage from "../pages/client/exam-sw.page";
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
           {
             path: "exam/:accessToken",
             element: <ExamPage />,
+          },
+          {
+            path: "exam/sw/:accessToken",
+            element: <ExamSWPage />,
           },
         ],
       },

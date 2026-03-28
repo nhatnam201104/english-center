@@ -1,11 +1,14 @@
 // middlewares/upload.middleware.ts
 import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { Request, Response, NextFunction } from "express";
 import {
   storage,
   fileFilter,
   courseTestFileFilter,
   entranceExamLRFileFilter,
+  speakingAudioFileFilter,
 } from "../lib/multer.storage";
 
 // Giới hạn file size: 5MB cho images
@@ -45,6 +48,41 @@ export const uploadEntranceExamLR = multer({
     fileSize: 50 * 1024 * 1024, // 50MB
   },
 });
+
+// Upload cho Entrance Exam Speaking - chỉ hỗ trợ audio
+// Giới hạn file size: 10MB
+export const uploadSpeakingAudio = multer({
+  storage,
+  fileFilter: speakingAudioFileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+  },
+});
+
+// Upload cho Entrance Exam Speaking Exam - lưu vào uploads/speaking-audio/
+// Giới hạn file size: 10MB
+const speakingExamStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    const uploadPath = path.join(process.cwd(), "uploads", "speaking-audio");
+    // Create folder if not exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, Date.now() + ext);
+  },
+});
+
+export const uploadSpeakingExamAudio = multer({
+  storage: speakingExamStorage,
+  fileFilter: speakingAudioFileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+  },
+}).single("audio");
 /**
  * Middleware to merge uploaded files into request body
  * This must run AFTER multer but BEFORE validation

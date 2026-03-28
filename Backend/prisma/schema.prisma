@@ -25,6 +25,10 @@ enum AdmissionStatus {
   LISTENING
   LISTENING_DONE
   READING
+  SPEAKING
+  SPEAKING_DONE
+  WRITING
+  WRITING_DONE
   COMPLETED
   CANCELLED
 }
@@ -89,7 +93,6 @@ enum DayOfWeek {
   SUNDAY
 }
 
-
 model User {
   id        Int       @id @default(autoincrement())
   fullname  String
@@ -132,7 +135,7 @@ model TeacherFreeDay {
   id        Int       @id @default(autoincrement())
   teacherId Int
   day       DayOfWeek
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   teacher TeacherInfo @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
@@ -292,7 +295,7 @@ model AdmissionsWriting {
   id          Int      @id @default(autoincrement())
   admissionId Int
   questionId  Int
-  answer      String?
+  answer      String? @db.Text
   createdAt   DateTime @default(now())
 
   admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
@@ -303,62 +306,62 @@ model AdmissionsWriting {
 }
 
 model EntranceExam {
-  id              Int                 @id @default(autoincrement())
-  name            String
-  type            EntranceExamType // READING_LISTENING (120m) or SPEAKING_WRITING (80m)
-  time            Int                 // in minutes
+  id   Int              @id @default(autoincrement())
+  name String
+  type EntranceExamType // READING_LISTENING (120m) or SPEAKING_WRITING (80m)
+  time Int // in minutes
 
   // Relation fields - optional based on type
   listening       EntranceExamListening? @relation(fields: [listeningExamId], references: [id])
   listeningExamId Int?
-  
-  reading         EntranceExamReading?   @relation(fields: [readingExamId], references: [id])
-  readingExamId   Int?
-  
-  speaking        EntranceExamSpeaking?  @relation(fields: [speakingExamId], references: [id])
-  speakingExamId  Int?
-  
-  writing         EntranceExamWriting?   @relation(fields: [writingExamId], references: [id])
-  writingExamId   Int?
 
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  admissions      Admission[]
+  reading       EntranceExamReading? @relation(fields: [readingExamId], references: [id])
+  readingExamId Int?
+
+  speaking       EntranceExamSpeaking? @relation(fields: [speakingExamId], references: [id])
+  speakingExamId Int?
+
+  writing       EntranceExamWriting? @relation(fields: [writingExamId], references: [id])
+  writingExamId Int?
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  admissions Admission[]
 
   @@map("entrance_exam")
 }
 
-/*
-Start Listening
-*/
+/**
+ * Start Listening
+ */
 model EntranceExamListening {
-  id            Int      @id @default(autoincrement())
-  name          String   @unique
-  direction     String   @db.Text
-  isDone        Boolean  @default(false)
-  isActive      Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  direction String   @db.Text
+  isDone    Boolean  @default(false)
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  entranceExams  EntranceExam[]
-  partOnes       PartOne[]
-  partTwos       PartTwo[]
-  partThrees     PartThree[]
-  partFours      PartFour[]
-  trueAnswers    EntranceExamListeningTrueAnswer[]
+  entranceExams EntranceExam[]
+  partOnes      PartOne[]
+  partTwos      PartTwo[]
+  partThrees    PartThree[]
+  partFours     PartFour[]
+  trueAnswers   EntranceExamListeningTrueAnswer[]
 
   @@map("entrance_exam_listening")
 }
 
 model PartOne {
-  id              Int      @id @default(autoincrement())
-  listeningExamId Int
-  direction       String   @db.Text
-  totalQuestion   Int      @default(2)
+  id                   Int      @id @default(autoincrement())
+  listeningExamId      Int
+  direction            String   @db.Text
+  totalQuestion        Int      @default(2)
   quantityQuestionDone Int      @default(0)
-  isDone          Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isDone               Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   listeningExam EntranceExamListening @relation(fields: [listeningExamId], references: [id], onDelete: Cascade)
   questions     PartOneQuestion[]
@@ -368,29 +371,29 @@ model PartOne {
 }
 
 model PartOneQuestion {
-  id         Int      @id @default(autoincrement())
-  partOneId  Int
-  index      Int
-  audio      String
-  question   String
-  image      String
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  partOneId Int
+  index     Int
+  audio     String
+  question  String
+  image     String
+  createdAt DateTime @default(now())
 
-  partOne    PartOne   @relation(fields: [partOneId], references: [id], onDelete: Cascade)
+  partOne PartOne @relation(fields: [partOneId], references: [id], onDelete: Cascade)
 
   @@index([partOneId])
   @@map("part_one_question")
 }
 
 model PartTwo {
-  id              Int      @id @default(autoincrement())
-  listeningExamId Int
-  direction       String   @db.Text
-  totalQuestion   Int      @default(2)
+  id                   Int      @id @default(autoincrement())
+  listeningExamId      Int
+  direction            String   @db.Text
+  totalQuestion        Int      @default(2)
   quantityQuestionDone Int      @default(0)
-  isDone          Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isDone               Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   listeningExam EntranceExamListening @relation(fields: [listeningExamId], references: [id], onDelete: Cascade)
   questions     PartTwoQuestion[]
@@ -400,28 +403,28 @@ model PartTwo {
 }
 
 model PartTwoQuestion {
-  id         Int      @id @default(autoincrement())
-  partTwoId  Int
-  index      Int
-  audio      String
-  question   String @default("Make your answer on your answer sheet.")
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  partTwoId Int
+  index     Int
+  audio     String
+  question  String   @default("Make your answer on your answer sheet.")
+  createdAt DateTime @default(now())
 
-  partTwo    PartTwo   @relation(fields: [partTwoId], references: [id], onDelete: Cascade)
+  partTwo PartTwo @relation(fields: [partTwoId], references: [id], onDelete: Cascade)
 
   @@index([partTwoId])
   @@map("part_two_question")
 }
 
 model PartThree {
-  id              Int      @id @default(autoincrement())
-  listeningExamId Int
-  direction       String   @db.Text
-  totalQuestion   Int      @default(6)
+  id                   Int      @id @default(autoincrement())
+  listeningExamId      Int
+  direction            String   @db.Text
+  totalQuestion        Int      @default(6)
   quantityQuestionDone Int      @default(0)
-  isDone          Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isDone               Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   listeningExam EntranceExamListening @relation(fields: [listeningExamId], references: [id], onDelete: Cascade)
   groups        PartThreeGroup[]
@@ -431,16 +434,16 @@ model PartThree {
 }
 
 model PartThreeGroup {
-  id         Int      @id @default(autoincrement())
-  index      Int
-  partThreeId Int
-  audio      String
-  image     String?
+  id                Int      @id @default(autoincrement())
+  index             Int
+  partThreeId       Int
+  audio             String
+  image             String?
   fromQuestionIndex Int
   toQuestionIndex   Int
-  createdAt  DateTime @default(now())
+  createdAt         DateTime @default(now())
 
-  partThree PartThree @relation(fields: [partThreeId], references: [id], onDelete: Cascade)
+  partThree PartThree           @relation(fields: [partThreeId], references: [id], onDelete: Cascade)
   questions PartThreeQuestion[]
 
   @@index([partThreeId])
@@ -448,15 +451,15 @@ model PartThreeGroup {
 }
 
 model PartThreeQuestion {
-  id         Int      @id @default(autoincrement())
+  id               Int      @id @default(autoincrement())
   partThreeGroupId Int
-  index      Int
-  question   String
-  answerA    String
-  answerB    String
-  answerC    String
-  answerD    String
-  createdAt  DateTime @default(now())
+  index            Int
+  question         String
+  answerA          String
+  answerB          String
+  answerC          String
+  answerD          String
+  createdAt        DateTime @default(now())
 
   partThreeGroup PartThreeGroup @relation(fields: [partThreeGroupId], references: [id], onDelete: Cascade)
 
@@ -465,14 +468,14 @@ model PartThreeQuestion {
 }
 
 model PartFour {
-  id              Int      @id @default(autoincrement())
-  listeningExamId Int
-  direction       String   @db.Text
-  totalQuestion   Int      @default(6)
+  id                   Int      @id @default(autoincrement())
+  listeningExamId      Int
+  direction            String   @db.Text
+  totalQuestion        Int      @default(6)
   quantityQuestionDone Int      @default(0)
-  isDone          Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isDone               Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   listeningExam EntranceExamListening @relation(fields: [listeningExamId], references: [id], onDelete: Cascade)
   groups        PartFourGroup[]
@@ -482,16 +485,16 @@ model PartFour {
 }
 
 model PartFourGroup {
-  id         Int      @id @default(autoincrement())
-  index      Int
-  partFourId Int
-  audio      String
-  image     String?
+  id                Int      @id @default(autoincrement())
+  index             Int
+  partFourId        Int
+  audio             String
+  image             String?
   fromQuestionIndex Int
   toQuestionIndex   Int
-  createdAt  DateTime @default(now())
+  createdAt         DateTime @default(now())
 
-  partFour PartFour @relation(fields: [partFourId], references: [id], onDelete: Cascade)
+  partFour  PartFour           @relation(fields: [partFourId], references: [id], onDelete: Cascade)
   questions PartFourQuestion[]
 
   @@index([partFourId])
@@ -499,15 +502,15 @@ model PartFourGroup {
 }
 
 model PartFourQuestion {
-  id         Int      @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
   partFourGroupId Int
-  index      Int
-  question   String
-  answerA    String
-  answerB    String
-  answerC    String
-  answerD    String
-  createdAt  DateTime @default(now())
+  index           Int
+  question        String
+  answerA         String
+  answerB         String
+  answerC         String
+  answerD         String
+  createdAt       DateTime @default(now())
 
   partFourGroup PartFourGroup @relation(fields: [partFourGroupId], references: [id], onDelete: Cascade)
 
@@ -515,21 +518,21 @@ model PartFourQuestion {
   @@map("part_four_question")
 }
 
-/*
-End Listening
-*/
+/**
+ * End Listening
+ */
 
-/*
-Start Reading
-*/
+/**
+ * Start Reading
+ */
 model EntranceExamReading {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  direction   String   @db.Text
-  isDone      Boolean  @default(false)
-  isActive    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  direction String   @db.Text
+  isDone    Boolean  @default(false)
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   entranceExams EntranceExam[]
   partFives     PartFive[]
@@ -541,14 +544,14 @@ model EntranceExamReading {
 }
 
 model PartFive {
-  id            Int      @id @default(autoincrement())
-  readingExamId Int
-  direction     String   @db.Text
-  totalQuestion Int      @default(2)
+  id                   Int      @id @default(autoincrement())
+  readingExamId        Int
+  direction            String   @db.Text
+  totalQuestion        Int      @default(2)
   quantityQuestionDone Int      @default(0)
-  isDone        Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isDone               Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   readingExam EntranceExamReading @relation(fields: [readingExamId], references: [id], onDelete: Cascade)
   questions   PartFiveQuestion[]
@@ -566,7 +569,7 @@ model PartFiveQuestion {
   answerB    String
   answerC    String
   answerD    String
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 
   partFive PartFive @relation(fields: [partFiveId], references: [id], onDelete: Cascade)
 
@@ -575,14 +578,14 @@ model PartFiveQuestion {
 }
 
 model PartSix {
-  id            Int      @id @default(autoincrement())
-  readingExamId Int
-  direction     String   @db.Text
-  totalQuestion Int      @default(8)
+  id                   Int      @id @default(autoincrement())
+  readingExamId        Int
+  direction            String   @db.Text
+  totalQuestion        Int      @default(8)
   quantityQuestionDone Int      @default(0)
-  isDone        Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isDone               Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   readingExam EntranceExamReading @relation(fields: [readingExamId], references: [id], onDelete: Cascade)
   groups      PartSixGroup[]
@@ -592,16 +595,16 @@ model PartSix {
 }
 
 model PartSixGroup {
-  id         Int      @id @default(autoincrement())
-  index      Int
-  partSixId  Int
-  question   String?
-  image     String?
+  id                Int      @id @default(autoincrement())
+  index             Int
+  partSixId         Int
+  question          String?
+  image             String?
   fromQuestionIndex Int
   toQuestionIndex   Int
-  createdAt  DateTime @default(now())
+  createdAt         DateTime @default(now())
 
-  partSix PartSix @relation(fields: [partSixId], references: [id], onDelete: Cascade)
+  partSix   PartSix           @relation(fields: [partSixId], references: [id], onDelete: Cascade)
   questions PartSixQuestion[]
 
   @@index([partSixId])
@@ -609,15 +612,15 @@ model PartSixGroup {
 }
 
 model PartSixQuestion {
-  id         Int      @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   partSixGroupId Int
-  index      Int
-  question   String
-  answerA    String
-  answerB    String
-  answerC    String
-  answerD    String
-  createdAt  DateTime @default(now())
+  index          Int
+  question       String
+  answerA        String
+  answerB        String
+  answerC        String
+  answerD        String
+  createdAt      DateTime @default(now())
 
   partSixGroup PartSixGroup @relation(fields: [partSixGroupId], references: [id], onDelete: Cascade)
 
@@ -626,14 +629,14 @@ model PartSixQuestion {
 }
 
 model PartSeven {
-  id            Int      @id @default(autoincrement())
-  readingExamId Int
-  direction     String   @db.Text
-  totalQuestion Int      @default(4)
+  id                   Int      @id @default(autoincrement())
+  readingExamId        Int
+  direction            String   @db.Text
+  totalQuestion        Int      @default(4)
   quantityQuestionDone Int      @default(0)
-  isDone        Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isDone               Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   readingExam EntranceExamReading @relation(fields: [readingExamId], references: [id], onDelete: Cascade)
   groups      PartSevenGroup[]
@@ -643,16 +646,16 @@ model PartSeven {
 }
 
 model PartSevenGroup {
-  id         Int      @id @default(autoincrement())
-  index      Int
-  partSevenId Int
-  question   String?
-  image     String?
+  id                Int      @id @default(autoincrement())
+  index             Int
+  partSevenId       Int
+  question          String?
+  image             String?
   fromQuestionIndex Int
   toQuestionIndex   Int
-  createdAt  DateTime @default(now())
+  createdAt         DateTime @default(now())
 
-  partSeven PartSeven @relation(fields: [partSevenId], references: [id], onDelete: Cascade)
+  partSeven PartSeven           @relation(fields: [partSevenId], references: [id], onDelete: Cascade)
   questions PartSevenQuestion[]
 
   @@index([partSevenId])
@@ -660,15 +663,15 @@ model PartSevenGroup {
 }
 
 model PartSevenQuestion {
-  id         Int      @id @default(autoincrement())
+  id               Int      @id @default(autoincrement())
   partSevenGroupId Int
-  index      Int
-  question   String
-  answerA    String
-  answerB    String
-  answerC    String
-  answerD    String
-  createdAt  DateTime @default(now())
+  index            Int
+  question         String
+  answerA          String
+  answerB          String
+  answerC          String
+  answerD          String
+  createdAt        DateTime @default(now())
 
   partSevenGroup PartSevenGroup @relation(fields: [partSevenGroupId], references: [id], onDelete: Cascade)
 
@@ -676,67 +679,66 @@ model PartSevenQuestion {
   @@map("part_seven_question")
 }
 
+/**
+ * End Reading
+ */
 
-/*
-End Reading
-*/
-
-/*
-Reading and Listening answer sheet
-*/
+/**
+ * Reading and Listening answer sheet
+ */
 model EntranceExamListeningTrueAnswer {
-  id          Int      @id @default(autoincrement())
+  id                      Int                   @id @default(autoincrement())
   entranceExamListeningId Int
-  index      Int
-  answer      String
-  createdAt   DateTime @default(now())
-  entranceExamListening EntranceExamListening @relation(fields: [entranceExamListeningId], references: [id], onDelete: Cascade)
+  index                   Int
+  answer                  String
+  createdAt               DateTime              @default(now())
+  entranceExamListening   EntranceExamListening @relation(fields: [entranceExamListeningId], references: [id], onDelete: Cascade)
 
   @@index([entranceExamListeningId])
   @@map("entrance_exam_listening_true_answer")
 }
 
 model EntranceExamReadingTrueAnswer {
-  id          Int      @id @default(autoincrement())
+  id                    Int                 @id @default(autoincrement())
   entranceExamReadingId Int
-  index      Int
-  answer      String
-  createdAt   DateTime @default(now())
-  entranceExamReading EntranceExamReading @relation(fields: [entranceExamReadingId], references: [id], onDelete: Cascade)
+  index                 Int
+  answer                String
+  createdAt             DateTime            @default(now())
+  entranceExamReading   EntranceExamReading @relation(fields: [entranceExamReadingId], references: [id], onDelete: Cascade)
 
   @@index([entranceExamReadingId])
   @@map("entrance_exam_reading_true_answer")
 }
 
-/*
-Start Speaking
-*/
+/**
+ * Start Speaking
+ */
 model EntranceExamSpeaking {
   id            Int      @id @default(autoincrement())
   name          String   @unique
   isDone        Boolean  @default(false)
-  isActive     Boolean  @default(false)
+  isActive      Boolean  @default(false)
   totalQuestion Int      @default(11)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  entranceExams      EntranceExam[]
-  speakingOneTwos    SpeakingOneTwo[]
-  speakingThreeFours SpeakingThreeFour[]
+  entranceExams        EntranceExam[]
+  speakingOneTwos      SpeakingOneTwo[]
+  speakingThreeFours   SpeakingThreeFour[]
   speakingFiveToSevens SpeakingFiveToSeven[]
   speakingEightToTens  SpeakingEightToTen[]
-  speakingElevens    SpeakingEleven[]
+  speakingElevens      SpeakingEleven[]
 
   @@map("entrance_exam_speaking")
 }
 
 model SpeakingOneTwo {
-  id         Int      @id @default(autoincrement())
-  index      Int      @default(1)
+  id             Int      @id @default(autoincrement())
+  index          Int      @default(1)
   speakingExamId Int
-  questionOne   String
-  questionTwo   String
-  createdAt  DateTime @default(now())
+  questionOne    String @db.Text
+  questionTwo    String @db.Text
+  createdAt      DateTime @default(now())
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
@@ -746,12 +748,12 @@ model SpeakingOneTwo {
 }
 
 model SpeakingThreeFour {
-  id         Int      @id @default(autoincrement())
-  index      Int      @default(2)
+  id             Int      @id @default(autoincrement())
+  index          Int      @default(2)
   speakingExamId Int
   imageThree     String
-  imageFour     String
-  createdAt  DateTime @default(now())
+  imageFour      String
+  createdAt      DateTime @default(now())
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
@@ -761,14 +763,14 @@ model SpeakingThreeFour {
 }
 
 model SpeakingFiveToSeven {
-  id         Int      @id @default(autoincrement())
-  index      Int      @default(3)
+  id             Int      @id @default(autoincrement())
+  index          Int      @default(3)
   speakingExamId Int
-  passage     String
-  questionFive   String
-  questionSix    String
-  questionSeven  String
-  createdAt  DateTime @default(now())
+  passage        String
+  questionFive   String @db.Text
+  questionSix    String @db.Text
+  questionSeven  String @db.Text
+  createdAt      DateTime @default(now())
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
@@ -778,15 +780,15 @@ model SpeakingFiveToSeven {
 }
 
 model SpeakingEightToTen {
-  id         Int      @id @default(autoincrement())
-  index      Int      @default(4)
+  id             Int      @id @default(autoincrement())
+  index          Int      @default(4)
   speakingExamId Int
-  passage     String
-  questionEight   String
-  questionNine    String
-  questionTen  String
-  image String?
-  createdAt  DateTime @default(now())
+  passage        String
+  questionEight  String @db.Text
+  questionNine   String @db.Text
+  questionTen    String @db.Text
+  image          String?
+  createdAt      DateTime @default(now())
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
@@ -796,11 +798,11 @@ model SpeakingEightToTen {
 }
 
 model SpeakingEleven {
-  id         Int      @id @default(autoincrement())
-  index      Int    @default(5)
+  id             Int      @id @default(autoincrement())
+  index          Int      @default(5)
   speakingExamId Int
-  question   String
-  createdAt  DateTime @default(now())
+  question       String @db.Text
+  createdAt      DateTime @default(now())
 
   speakingExam EntranceExamSpeaking @relation(fields: [speakingExamId], references: [id], onDelete: Cascade)
 
@@ -809,22 +811,22 @@ model SpeakingEleven {
   @@map("speaking_eleven")
 }
 
-/*
-End Speaking
-*/
+/**
+ * End Speaking
+ */
 
-/*
-Start Writing
-*/
+/**
+ * Start Writing
+ */
 model EntranceExamWriting {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  isDone        Boolean  @default(false)
-  isActive     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  isDone    Boolean  @default(false)
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  entranceExams    EntranceExam[]
+  entranceExams     EntranceExam[]
   writingOneToFives WritingOneToFive[]
   writingSixSevens  WritingSixSeven[]
   writingEights     WritingEight[]
@@ -833,15 +835,15 @@ model EntranceExamWriting {
 }
 
 model WritingOneToFive {
-  id         Int      @id @default(autoincrement())
-  index      Int      @default(1)
+  id            Int      @id @default(autoincrement())
+  index         Int      @default(1)
   writingExamId Int
-  imageOne     String
-  imageTwo     String
-  imageThree     String
+  imageOne      String
+  imageTwo      String
+  imageThree    String
   imageFour     String
   imageFive     String
-  createdAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
 
   writingExam EntranceExamWriting @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
 
@@ -851,12 +853,12 @@ model WritingOneToFive {
 }
 
 model WritingSixSeven {
-  id         Int      @id @default(autoincrement())
-  index      Int      @default(2)
+  id            Int      @id @default(autoincrement())
+  index         Int      @default(2)
   writingExamId Int
-  imageSix     String
-  imageSeven     String
-  createdAt  DateTime @default(now())
+  imageSix      String
+  imageSeven    String
+  createdAt     DateTime @default(now())
 
   writingExam EntranceExamWriting @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
 
@@ -866,11 +868,11 @@ model WritingSixSeven {
 }
 
 model WritingEight {
-  id         Int      @id @default(autoincrement())
-  index      Int    @default(3)
+  id            Int      @id @default(autoincrement())
+  index         Int      @default(3)
   writingExamId Int
-  questionEight   String
-  createdAt  DateTime @default(now())
+  questionEight String @db.Text
+  createdAt     DateTime @default(now())
 
   writingExam EntranceExamWriting @relation(fields: [writingExamId], references: [id], onDelete: Cascade)
 
@@ -879,24 +881,24 @@ model WritingEight {
   @@map("writing_eight")
 }
 
-/*
-End Writing
-*/
+/**
+ * End Writing
+ */
 
 model Course {
-  id        Int      @id @default(autoincrement())
-  type      CourseType
-  name      String
-  courseSkill CourseSkill
-  status    CourseStatus
-  price     Decimal  @db.Decimal(10, 2)
-  sale      Int      @default(0)
-  thumbnail String
-  totalSession Int   @default(0)
-  minBand   Int?     @default(0)
-  maxBand   Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int          @id @default(autoincrement())
+  type         CourseType
+  name         String
+  courseSkill  CourseSkill
+  status       CourseStatus
+  price        Decimal      @db.Decimal(10, 2)
+  sale         Int          @default(0)
+  thumbnail    String
+  totalSession Int          @default(0)
+  minBand      Int?         @default(0)
+  maxBand      Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   tests                CourseTest[]
   studentRegistrations StudentRegisterCourse[]
@@ -945,11 +947,11 @@ model Schedule {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  teacher       TeacherInfo            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  classroom     Classroom              @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  course        Course                 @relation(fields: [coursesId], references: [id], onDelete: Cascade)
-  sessions      ScheduleSession[]
-  registrations ScheduleRegistration[]
+  teacher          TeacherInfo            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classroom        Classroom              @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  course           Course                 @relation(fields: [coursesId], references: [id], onDelete: Cascade)
+  sessions         ScheduleSession[]
+  registrations    ScheduleRegistration[]
   seatReservations SeatReservation[]
 
   @@index([teacherId])
@@ -1048,7 +1050,7 @@ model RegistrationToken {
   usedAt      DateTime?
   createdAt   DateTime  @default(now())
 
-  admission       Admission         @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  admission        Admission         @relation(fields: [admissionId], references: [id], onDelete: Cascade)
   enrollmentDrafts EnrollmentDraft[]
 
   @@index([admissionId])
@@ -1056,21 +1058,21 @@ model RegistrationToken {
 }
 
 model EnrollmentDraft {
-  id                    Int                   @id @default(autoincrement())
-  admissionId           Int
-  registrationTokenId   Int
-  candidateData         Json
-  parentData            Json?
-  scheduleId            Int?
-  status                EnrollmentDraftStatus @default(DRAFT)
-  expiresAt             DateTime
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
+  id                  Int                   @id @default(autoincrement())
+  admissionId         Int
+  registrationTokenId Int
+  candidateData       Json
+  parentData          Json?
+  scheduleId          Int?
+  status              EnrollmentDraftStatus @default(DRAFT)
+  expiresAt           DateTime
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 
-  admission          Admission          @relation(fields: [admissionId], references: [id], onDelete: Cascade)
-  registrationToken  RegistrationToken  @relation(fields: [registrationTokenId], references: [id], onDelete: Cascade)
-  seatReservation    SeatReservation?
-  payment            PaymentTransaction?
+  admission         Admission           @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  registrationToken RegistrationToken   @relation(fields: [registrationTokenId], references: [id], onDelete: Cascade)
+  seatReservation   SeatReservation?
+  payment           PaymentTransaction?
 
   @@index([admissionId])
   @@index([registrationTokenId])

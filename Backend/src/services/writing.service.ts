@@ -173,15 +173,25 @@ export const toggleActiveWritingService = async (
   try {
     const writing = await prisma.entranceExamWriting.findUnique({
       where: { id },
+      include: {
+        writingOneToFives: true,
+        writingSixSevens: true,
+        writingEights: true,
+      },
     });
 
     if (!writing) {
       throw new AppError("Không tìm thấy đề thi Writing", 404);
     }
-
+    if (!checkIsdone(writing)) {
+      throw new AppError(
+        "Không thể thay đổi trạng thái của đề thi chưa hoàn chỉnh",
+        400,
+      );
+    }
     const updated = await prisma.entranceExamWriting.update({
       where: { id },
-      data: { isActive: !writing.isActive },
+      data: { isActive: !writing.isActive , isDone: true},
     });
 
     return toWritingResponse(updated);
@@ -622,4 +632,10 @@ function toWritingResponseWithParts(writing: any): WritingResponse {
     })) || [],
     writingEights: writing.writingEights || [],
   };
+}
+function checkIsdone(writing: any): boolean {
+  const part1Done = writing.writingOneToFives.length > 0;
+  const part2Done = writing.writingSixSevens.length > 0;
+  const part3Done = writing.writingEights.length > 0;
+  return part1Done && part2Done && part3Done;
 }

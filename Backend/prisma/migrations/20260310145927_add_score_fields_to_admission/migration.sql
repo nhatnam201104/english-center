@@ -1,5 +1,0 @@
--- AlterTable
-ALTER TABLE `admission` ADD COLUMN `scoreListening` INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN `scoreReading` INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN `scoreSpeaking` INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN `scoreWriting` INTEGER NOT NULL DEFAULT 0;
