@@ -4,11 +4,13 @@ export const toEntranceExamResponse = (
   entranceExam: any,
 ): EntranceExamResponse => {
   return {
-    id: entranceExam.id,
-    name: entranceExam.name,
+    admissionId: entranceExam.admissionId,
+    status: entranceExam.status,
     type: entranceExam.type,
-    audio: entranceExam.audio || undefined,
-    createdAt: entranceExam.createdAt,
-    updatedAt: entranceExam.updatedAt,
+    expiresAt: entranceExam.expiresAt,
+    totalListening: entranceExam.totalListening,
+    totalReading: entranceExam.totalReading,
+    entranceScore: entranceExam.entranceScore,
+    isDone: entranceExam.isDone,
   };
 };

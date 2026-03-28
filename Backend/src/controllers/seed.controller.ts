@@ -215,7 +215,7 @@ export const runSeedController = async (req: Request, res: Response) => {
         data: {
           name: "TOEIC Level 3 - General English",
           type: "COURSE",
-          courseSkill: "ALL",
+          courseSkill: "READING_LISTENING",
           status: "ACTIVE",
           price: 5000000,
           sale: 10,
@@ -259,7 +259,7 @@ export const runSeedController = async (req: Request, res: Response) => {
         data: {
           name: "TOEIC Level 4 - Advanced",
           type: "COURSE",
-          courseSkill: "ALL",
+          courseSkill: "READING_LISTENING",
           status: "ACTIVE",
           price: 7000000,
           sale: 15,

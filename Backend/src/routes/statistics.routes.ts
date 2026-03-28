@@ -19,4 +19,7 @@ router.get("/courses", statisticsController.getAllCoursesForFilter);
 // GET /api/statistics/admission-students
 router.get("/admission-students", statisticsController.getAdmissionStudents);
 
+// GET /api/statistics/admission-students/:id
+router.get("/admission-students/:id", statisticsController.getAdmissionStudentDetail);
+
 export default router;

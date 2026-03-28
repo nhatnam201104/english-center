@@ -1,5 +1,16 @@
 import { useState, useEffect } from "react";
-import { Tabs, TabsHeader, TabsBody, Tab, TabPanel, Select, Option, Spinner } from "@material-tailwind/react";
+import {
+  Tabs,
+  TabsHeader,
+  TabsBody,
+  Tab,
+  TabPanel,
+  Select,
+  Option,
+  Spinner,
+  Input,
+  Button,
+} from "@material-tailwind/react";
 import {
   PieChart,
   Pie,
@@ -17,16 +28,27 @@ import {
   CurrencyDollarIcon,
   UserGroupIcon,
   CalendarIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { statisticsService } from "../../../services/statistics.service";
-import type { CourseRegistrationStats, RevenueStats, CourseForFilter } from "../../../services/statistics.service";
+import type {
+  CourseRegistrationStats,
+  RevenueStats,
+  CourseForFilter,
+  StatisticsPeriodFilter,
+  StatisticsPeriodType,
+} from "../../../services/statistics.service";
 
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16"];
 
 const MONTHS_VN = [
   "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
-  "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+  "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12",
 ];
+
+const today = new Date();
+const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+const defaultYear = today.getFullYear().toString();
 
 const StatisticsPage = () => {
   const [activeTab, setActiveTab] = useState<string>("registrations");
@@ -35,8 +57,16 @@ const StatisticsPage = () => {
   const [revenueStats, setRevenueStats] = useState<RevenueStats | null>(null);
   const [courses, setCourses] = useState<CourseForFilter[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [periodType, setPeriodType] = useState<Extract<StatisticsPeriodType, "month" | "year">>("month");
+  const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+  const [selectedYear, setSelectedYear] = useState(defaultYear);
 
-  // Load courses for filter
+  const yearOptions = Array.from({ length: 6 }, (_, index) => (today.getFullYear() - index).toString());
+  const currentPeriodFilter: StatisticsPeriodFilter =
+    periodType === "year"
+      ? { periodType, year: Number(selectedYear) }
+      : { periodType, month: selectedMonth };
+
   useEffect(() => {
     const loadCourses = async () => {
       try {
@@ -49,12 +79,11 @@ const StatisticsPage = () => {
     loadCourses();
   }, []);
 
-  // Load registration stats
   useEffect(() => {
     const loadRegistrationStats = async () => {
       setLoading(true);
       try {
-        const data = await statisticsService.getCourseRegistrationStats();
+        const data = await statisticsService.getCourseRegistrationStats(currentPeriodFilter);
         setRegistrationStats(data);
       } catch (error) {
         console.error("Error loading registration stats:", error);
@@ -63,15 +92,14 @@ const StatisticsPage = () => {
       }
     };
     loadRegistrationStats();
-  }, []);
+  }, [periodType, selectedMonth, selectedYear]);
 
-  // Load revenue stats with optional course filter
   useEffect(() => {
     const loadRevenueStats = async () => {
       setLoading(true);
       try {
         const courseId = selectedCourseId ? parseInt(selectedCourseId) : undefined;
-        const data = await statisticsService.getRevenueStats(courseId);
+        const data = await statisticsService.getRevenueStats(courseId, currentPeriodFilter);
         setRevenueStats(data);
       } catch (error) {
         console.error("Error loading revenue stats:", error);
@@ -80,7 +108,7 @@ const StatisticsPage = () => {
       }
     };
     loadRevenueStats();
-  }, [selectedCourseId]);
+  }, [selectedCourseId, periodType, selectedMonth, selectedYear]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -88,6 +116,20 @@ const StatisticsPage = () => {
       currency: "VND",
     }).format(amount);
   };
+
+  const handleResetPeriodFilter = () => {
+    setPeriodType("month");
+    setSelectedMonth(defaultMonth);
+    setSelectedYear(defaultYear);
+  };
+
+  const periodDisplayLabel =
+    registrationStats?.periodLabel ||
+    (periodType === "month"
+      ? MONTHS_VN[Math.max(0, Number(selectedMonth.split("-")[1] || "1") - 1)]
+      : periodType === "year"
+        ? `Năm ${selectedYear}`
+        : "-");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CustomTooltip = ({ active, payload }: any) => {
@@ -143,13 +185,77 @@ const StatisticsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
         <h1 className="text-2xl font-bold">Thống kê tuyển sinh</h1>
         <p className="text-blue-100 mt-1">Theo dõi và phân tích dữ liệu đăng ký khóa học</p>
       </div>
 
-      {/* Tabs */}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="flex flex-wrap gap-2 md:col-span-2">
+            <Button
+              variant={periodType === "month" ? "filled" : "outlined"}
+              className={periodType === "month" ? "bg-blue-600" : "border-blue-600 text-blue-600"}
+              onClick={() => setPeriodType("month")}
+            >
+              Theo tháng
+            </Button>
+            <Button
+              variant={periodType === "year" ? "filled" : "outlined"}
+              className={periodType === "year" ? "bg-blue-600" : "border-blue-600 text-blue-600"}
+              onClick={() => setPeriodType("year")}
+            >
+              Theo năm
+            </Button>
+
+            {periodType === "month" && (
+              <div className="min-w-[220px] flex-1">
+                <Input
+                  label="Chọn tháng"
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                />
+              </div>
+            )}
+
+            {periodType === "year" && (
+              <div className="relative min-w-[220px] flex-1">
+                <label
+                  htmlFor="statistics-period-year"
+                  className="pointer-events-none absolute left-3 -top-2.5 z-10 bg-white px-1 text-xs text-blue-gray-400"
+                >
+                  Chọn năm
+                </label>
+                <select
+                  id="statistics-period-year"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="w-full appearance-none rounded-[7px] border border-blue-gray-200 bg-transparent px-3 py-[0.65rem] pr-10 text-sm text-blue-gray-700 outline-none transition-all focus:border-2 focus:border-gray-900"
+                >
+                  {yearOptions.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-blue-gray-400" />
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-end">
+            <Button
+              variant="outlined"
+              className="w-full border-blue-600 text-blue-600"
+              onClick={handleResetPeriodFilter}
+            >
+              Đặt lại thời gian
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <Tabs value={activeTab} onChange={(value: string) => setActiveTab(value)}>
         <TabsHeader className="bg-white rounded-xl shadow-sm">
           <Tab value="registrations" className="flex items-center gap-2">
@@ -163,7 +269,6 @@ const StatisticsPage = () => {
         </TabsHeader>
 
         <TabsBody>
-          {/* Registration Tab */}
           <TabPanel value="registrations" className="p-0 pt-6">
             {loading ? (
               <div className="flex justify-center items-center h-64">
@@ -171,7 +276,6 @@ const StatisticsPage = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Summary Cards */}
                 <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                     <div className="flex items-center gap-3">
@@ -193,9 +297,9 @@ const StatisticsPage = () => {
                         <CalendarIcon className="h-6 w-6 text-green-600" />
                       </div>
                       <div>
-                        <p className="text-gray-500 text-sm">Tháng</p>
+                        <p className="text-gray-500 text-sm">Thời gian</p>
                         <p className="text-2xl font-bold text-gray-800">
-                          {registrationStats ? MONTHS_VN[registrationStats.month - 1] : "-"}
+                          {periodDisplayLabel || "-"}
                         </p>
                       </div>
                     </div>
@@ -216,7 +320,6 @@ const StatisticsPage = () => {
                   </div>
                 </div>
 
-                {/* Pie Chart */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     Biểu đồ tỷ lệ đăng ký theo khóa học
@@ -247,12 +350,11 @@ const StatisticsPage = () => {
                     </div>
                   ) : (
                     <div className="flex items-center justify-center h-64 text-gray-500">
-                      Chưa có dữ liệu đăng ký trong tháng này
+                      Chưa có dữ liệu đăng ký trong khoảng thời gian này
                     </div>
                   )}
                 </div>
 
-                {/* Legend & Details */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     Chi tiết đăng ký theo khóa học
@@ -292,7 +394,6 @@ const StatisticsPage = () => {
             )}
           </TabPanel>
 
-          {/* Revenue Tab */}
           <TabPanel value="revenue" className="p-0 pt-6">
             {loading ? (
               <div className="flex justify-center items-center h-64">
@@ -300,9 +401,8 @@ const StatisticsPage = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Filter */}
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                  <div className="max-w-xs">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <Select
                       label="Lọc theo khóa học"
                       value={selectedCourseId}
@@ -315,10 +415,12 @@ const StatisticsPage = () => {
                         </Option>
                       ))}
                     </Select>
+                    <div className="flex items-center rounded-lg bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700">
+                      Kỳ thống kê: {revenueStats?.periodLabel || registrationStats?.periodLabel || "-"}
+                    </div>
                   </div>
                 </div>
 
-                {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white shadow-lg">
                     <div className="flex items-center gap-3">
@@ -363,7 +465,6 @@ const StatisticsPage = () => {
                   </div>
                 </div>
 
-                {/* Revenue Chart */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     Doanh thu theo khóa học
@@ -400,7 +501,6 @@ const StatisticsPage = () => {
                   )}
                 </div>
 
-                {/* Revenue Details Table */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     Chi tiết doanh thu theo khóa học

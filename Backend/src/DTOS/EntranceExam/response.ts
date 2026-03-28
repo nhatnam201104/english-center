@@ -84,3 +84,13 @@ export interface ScoreResponse {
   readingScaledScore: number;
   totalScaledScore: number;
 }
+export interface EntranceExamResponse {
+  admissionId: number;
+  status: string;
+  type: string;
+  expiresAt: string | null;
+  totalListening: number;
+  totalReading: number;
+  entranceScore: number;
+  isDone: boolean;
+}

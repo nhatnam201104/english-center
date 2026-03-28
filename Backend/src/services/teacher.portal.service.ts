@@ -63,6 +63,7 @@ export const getMyCoursesService = async (
     orderBy: { startTime: "desc" },
     include: {
       course: true,
+      classroom: true,
       sessions: true,
       teacher: {
         include: {
@@ -78,6 +79,7 @@ export const getMyCoursesService = async (
     const mapped = toScheduleResponse(schedule);
     return {
       ...mapped,
+      classroomId: schedule.classroomId,
       status: computeScheduleStatus(schedule.startTime, schedule.endTime),
     };
   });
@@ -128,6 +130,7 @@ export const getMyCourseDetailService = async (
     where: { id: scheduleId },
     include: {
       course: true,
+      classroom: true,
       sessions: {
         orderBy: { startTime: "asc" },
       },
@@ -151,6 +154,7 @@ export const getMyCourseDetailService = async (
   const mapped = toScheduleResponse(schedule);
   return {
     ...mapped,
+    classroomId: schedule.classroomId,
     status: computeScheduleStatus(schedule.startTime, schedule.endTime),
   };
 };

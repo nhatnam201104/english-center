@@ -1,19 +1,101 @@
 import prisma from "../config/database";
 
+type StatisticsPeriodType = "day" | "month" | "year";
+
+interface StatisticsPeriodFilter {
+  periodType?: StatisticsPeriodType;
+  date?: string;
+  month?: string;
+  year?: number;
+}
+
+const isValidDate = (date: Date) => !Number.isNaN(date.getTime());
+
+const getPeriodRange = (filter?: StatisticsPeriodFilter) => {
+  const now = new Date();
+  const periodType = filter?.periodType ?? "month";
+
+  if (periodType === "day") {
+    const rawDate = filter?.date ? new Date(`${filter.date}T00:00:00`) : now;
+    const selectedDate = isValidDate(rawDate) ? rawDate : now;
+    const start = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+    const end = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+
+    return {
+      periodType,
+      start,
+      end,
+      month: selectedDate.getMonth() + 1,
+      year: selectedDate.getFullYear(),
+      periodLabel: selectedDate.toLocaleDateString("vi-VN"),
+    };
+  }
+
+  if (periodType === "year") {
+    const parsedYear = Number(filter?.year);
+    const selectedYear =
+      Number.isInteger(parsedYear) && parsedYear > 0 ? parsedYear : now.getFullYear();
+    const start = new Date(selectedYear, 0, 1, 0, 0, 0, 0);
+    const end = new Date(selectedYear, 11, 31, 23, 59, 59, 999);
+
+    return {
+      periodType,
+      start,
+      end,
+      month: 0,
+      year: selectedYear,
+      periodLabel: `Năm ${selectedYear}`,
+    };
+  }
+
+  const [parsedYear, parsedMonth] = (filter?.month ?? "").split("-").map(Number);
+  const selectedYear =
+    Number.isInteger(parsedYear) && parsedYear > 0 ? parsedYear : now.getFullYear();
+  const selectedMonth =
+    Number.isInteger(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12
+      ? parsedMonth
+      : now.getMonth() + 1;
+  const start = new Date(selectedYear, selectedMonth - 1, 1, 0, 0, 0, 0);
+  const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59, 999);
+
+  return {
+    periodType: "month" as const,
+    start,
+    end,
+    month: selectedMonth,
+    year: selectedYear,
+    periodLabel: `Tháng ${selectedMonth}/${selectedYear}`,
+  };
+};
+
 // ─── Get Course Registration Statistics for Current Month ───
 
-export const getCourseRegistrationStatsService = async () => {
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+export const getCourseRegistrationStatsService = async (filter?: StatisticsPeriodFilter) => {
+  const period = getPeriodRange(filter);
 
-  // Get completed enrollments in current month
+  // Get completed enrollments in selected period
   const enrollments = await prisma.enrollmentDraft.findMany({
     where: {
       status: "COMPLETED",
       createdAt: {
-        gte: startOfMonth,
-        lte: endOfMonth,
+        gte: period.start,
+        lte: period.end,
       },
     },
     include: {
@@ -75,19 +157,30 @@ export const getCourseRegistrationStatsService = async () => {
 
   return {
     totalRegistrations,
-    month: now.getMonth() + 1,
-    year: now.getFullYear(),
+    month: period.month,
+    year: period.year,
+    periodType: period.periodType,
+    periodLabel: period.periodLabel,
     courses: courseData,
   };
 };
 
 // ─── Get Revenue Statistics by Course ───
 
-export const getRevenueStatsService = async (courseId?: number) => {
+export const getRevenueStatsService = async (
+  courseId?: number,
+  filter?: StatisticsPeriodFilter
+) => {
+  const period = getPeriodRange(filter);
+
   // Build where clause for payments
   const whereClause: any = {
     status: "SUCCESS",
-    finalizedAt: { not: null },
+    finalizedAt: {
+      not: null,
+      gte: period.start,
+      lte: period.end,
+    },
   };
 
   if (courseId) {
@@ -172,6 +265,8 @@ export const getRevenueStatsService = async (courseId?: number) => {
   return {
     totalRevenue,
     transactionCount: payments.length,
+    periodType: period.periodType,
+    periodLabel: period.periodLabel,
     courses: revenueData,
   };
 };
@@ -391,34 +486,210 @@ export const getAllCoursesForFilterService = async () => {
   }));
 };
 
-// ─── Get Admission Students (with pagination) ───
+// ─── Get Admission Students (with pagination and filters) ───
 
 interface GetAdmissionStudentsParams {
   page?: number;
   limit?: number;
   search?: string;
+  courseId?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
-export const getAdmissionStudentsService = async ({ page = 1, limit = 10, search = "" }: GetAdmissionStudentsParams) => {
-  const skip = (page - 1) * limit;
+type AdmissionCourse = {
+  id: number;
+  name: string;
+};
+
+type AdmissionIdentity = {
+  email: string;
+  phone: string;
+  cccd: string;
+};
+
+type MatchedStudentCourseSource = {
+  user?: {
+    fullname: string;
+    email: string;
+    phone: string;
+  };
+  registerCourses: Array<{
+    course: AdmissionCourse;
+  }>;
+  scheduleRegistrations: Array<{
+    schedule: {
+      course: AdmissionCourse;
+    };
+  }>;
+};
+
+const extractUniqueCourses = (
+  enrollmentDrafts: Array<{
+    seatReservation: {
+      schedule: {
+        course: AdmissionCourse | null;
+      } | null;
+    } | null;
+  }>
+) => {
+  const coursesMap = new Map<number, AdmissionCourse>();
+
+  enrollmentDrafts.forEach((draft) => {
+    const course = draft.seatReservation?.schedule?.course;
+    if (course) {
+      coursesMap.set(course.id, course);
+    }
+  });
+
+  return Array.from(coursesMap.values());
+};
+
+const mergeUniqueCourses = (...courseLists: AdmissionCourse[][]) => {
+  const coursesMap = new Map<number, AdmissionCourse>();
+
+  courseLists.flat().forEach((course) => {
+    coursesMap.set(course.id, course);
+  });
+
+  return Array.from(coursesMap.values());
+};
+
+const extractStudentCourses = (student: MatchedStudentCourseSource | null) => {
+  if (!student) return [];
+
+  const registerCourses = student.registerCourses.map((item) => item.course);
+  const scheduleCourses = student.scheduleRegistrations.map(
+    (item) => item.schedule.course
+  );
+
+  return mergeUniqueCourses(registerCourses, scheduleCourses);
+};
+
+const includesSearch = (value: string | null | undefined, keyword: string) => {
+  if (!value) return false;
+  return value.toLocaleLowerCase().includes(keyword);
+};
+
+const buildIdentityConditions = (identity: Partial<AdmissionIdentity>) => {
+  const orConditions: Array<Record<string, unknown>> = [];
+
+  if (identity.email?.trim()) {
+    orConditions.push({
+      user: {
+        email: identity.email.trim(),
+        deletedAt: null,
+      },
+    });
+  }
+
+  if (identity.phone?.trim()) {
+    orConditions.push({
+      user: {
+        phone: identity.phone.trim(),
+        deletedAt: null,
+      },
+    });
+  }
+
+  if (identity.cccd?.trim()) {
+    orConditions.push({
+      cccd: identity.cccd.trim(),
+    });
+  }
+
+  return orConditions;
+};
+
+const findMatchedStudentByAdmission = async (
+  admission: AdmissionIdentity,
+  enrollmentDrafts: Array<{ candidateData?: unknown }>
+) => {
+  const orConditions: Array<Record<string, unknown>> = [
+    ...buildIdentityConditions(admission),
+  ];
+
+  enrollmentDrafts.forEach((draft) => {
+    const candidateData = draft.candidateData as Partial<AdmissionIdentity> | undefined;
+    if (!candidateData) return;
+
+    buildIdentityConditions(candidateData).forEach((condition) => {
+      orConditions.push(condition);
+    });
+  });
+
+  if (orConditions.length === 0) {
+    return null;
+  }
+
+  return prisma.studentInfo.findFirst({
+    where: {
+      deletedAt: null,
+      OR: orConditions as any[],
+    },
+    select: {
+      user: {
+        select: {
+          fullname: true,
+          email: true,
+          phone: true,
+        },
+      },
+      registerCourses: {
+        select: {
+          course: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+      scheduleRegistrations: {
+        select: {
+          schedule: {
+            select: {
+              course: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+export const getAdmissionStudentsService = async ({ 
+  page = 1, 
+  limit = 10, 
+  search = "",
+  courseId,
+  startDate,
+  endDate
+}: GetAdmissionStudentsParams) => {
+  const normalizedSearch = search.trim();
   
   // Build where clause
   const whereClause: any = {};
   
-  if (search) {
-    whereClause.OR = [
-      { fullname: { contains: search, mode: "insensitive" } },
-      { email: { contains: search, mode: "insensitive" } },
-      { phone: { contains: search, mode: "insensitive" } },
-      { cccd: { contains: search, mode: "insensitive" } },
-    ];
+  // Filter by date range
+  if (startDate || endDate) {
+    whereClause.createdAt = {};
+    if (startDate) {
+      whereClause.createdAt.gte = new Date(startDate);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      whereClause.createdAt.lte = end;
+    }
   }
 
-  // Get total count
-  const total = await prisma.admission.count({ where: whereClause });
-
-  // Get students
-  const students = await prisma.admission.findMany({
+  const admissions = await prisma.admission.findMany({
     where: whereClause,
     select: {
       id: true,
@@ -427,17 +698,196 @@ export const getAdmissionStudentsService = async ({ page = 1, limit = 10, search
       phone: true,
       cccd: true,
       createdAt: true,
+      enrollmentDrafts: {
+        where: {
+          status: "COMPLETED",
+        },
+        select: {
+          candidateData: true,
+          seatReservation: {
+            select: {
+              schedule: {
+                select: {
+                  course: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
-    skip,
-    take: limit,
   });
 
+  const enrichedAdmissions = await Promise.all(
+    admissions.map(async (admission) => {
+      const draftCourses = extractUniqueCourses(admission.enrollmentDrafts);
+      const matchedStudent = await findMatchedStudentByAdmission(
+        admission,
+        admission.enrollmentDrafts
+      );
+      const studentCourses = extractStudentCourses(matchedStudent);
+      const mergedCourses = mergeUniqueCourses(draftCourses, studentCourses);
+      const candidateIdentities = admission.enrollmentDrafts.map((draft) =>
+        (draft.candidateData ?? {}) as Partial<AdmissionIdentity> & {
+          fullname?: string;
+        }
+      );
+
+      return {
+        id: admission.id,
+        fullname: admission.fullname,
+        email: admission.email,
+        phone: admission.phone,
+        cccd: admission.cccd,
+        createdAt: admission.createdAt,
+        courses: mergedCourses,
+        matchedStudentName: matchedStudent?.user?.fullname ?? "",
+        matchedStudentEmail: matchedStudent?.user?.email ?? "",
+        matchedStudentPhone: matchedStudent?.user?.phone ?? "",
+        candidateIdentities,
+      };
+    })
+  );
+
+  const registeredAdmissions = enrichedAdmissions.filter((admission) => {
+    if (admission.courses.length === 0) return false;
+    if (courseId) {
+      return admission.courses.some((course) => course.id === courseId);
+    }
+    return true;
+  });
+
+  const filteredAdmissions = normalizedSearch
+    ? registeredAdmissions.filter((admission) => {
+        const keyword = normalizedSearch.toLocaleLowerCase();
+
+        if (
+          includesSearch(admission.fullname, keyword) ||
+          includesSearch(admission.email, keyword) ||
+          includesSearch(admission.phone, keyword) ||
+          includesSearch(admission.cccd, keyword) ||
+          includesSearch(admission.matchedStudentName, keyword) ||
+          includesSearch(admission.matchedStudentEmail, keyword) ||
+          includesSearch(admission.matchedStudentPhone, keyword)
+        ) {
+          return true;
+        }
+
+        return admission.candidateIdentities.some((candidate) => {
+          return (
+            includesSearch(candidate.fullname, keyword) ||
+            includesSearch(candidate.email, keyword) ||
+            includesSearch(candidate.phone, keyword) ||
+            includesSearch(candidate.cccd, keyword)
+          );
+        });
+      })
+    : registeredAdmissions;
+
+  const total = filteredAdmissions.length;
+  const skip = (page - 1) * limit;
+  const data = filteredAdmissions.slice(skip, skip + limit).map(
+    ({ matchedStudentName, matchedStudentEmail, matchedStudentPhone, candidateIdentities, ...admission }) =>
+      admission
+  );
+
   return {
-    data: students,
+    data,
     total,
     page,
     limit,
     totalPages: Math.ceil(total / limit),
+  };
+};
+
+// ─── Get Admission Student Detail ───
+
+export const getAdmissionStudentDetailService = async (id: number) => {
+  const admission = await prisma.admission.findUnique({
+    where: { id },
+    include: {
+      enrollmentDrafts: {
+        where: {
+          status: "COMPLETED",
+        },
+        select: {
+          candidateData: true,
+          seatReservation: {
+            include: {
+              schedule: {
+                include: {
+                  course: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!admission) {
+    return null;
+  }
+
+  const matchedStudent = await findMatchedStudentByAdmission(
+    admission,
+    admission.enrollmentDrafts
+  );
+
+  // Calculate age from CCCD if available
+  // CCCD format: 12 digits - DOB at position 5-12 (yyyyMMdd)
+  let age: number | null = null;
+  let dob: string | null = null;
+  if (admission.cccd && admission.cccd.length >= 12) {
+    try {
+      const birthDateStr = admission.cccd.substring(5, 13);
+      const birthYear = parseInt(birthDateStr.substring(0, 4));
+      const birthMonth = parseInt(birthDateStr.substring(4, 6)) - 1;
+      const birthDay = parseInt(birthDateStr.substring(6, 8));
+      
+      if (!isNaN(birthYear) && !isNaN(birthMonth) && !isNaN(birthDay)) {
+        const birthDate = new Date(birthYear, birthMonth, birthDay);
+        dob = birthDate.toLocaleDateString("vi-VN");
+        
+        const today = new Date();
+        let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          calculatedAge--;
+        }
+        age = calculatedAge;
+      }
+    } catch (error) {
+      console.error("Error parsing CCCD for age:", error);
+    }
+  }
+
+  // Get registered courses - filter out duplicates
+  const draftCourses = extractUniqueCourses(admission.enrollmentDrafts);
+  const studentCourses = extractStudentCourses(matchedStudent);
+  const courses = mergeUniqueCourses(draftCourses, studentCourses);
+
+  return {
+    id: admission.id,
+    fullname: admission.fullname,
+    email: admission.email,
+    phone: admission.phone,
+    cccd: admission.cccd,
+    age,
+    dob,
+    courses: courses,
+    createdAt: admission.createdAt,
   };
 };

@@ -893,7 +893,19 @@ export const finalizeEnrollmentService = async (
       });
     }
 
-    // 5. Update statuses
+    // 5. Sync admission identity with the final enrollment form so
+    // statistics/search can follow the actual registered student data.
+    await tx.admission.update({
+      where: { id: draft.admissionId },
+      data: {
+        fullname: candidateData.fullname ?? draft.admission.fullname,
+        email: candidateData.email ?? draft.admission.email,
+        phone: candidateData.phone ?? draft.admission.phone,
+        cccd: candidateData.cccd ?? draft.admission.cccd,
+      },
+    });
+
+    // 6. Update statuses
     await tx.enrollmentDraft.update({
       where: { id: enrollmentDraftId },
       data: { status: "COMPLETED" },
