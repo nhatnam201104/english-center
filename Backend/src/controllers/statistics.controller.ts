@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { 
   getCourseRegistrationStatsService, 
-  getRevenueStatsByUserService,
   getAllCoursesForFilterService,
   getAdmissionStudentsService,
-  getAdmissionStudentDetailService
+  getAdmissionStudentDetailService,
+  getRevenueStatsService
 } from "../services/statistics.service";
 
 export class StatisticsController {

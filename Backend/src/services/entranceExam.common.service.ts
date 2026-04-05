@@ -1,10 +1,6 @@
 import prisma from "../config/database";
 import { AdmissionStatus } from "@prisma/client";
 import { AppError } from "../middleware/errorHandler";
-import {
-  EXAM_EXPIRY_MINUTES,
-} from "../config/scoreConfig";
-import crypto from "crypto";
 
 // ─── Admin: Entrance Exam List ───
 

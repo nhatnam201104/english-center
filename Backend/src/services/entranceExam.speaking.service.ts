@@ -2,14 +2,10 @@ import prisma from "../config/database";
 import { AdmissionStatus } from "@prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import {
-  buildEntranceExamLRImageUrl,
+
   buildSpeakingImageUrl,
   buildSpeakingAudioUrl,
 } from "../utils/fileUrl";
-import {
-  gradeSpeakingAnswer,
-  calculateSpeakingScaledScore,
-} from "./aiGrading.service";
 
 /**
  * Start Speaking attempt for SW exam
