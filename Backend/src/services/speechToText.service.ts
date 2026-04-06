@@ -11,7 +11,7 @@ interface TranscriptionResult {
  * Initialize Google Cloud Speech-to-Text client
  */
 const speechClient = new speech.SpeechClient({
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+  credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS || "{}"),
 });
 if (!speechClient) {
   throw new Error("Failed to initialize Google Cloud Speech client");
