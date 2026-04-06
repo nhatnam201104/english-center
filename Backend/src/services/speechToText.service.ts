@@ -21,7 +21,7 @@ if (!speechClient) {
  * Initialize Google Cloud Storage client
  */
 const storage = new Storage({
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+  credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS || "{}"),
 });
 const bucketName = process.env.GOOGLE_STORAGE_BUCKET || "englistcenter";
 const bucket = storage.bucket(bucketName);
